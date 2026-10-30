@@ -35,13 +35,13 @@ export default async function ModerationPage() {
         description={`${q.items.length} ${q.items.length === 1 ? "contribution" : "contributions"}, oldest first`}
       >
         {q.items.length ? (
-          <ul className="grid gap-2">
+          <ul className="border-t">
             {q.items.map((o) => (
-              <li key={o.id} className="bg-muted flex flex-wrap items-center justify-between gap-3 rounded-[12px] p-4">
+              <li key={o.id} className="flex flex-wrap items-center justify-between gap-3 border-b py-4">
                 <div className="min-w-0 flex-1">
-                  <p className="text-muted-foreground text-[12px]">{o.org}</p>
-                  <p className="text-[14px] font-medium">{o.title}</p>
-                  <p className="text-muted-foreground mt-0.5 text-[13px]">
+                  <p className="text-muted-foreground font-mono text-[12px] leading-4">{o.org}</p>
+                  <p className="mt-1 text-[16px] leading-6 font-medium">{o.title}</p>
+                  <p className="text-muted-foreground mt-0.5 text-[14px] leading-5">
                     {o.category} · {PRODUCT_NAME[o.offering] ?? o.offering} · Submitted{" "}
                     <span className="tabular-nums">{date(o.updated_at)}</span>
                   </p>

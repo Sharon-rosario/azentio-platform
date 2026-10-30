@@ -1,4 +1,4 @@
-import { EyeOff, Lightbulb, Quote, Sparkles } from "lucide-react";
+import { Check, EyeOff, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -48,8 +48,8 @@ function ThemePanel({ t, p }: { t: Theme; p: Principal }) {
 
   if (t.suppressed) {
     return (
-      <Panel title={t.name} description={offering}>
-        <p className="text-muted-foreground flex items-start gap-2 text-[14px]">
+      <Panel title={<span className="text-[24px] leading-[30px] font-normal tracking-[-0.015em]">{t.name}</span>} description={offering}>
+        <p className="text-muted-foreground flex items-start gap-2 text-[15px] leading-6">
           <EyeOff className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
           Not enough organisations yet (needs at least {MIN_ORGS} distinct organisations before details are shared)
         </p>
@@ -67,7 +67,7 @@ function ThemePanel({ t, p }: { t: Theme; p: Principal }) {
   return (
     <Panel
       title={
-        <span className="flex flex-wrap items-center gap-2">
+        <span className="flex flex-wrap items-center gap-3 text-[24px] leading-[30px] font-normal tracking-[-0.015em]">
           {t.name}
           {below && (
             <span className={cn("inline-flex h-6 items-center rounded-full px-2.5 text-xs font-medium", TONES.warning)}>
@@ -79,24 +79,24 @@ function ThemePanel({ t, p }: { t: Theme; p: Principal }) {
       description={offering}
       action={actions.length ? <div className="flex flex-wrap justify-end gap-2">{actions}</div> : undefined}
     >
-      <p className="text-[14px] leading-[22px]">{t.description}</p>
+      <p className="max-w-[68ch] text-[16px] leading-[26px]">{t.description}</p>
 
-      <dl className="mt-4 grid gap-3 sm:grid-cols-3">
-        <Fact label="Distinct organisations" value={<span className="tabular-nums">{t.orgs ?? 0}</span>} />
-        <Fact label="Contributions" value={<span className="tabular-nums">{t.contributions ?? 0}</span>} />
-        <Fact label="Observation period" value={t.period ?? "—"} />
+      <dl className="mt-6 grid gap-6 sm:grid-cols-3">
+        <Fact label="distinct organisations" value={<span className="tabular-nums">{t.orgs ?? 0}</span>} />
+        <Fact label="contributions" value={<span className="tabular-nums">{t.contributions ?? 0}</span>} />
+        <Fact label="observation period" value={<span className="text-[16px] leading-6">{t.period ?? "—"}</span>} />
       </dl>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+      <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-6">
         <section aria-labelledby={`ev-${t.id}`}>
-          <h3 id={`ev-${t.id}`} className="text-[13px] font-medium">Evidence</h3>
+          <h3 id={`ev-${t.id}`} className="text-muted-foreground font-mono text-[12px] leading-4">evidence</h3>
           {t.evidence.length ? (
-            <ul className="mt-2 space-y-2">
+            <ul className="mt-3 border-t">
               {t.evidence.map((e) => (
-                <li key={e.id} className="bg-muted rounded-[12px] p-3">
-                  <p className="text-[14px] font-medium">{e.title}</p>
-                  <p className="text-muted-foreground mt-0.5 line-clamp-3 text-[13px] leading-5">{e.body}</p>
-                  <p className="text-muted-foreground mt-1.5 text-[12px]">
+                <li key={e.id} className="border-b py-3.5">
+                  <p className="text-[15px] leading-6 font-medium">{e.title}</p>
+                  <p className="text-muted-foreground mt-0.5 line-clamp-3 text-[14px] leading-[21px]">{e.body}</p>
+                  <p className="text-muted-foreground mt-2 font-mono text-[12px] leading-4">
                     {[e.industry, e.region, e.period].filter(Boolean).join(" · ")} · {e.attribution || "De-identified"}
                   </p>
                 </li>
@@ -108,23 +108,21 @@ function ThemePanel({ t, p }: { t: Theme; p: Principal }) {
         </section>
 
         <section aria-labelledby={`sum-${t.id}`}>
-          <h3 id={`sum-${t.id}`} className="flex items-center gap-1.5 text-[13px] font-medium">
-            <Sparkles className="text-primary size-3.5" /> AIRA summary
-          </h3>
+          <h3 id={`sum-${t.id}`} className="text-muted-foreground font-mono text-[12px] leading-4">aira summary</h3>
           {t.summary ? (
-            <div className="mt-2 rounded-[12px] border p-3">
-              <p className="text-[14px] leading-[22px] whitespace-pre-line">{t.summary}</p>
-              <p className="text-muted-foreground mt-2 text-[12px]">
+            <div className="border-primary mt-3 border-l-2 pl-5">
+              <p className="text-[16px] leading-[26px] whitespace-pre-line">{t.summary}</p>
+              <p className="text-muted-foreground mt-3 text-[13px] leading-5">
                 AI-generated from approved contributions; quotes verified against sources.
                 {(t.summary_model || t.summary_at) && (
                   <> {[t.summary_model, t.summary_at && dateTime(t.summary_at)].filter(Boolean).join(" · ")}</>
                 )}
               </p>
               {t.citations.length > 0 && (
-                <ul className="mt-3 space-y-2 border-t pt-3">
+                <ul className="mt-4 border-t">
                   {t.citations.map((c, i) => (
-                    <li key={i} className="flex gap-2 text-[13px]">
-                      <Quote className="text-muted-foreground mt-0.5 size-3.5 shrink-0" />
+                    <li key={i} className="flex gap-2.5 border-b py-2.5 text-[14px] leading-[21px]">
+                      <Check aria-label="Verified" className="text-primary mt-1 size-3.5 shrink-0" strokeWidth={2.5} />
                       <span>
                         <q className="italic">{c.quote}</q>
                         <span className="text-muted-foreground"> from &ldquo;{titleOf.get(c.shared_id) ?? "a contribution"}&rdquo;</span>
@@ -147,21 +145,20 @@ function ThemePanel({ t, p }: { t: Theme; p: Principal }) {
             />
           )}
 
-          <h3 className="mt-5 text-[13px] font-medium">Linked improvement ideas</h3>
+          <h3 className="text-muted-foreground mt-8 font-mono text-[12px] leading-4">linked improvement ideas</h3>
           {t.ideas.length ? (
-            <ul className="mt-2 divide-y">
+            <ul className="mt-3 divide-y border-y">
               {t.ideas.map((i) => (
-                <li key={i.id} className="flex items-center justify-between gap-3 py-2 text-[14px]">
-                  <Link href="/portal/ideas" className="flex min-w-0 items-center gap-2 outline-none hover:underline focus-visible:underline">
-                    <Lightbulb className="text-muted-foreground size-4 shrink-0" />
-                    <span className="truncate">{i.title}</span>
+                <li key={i.id} className="flex items-center justify-between gap-3 py-3 text-[15px] leading-6">
+                  <Link href="/portal/ideas" className="min-w-0 truncate outline-none hover:underline focus-visible:underline">
+                    {i.title}
                   </Link>
                   <StatusBadge value={i.status} />
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-muted-foreground mt-2 text-[13px]">No ideas linked to this theme yet.</p>
+            <p className="text-muted-foreground mt-3 text-[14px]">No ideas linked to this theme yet.</p>
           )}
         </section>
       </div>
@@ -171,9 +168,9 @@ function ThemePanel({ t, p }: { t: Theme; p: Principal }) {
 
 function Fact({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="bg-muted rounded-[12px] px-3 py-2.5">
-      <dt className="text-muted-foreground text-[12px]">{label}</dt>
-      <dd className="mt-0.5 text-[15px] font-medium">{value}</dd>
+    <div className="border-t pt-3">
+      <dt className="text-muted-foreground font-mono text-[12px] leading-4">{label}</dt>
+      <dd className="mt-1.5 text-[24px] leading-[30px] tracking-[-0.015em]">{value}</dd>
     </div>
   );
 }
