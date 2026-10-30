@@ -208,3 +208,36 @@ test("cross-site writes are refused", async () => {
   const r = await call("/api/observations", { cookie: sara, method: "POST", origin: "https://evil.example", body: {} });
   assert.equal(r.status, 403);
 });
+
+test("malformed input is refused with 4xx on every write route, never a 500", async () => {
+  // Wrong JSON shapes, and likely field names carrying the wrong types. Path ids are absent or non-numeric, so
+  // nothing seeded can change. Logout is skipped: it takes no body and would end the session.
+  const ROUTES = [
+    ["POST", "/api/auth/code"], ["POST", "/api/auth/verify"], ["POST", "/api/requests"],
+    ["POST", "/api/content"], ["POST", "/api/ideas"], ["PATCH", "/api/ideas/:id"],
+    ["POST", "/api/invitations/:id"], ["POST", "/api/me/workspace"], ["POST", "/api/members"],
+    ["DELETE", "/api/members/:id"], ["POST", "/api/moderation/:id"], ["POST", "/api/observations"],
+    ["PATCH", "/api/observations/:id"], ["POST", "/api/observations/:id/submit"],
+    ["POST", "/api/observations/:id/withdraw"], ["POST", "/api/reports/:id"],
+    ["POST", "/api/shared/:id/report"], ["POST", "/api/themes/:id/synthesize"],
+  ];
+  const wrong = { email: 123, code: [], title: {}, body: 12, summary: [], status: [], role: 7, membershipId: "abc",
+    decision: {}, reason: 99, consents: "yes", visibility: 3, offering: [], category: {}, kind: 5, audience: [] };
+  const BODIES = ["null", "[]", '"text"', "42", "{}", JSON.stringify(wrong), "{not json"];
+  const people = [null, SARA, RAVI, OMAR, PRIYA, "lena@azentio.com", ADMIN];
+  const cookies = await Promise.all(people.map((e) => (e ? login(e) : null)));
+  const failures = [];
+  for (const [method, pattern] of ROUTES) {
+    for (const id of pattern.includes(":id") ? ["999999", "abc"] : [""]) {
+      const path = pattern.replace(":id", id);
+      for (const cookie of cookies) {
+        for (const raw of BODIES) {
+          const headers = { "content-type": "application/json", ...(cookie ? { cookie } : {}) };
+          const res = await fetch(BASE + path, { method, headers, body: raw });
+          if (res.status >= 500) failures.push(`${method} ${path} ${raw.slice(0, 30)} -> ${res.status}`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(failures, []);
+});
