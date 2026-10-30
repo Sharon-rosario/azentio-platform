@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 export const SITE_NAV = [
   { href: "/products", label: "Products" },
   { href: "/solutions", label: "Solutions" },
+  { href: "/how-it-works", label: "How it works" },
   { href: "/security", label: "Security" },
   { href: "/insights", label: "Insights" },
   { href: "/media", label: "Media" },
