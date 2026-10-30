@@ -32,7 +32,9 @@ export async function listThemes(p: Principal | null): Promise<Theme[]> {
   authorize(p, "themes.read");
   const themes = await all<{ id: number; name: string; offering: string; description: string; summary: string | null;
     summary_citations: string | null; summary_at: string | null; summary_model: string | null }>("select * from themes order by id");
-  return Promise.all(themes.map(async (t) => {
+  // Themes are read in turn (not Promise.all), so a request never has more queries in flight than the pool can serve.
+  const out: Theme[] = [];
+  for (const t of themes) out.push(await (async () => {
     const evidence = await all<Theme["evidence"][number] & { org_id: number }>(`select s.id, s.title, s.body, s.industry, s.region, s.period,
       s.attribution, o.org_id from shared_versions s join observations o on o.id = s.observation_id
       where s.theme_id = ? and s.status = 'published' order by s.published_at`, t.id);
@@ -51,7 +53,8 @@ export async function listThemes(p: Principal | null): Promise<Theme[]> {
       summary_at: suppressed ? null : t.summary_at, summary_model: suppressed ? null : t.summary_model,
       ideas,
     };
-  }));
+  })());
+  return out;
 }
 
 const Summary = z.object({
