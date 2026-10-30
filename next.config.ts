@@ -29,6 +29,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // PGlite loads its WASM and data files relative to its own module; bundling breaks those paths.
+  serverExternalPackages: ["@electric-sql/pglite"],
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
