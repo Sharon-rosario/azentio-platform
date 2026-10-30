@@ -23,40 +23,48 @@ const PERSONAS = [
 ];
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
-  const next = (await searchParams).next;
+  const sp = await searchParams;
+  const next = safePath(sp.next) ?? "/portal";
+  const as = DEMO_MODE && typeof sp.as === "string" ? PERSONAS.find((p) => p.email === sp.as)?.email : undefined;
   return (
-    <main className="flex min-h-svh items-center justify-center px-4 py-12">
-      <div className="grid w-full max-w-[920px] gap-6 md:grid-cols-[1fr_1fr]">
-        <section className="bg-card rounded-2xl p-8">
-          <Link href="/" className="outline-none focus-visible:underline"><Wordmark /></Link>
-          <h1 className="mt-8 text-[24px] leading-[30px] font-medium tracking-[-0.015em]">Sign in</h1>
-          <p className="text-muted-foreground mt-1 text-[14px]">
-            We email you a 6-digit code. Clients join through an invitation from their organisation; employees use their
-            @azentio.com address.
+    <main className="mx-auto grid min-h-svh w-full max-w-[1280px] content-center gap-14 px-4 py-14 sm:px-6 lg:grid-cols-12 lg:gap-6">
+      <section className="lg:col-span-5">
+        <Link href="/" className="inline-block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"><Wordmark /></Link>
+        <h1 className="mt-14 text-[44px] leading-[48px] font-normal tracking-[-0.025em]">Sign in</h1>
+        <p className="text-muted-foreground mt-4 max-w-md text-[17px] leading-[27px]">
+          We email you a 6-digit code. Clients join through an invitation from their organisation; employees use their
+          @azentio.com address.
+        </p>
+        <div className="max-w-md">
+          <LoginForm key={as ?? ""} next={next} demo={DEMO_MODE} defaultEmail={as} />
+        </div>
+      </section>
+      {DEMO_MODE && (
+        <section aria-labelledby="personas-title" className="lg:col-span-6 lg:col-start-7 lg:pt-[92px]">
+          <h2 id="personas-title" className="text-muted-foreground font-mono text-[12px] leading-4">demo personas</h2>
+          <p className="text-muted-foreground mt-2 text-[14px] leading-5">
+            Synthetic accounts, one per role. Pick one to fill in the email; nothing is emailed in the demo, so the code
+            appears on screen from the outbox.
           </p>
-          <LoginForm next={safePath(next) ?? "/portal"} demo={DEMO_MODE} />
-        </section>
-        {DEMO_MODE && (
-          <section className="rounded-2xl border border-dashed p-6">
-            <p className="text-[13px] font-medium">Demo personas</p>
-            <p className="text-muted-foreground mt-1 text-[13px]">
-              Synthetic accounts, one per role. Nothing is emailed in the demo: the code appears on screen, taken from the
-              outbox.
-            </p>
-            <ul className="mt-4 divide-y">
-              {PERSONAS.map((p) => (
-                <li key={p.email} className="flex items-center justify-between gap-3 py-2 text-[13px]">
-                  <span>
+          <ul className="mt-5 border-t">
+            {PERSONAS.map((p) => (
+              <li key={p.email} className="border-b">
+                <Link
+                  href={`/login?as=${encodeURIComponent(p.email)}${next !== "/portal" ? `&next=${encodeURIComponent(next)}` : ""}`}
+                  aria-current={as === p.email ? "true" : undefined}
+                  className="group hover:bg-muted/60 focus-visible:bg-muted aria-[current]:bg-muted grid gap-1 px-1 py-3 outline-none transition-colors duration-150 sm:grid-cols-[1fr_auto] sm:items-baseline sm:gap-4"
+                >
+                  <span className="text-[15px] leading-6">
                     <span className="font-medium">{p.who}</span>
                     <span className="text-muted-foreground"> · {p.role}</span>
                   </span>
-                  <code className="text-muted-foreground font-mono text-[11px]">{p.email}</code>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-      </div>
+                  <span className="text-muted-foreground group-hover:text-foreground font-mono text-[12px] leading-4">{p.email}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   );
 }

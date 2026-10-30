@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 
-export function LoginForm({ next, demo }: { next: string; demo: boolean }) {
+export function LoginForm({ next, demo, defaultEmail = "" }: { next: string; demo: boolean; defaultEmail?: string }) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(defaultEmail);
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
   const [busy, setBusy] = useState(false);
@@ -46,30 +46,30 @@ export function LoginForm({ next, demo }: { next: string; demo: boolean }) {
 
   if (step === "email") {
     return (
-      <form onSubmit={send} className="mt-6 space-y-3">
+      <form onSubmit={send} className="mt-8 space-y-3">
         <label className="block text-[13px] font-medium" htmlFor="email">Work email</label>
         <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)}
           placeholder="you@company.com" />
-        <Button type="submit" className="w-full" disabled={busy}>
+        <Button type="submit" size="lg" className="h-11 w-full text-[15px]" disabled={busy}>
           <Mail /> {busy ? "Sending…" : "Email me a code"}
         </Button>
       </form>
     );
   }
   return (
-    <form onSubmit={verify} className="mt-6 space-y-3">
+    <form onSubmit={verify} className="mt-8 space-y-3">
       <p className="text-[14px]">
         We sent a code to <span className="font-medium">{email}</span>. It expires in 10 minutes and works once.
       </p>
       {demo && demoCode && (
-        <p className="bg-warning-soft text-warning rounded-[12px] px-3 py-2 text-[13px]">
+        <p className="border-warning bg-warning-soft border-l-2 px-4 py-2.5 text-[14px] leading-5">
           Demo mode: not emailed. The code in the outbox is <span className="font-mono font-medium tabular-nums">{demoCode}</span>
         </p>
       )}
       <label className="block text-[13px] font-medium" htmlFor="code">6-digit code</label>
       <Input id="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} required value={code}
         onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} className="font-mono tracking-[0.3em]" />
-      <Button type="submit" className="w-full" disabled={busy || code.length !== 6}>
+      <Button type="submit" size="lg" className="h-11 w-full text-[15px]" disabled={busy || code.length !== 6}>
         {busy ? "Checking…" : "Sign in"} <ArrowRight />
       </Button>
       <button type="button" className="text-muted-foreground text-[13px] hover:underline" onClick={() => { setStep("email"); setCode(""); }}>
