@@ -82,18 +82,18 @@ const MATRIX: { group: string; rows: { feature: string; note?: string; cells: Ce
 function PersonaCard({ p, bank, i }: { p: Persona; bank: boolean; i: number }) {
   return (
     <li data-reveal style={{ "--reveal-delay": `${i * 60}ms` } as CSSVars} className="bg-card shadow-card lift flex gap-4 rounded-2xl border p-5">
-      <span aria-hidden className={`grid size-12 shrink-0 place-items-center rounded-xl text-[18px] font-semibold ${bank ? "bg-brand-soft text-brand-strong" : "bg-navy text-brand"}`}>
+      <span aria-hidden className={`grid size-12 shrink-0 place-items-center rounded-xl text-[18px] font-semibold ${bank ? "bg-brand-soft text-primary" : "bg-navy text-brand"}`}>
         {p.name[0]}
       </span>
       <div className="min-w-0">
-        <h4 className="text-[17px] leading-6 font-semibold">
+        <h3 className="text-[17px] leading-6 font-semibold">
           {p.name} <span className="text-muted-foreground text-[13px] font-normal">· {p.role}{p.org ? ` · ${p.org}` : ""}</span>
-        </h4>
+        </h3>
         <p className="text-muted-foreground mt-1 text-[14px] leading-[22px]">{p.does}</p>
         <ul className="mt-3 flex flex-wrap gap-1.5" aria-label={`What ${p.name} can and can't do`}>
           {p.can.map((c) => (
             <li key={c} className="bg-brand-soft text-foreground inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px]">
-              <Check aria-hidden className="text-brand-strong size-3" strokeWidth={2.5} /> {c}
+              <Check aria-hidden className="text-primary size-3" strokeWidth={2.5} /> {c}
             </li>
           ))}
           {p.cannot.map((c) => (
@@ -120,14 +120,14 @@ export default function HowItWorksPage() {
         <h2 id="sides-title" className="text-[26px] leading-[34px] tracking-[-0.02em]">The two sides</h2>
         <div className="grid gap-8 lg:grid-cols-2">
           <div>
-            <p className="text-brand-strong mb-3 flex items-center gap-2 text-[13px] font-semibold tracking-[0.08em] uppercase">
+            <p className="text-primary mb-3 flex items-center gap-2 text-[13px] font-semibold tracking-[0.08em] uppercase">
               <Building2 aria-hidden className="size-4" /> Banks · the people sharing
             </p>
             <ul className="space-y-3">{BANKS.map((p, i) => <PersonaCard key={p.name} p={p} bank i={i} />)}</ul>
           </div>
           <div>
             <p className="mb-3 flex items-center gap-2 text-[13px] font-semibold tracking-[0.08em] uppercase">
-              <Sparkles aria-hidden className="text-brand-strong size-4" /> Azentio · the people running it
+              <Sparkles aria-hidden className="text-primary size-4" /> Azentio · the people running it
             </p>
             <ul className="space-y-3">{AZENTIO.map((p, i) => <PersonaCard key={p.name} p={p} bank={false} i={i} />)}</ul>
           </div>
@@ -177,7 +177,7 @@ export default function HowItWorksPage() {
               <tr>
                 <th scope="col" className="bg-navy px-4 py-3 text-left text-[13px] font-medium text-white">Feature</th>
                 {COLS.map((c, i) => (
-                  <th key={c} scope="col" className={`px-2 py-3 text-center text-[13px] font-medium ${i < 4 ? "bg-brand-strong text-white" : "bg-navy text-white"}`}>{c}</th>
+                  <th key={c} scope="col" className={`px-2 py-3 text-center text-[13px] font-medium ${i < 4 ? "bg-primary text-primary-foreground" : "bg-navy text-white"}`}>{c}</th>
                 ))}
               </tr>
             </thead>
@@ -198,8 +198,8 @@ export default function HowItWorksPage() {
                           <Minus aria-label="Not allowed" className="text-muted-foreground/40 mx-auto size-4" />
                         ) : (
                           <span className="inline-flex flex-col items-center">
-                            <Check aria-label="Allowed" className="text-brand-strong size-5" strokeWidth={2.5} />
-                            {typeof v === "string" && <span className="text-brand-strong text-[11px] leading-3">{v}</span>}
+                            <Check aria-label="Allowed" className="text-primary size-5" strokeWidth={2.5} />
+                            {typeof v === "string" && <span className="text-primary text-[11px] leading-3">{v}</span>}
                           </span>
                         )}
                       </td>

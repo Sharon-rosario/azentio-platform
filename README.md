@@ -20,7 +20,7 @@ shared learning that improves Azentio's products.**
 
 <br>
 
-<img src="docs/screenshots/home.jpg" alt="The azentio.ai public site" width="860">
+<img src="docs/screenshots/demo.gif" alt="A 25-second tour: public site, sign-in, a bank's workspace, consent, moderation, shared learning, themes with AIRA, withdrawal" width="860">
 
 <br><br>
 
@@ -179,6 +179,10 @@ still open.
 escalation, private drafts, payload contents, withdrawal, revocation, CSRF, malformed input on every write route).
 CI runs them against a production build on every pull request. The threat model (STRIDE), OWASP Top 10 mapping, what is
 simulated and the known limitations are in [SECURITY.md](SECURITY.md).
+
+**Lighthouse (30 Oct 2026):** Accessibility **100** and Best practices **100** on the home page (desktop), How it works
+(desktop) and sign-in (mobile). SEO scores low on purpose: every page carries `noindex`, because this prototype uses
+Azentio's real brand and must not appear in search results next to azentio.com.
 
 ## Quick start
 
