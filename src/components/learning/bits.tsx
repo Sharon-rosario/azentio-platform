@@ -107,8 +107,3 @@ export function Facts({ items, className }: { items: [string, ReactNode][]; clas
     </dl>
   );
 }
-
-/** A quiet pill for metadata on a card (category, region, period…). */
-export function MetaPill({ children }: { children: ReactNode }) {
-  return <span className="bg-muted text-muted-foreground inline-flex h-6 items-center rounded-full px-2.5 text-[12px]">{children}</span>;
-}

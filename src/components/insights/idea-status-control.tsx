@@ -43,7 +43,7 @@ export function IdeaStatusControl({
   };
 
   return (
-    <form onSubmit={save} className="bg-muted grid gap-3 rounded-[12px] p-3">
+    <form onSubmit={save} className="grid gap-3 border-t pt-4">
       <div className="grid gap-1.5">
         <label htmlFor={`${id}-status`} className="text-[13px] font-medium">Status</label>
         <Select items={statuses.map((s) => ({ value: s, label: s }))} value={value} onValueChange={(v) => v && setValue(v)}>

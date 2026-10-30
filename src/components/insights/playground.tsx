@@ -85,13 +85,13 @@ export function Playground() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-8">
       <Banner tone="warning" title="Sample data · simulated output · not a credit decision">
         Every applicant and number on this page is invented. The calculation runs in your browser and nothing is saved.
       </Banner>
 
-      <section className="bg-card rounded-2xl p-5">
-        <h2 className="text-[15px] leading-5 font-medium">1. Offering</h2>
+      <section className="border-t pt-5">
+        <h2 className="text-[17px] leading-6 font-medium">1. Offering</h2>
         <div role="radiogroup" aria-label="Offering" className="mt-3 flex flex-wrap gap-1.5">
           {OFFERINGS.map((o) => {
             const on = o.value === "sme-credit-decisioning";
@@ -105,7 +105,7 @@ export function Playground() {
                 title={on ? undefined : "No sandbox for this offering yet"}
                 className={cn(
                   "focus-visible:ring-ring inline-flex h-9 items-center rounded-full px-3.5 text-[13px] outline-none focus-visible:ring-2 disabled:opacity-50",
-                  on ? "bg-foreground text-background font-medium" : "bg-muted",
+                  on ? "bg-foreground text-background font-medium" : "bg-card border",
                 )}
               >
                 {o.label}
@@ -116,8 +116,8 @@ export function Playground() {
         <p className="text-muted-foreground mt-2 text-[12px]">Only SME Credit Decisioning has a sandbox so far.</p>
       </section>
 
-      <section className="bg-card rounded-2xl p-5">
-        <h2 className="text-[15px] leading-5 font-medium">2. Applicant</h2>
+      <section className="border-t pt-5">
+        <h2 className="text-[17px] leading-6 font-medium">2. Applicant</h2>
         <div role="radiogroup" aria-label="Applicant" className="mt-3 grid gap-2 md:grid-cols-3">
           {APPLICANTS.map((a) => {
             const on = a.id === applicantId;
@@ -129,7 +129,7 @@ export function Playground() {
                 aria-checked={on}
                 onClick={() => pick(a.id)}
                 className={cn(
-                  "focus-visible:ring-ring rounded-[12px] border p-3 text-left transition-colors duration-150 outline-none focus-visible:ring-2",
+                  "focus-visible:ring-ring bg-card rounded-md border p-3 text-left transition-colors duration-150 outline-none focus-visible:ring-2",
                   on ? "border-foreground" : "hover:bg-muted",
                 )}
               >
@@ -168,10 +168,10 @@ export function Playground() {
       </section>
 
       {result && (
-        <section className="bg-card rounded-2xl p-5" aria-live="polite">
-          <h2 className="text-[15px] leading-5 font-medium">3. Simulated output</h2>
+        <section className="border-t pt-5" aria-live="polite">
+          <h2 className="text-[17px] leading-6 font-medium">3. Simulated output</h2>
           <p className="text-muted-foreground mt-0.5 text-[13px]">Debt-service ratio = existing EMI ÷ average monthly revenue in the window</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="mt-5 grid gap-6 sm:grid-cols-3">
             <Ratio label={`Last 3 months (${MONTHS[n - 3]} to ${MONTHS[n - 1]})`} value={result.dsrRecent} hint={`Avg revenue ${money(result.recentAvg)}`} />
             <Ratio label={`Same months last year (${MONTHS[n - 15]} to ${MONTHS[n - 13]})`} value={result.dsrLastYear} hint={`Avg revenue ${money(result.lastYearAvg)}`} />
             <Ratio label="Full last 12 months" value={result.dsrYear} hint="For reference" />
@@ -185,7 +185,7 @@ export function Playground() {
       )}
 
       <form
-        className="bg-card rounded-2xl p-5"
+        className="border-t pt-5"
         onSubmit={(e) => {
           e.preventDefault();
           toast.success("Feedback noted (not stored in this demo)");
@@ -193,7 +193,7 @@ export function Playground() {
           setComment("");
         }}
       >
-        <h2 className="text-[15px] leading-5 font-medium">Feedback on this prototype</h2>
+        <h2 className="text-[17px] leading-6 font-medium">Feedback on this prototype</h2>
         <div role="radiogroup" aria-label="Was this useful?" className="mt-3 flex flex-wrap gap-1.5">
           {([["useful", "Useful", ThumbsUp], ["needs_work", "Needs work", ThumbsDown]] as const).map(([value, label, Icon]) => (
             <button
@@ -204,7 +204,7 @@ export function Playground() {
               onClick={() => setRating(value)}
               className={cn(
                 "focus-visible:ring-ring inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] transition-colors duration-150 outline-none focus-visible:ring-2",
-                rating === value ? "bg-foreground text-background font-medium" : "bg-muted hover:text-foreground",
+                rating === value ? "bg-foreground text-background font-medium" : "bg-card border hover:text-foreground",
               )}
             >
               <Icon className="size-3.5" /> {label}
@@ -224,9 +224,9 @@ export function Playground() {
 
 function Ratio({ label, value, hint }: { label: string; value: number; hint: string }) {
   return (
-    <div className="bg-muted rounded-[12px] p-3">
-      <p className="text-muted-foreground text-[12px]">{label}</p>
-      <p className="mt-1 text-[24px] leading-[30px] font-medium tracking-[-0.015em] tabular-nums">{pct(value, 1)}</p>
+    <div className="border-t pt-3">
+      <p className="text-muted-foreground font-mono text-[12px] leading-4">{label}</p>
+      <p className="mt-1.5 text-[32px] leading-[38px] font-normal tracking-[-0.02em] tabular-nums">{pct(value, 1)}</p>
       <p className="text-muted-foreground text-[12px] tabular-nums">{hint}</p>
     </div>
   );

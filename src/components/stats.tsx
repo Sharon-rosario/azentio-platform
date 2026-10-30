@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import { ArrowRight, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -41,30 +41,36 @@ export function StatChip({
   );
 }
 
-/** KPI tile: one number, what it means, and how it's read. */
+/** A ledger figure: label, number, what it means. Ruled on top, no card; with href it opens the list it counts. */
 export function StatTile({
   label,
   value,
   hint,
-  icon: Icon,
+  href,
   className,
 }: {
   label: string;
   value: ReactNode;
   hint?: ReactNode;
-  icon?: LucideIcon;
+  href?: string;
   className?: string;
 }) {
-  return (
-    <div className={cn("bg-card flex flex-col justify-between gap-6 rounded-2xl p-5", className)}>
-      <div className="text-muted-foreground flex items-center justify-between text-[13px]">
-        <span>{label}</span>
-        {Icon && <Icon className="size-4" strokeWidth={1.75} />}
-      </div>
-      <div>
-        <p className="text-[32px] leading-[38px] font-medium tracking-[-0.02em] tabular-nums">{value}</p>
-        {hint && <p className="text-muted-foreground mt-1 text-[13px]">{hint}</p>}
-      </div>
-    </div>
+  const body = (
+    <>
+      <span className="text-muted-foreground flex items-center justify-between gap-2 text-[14px] leading-5">
+        {label}
+        {href && <ArrowRight aria-hidden className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" strokeWidth={1.5} />}
+      </span>
+      <span className="mt-3 block text-[44px] leading-[48px] font-normal tracking-[-0.025em] tabular-nums">{value}</span>
+      {hint && <span className="text-muted-foreground mt-1 block text-[13px] leading-[18px]">{hint}</span>}
+    </>
+  );
+  const cls = cn("block border-t pt-4 pb-1", className);
+  return href ? (
+    <Link href={href} className={cn(cls, "group hover:border-foreground focus-visible:ring-ring rounded-none outline-none transition-colors duration-150 focus-visible:ring-2")}>
+      {body}
+    </Link>
+  ) : (
+    <div className={cls}>{body}</div>
   );
 }

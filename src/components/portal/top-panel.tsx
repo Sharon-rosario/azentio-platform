@@ -28,7 +28,7 @@ export function navFor(p: Principal): NavItem[] {
 export function TopPanel({ p, unread }: { p: Principal; unread: number }) {
   const roleLabel = p.roles.map((r) => ROLE_LABEL[r]).join(" · ") || "No workspace";
   return (
-    <header className="bg-card sticky top-0 z-30 border-b">
+    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/85 sticky top-0 z-30 border-b backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-[1280px] items-center gap-4 px-4 sm:px-6">
         <Link href="/portal" className="shrink-0 outline-none focus-visible:underline">
           <Wordmark />

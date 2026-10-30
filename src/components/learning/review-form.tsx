@@ -84,7 +84,7 @@ export function ReviewForm({
       <form onSubmit={(e) => void publish(e)} noValidate className="grid gap-5">
         {flags.length > 0 && (
           <div
-            className={cn("rounded-[12px] px-4 py-3 text-[13px] leading-5", remaining.length ? "bg-warning-soft" : "bg-success-soft")}
+            className={cn("border-l-2 px-4 py-3 text-[14px] leading-5", remaining.length ? "border-warning bg-warning-soft" : "border-success bg-success-soft")}
             role="status"
           >
             <p className="flex items-center gap-2 text-[14px] font-medium">

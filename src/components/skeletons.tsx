@@ -12,7 +12,7 @@ function Bar({ className }: { className?: string }) {
 const onCanvas = "bg-foreground/[0.07]";
 
 function Card({ className, children }: { className?: string; children?: React.ReactNode }) {
-  return <div className={cn("bg-card rounded-2xl p-5", className)}>{children}</div>;
+  return <div className={cn("border-t pt-5", className)}>{children}</div>;
 }
 
 function PanelBones({ rows = 4, className }: { rows?: number; className?: string }) {
