@@ -135,7 +135,7 @@ still open.
 |---|---|
 | 03 Personas and access (IAM-01, IAM-02) | Seven roles with separate grants; tenant, audience and entitlement checks on every protected resource; explicit active workspace |
 | 04 Login and onboarding | Email one-time codes; single-use, expiring invitations bound to the invited address; no trusted tenant from an arbitrary email |
-| 05 Employee portal | Dashboard, internal experiments, employee-only broadcasts, synthetic-data playground, improvement ideas |
+| 05 Employee portal | Dashboard, internal experiments, employee-only broadcasts, synthetic-data playground, improvement ideas, employee suggestions (internal until a product owner shows them to clients) |
 | 06 Client portal | Active organisation, entitled demos and sessions, my and my organisation's observations, filtered shared feed, member administration, improvement status |
 | 07 Observation capture | Structured form, private drafts, server-side validation, sensitive-content prompts and scanning |
 | 08 Review and withdrawal | Audited state machine, separate shared versions, re-review on material edits, reports, withdrawal in one transaction, in-app notifications |
@@ -156,7 +156,7 @@ still open.
 | Supabase's public API locked: RLS on every table, `anon` grants revoked | `LOCKDOWN` in `src/server/db.ts` |
 | Every state change audited in the same transaction, hash-chained for tamper evidence | `src/server/audit.ts`, `audit-chain.ts`, `tx()` |
 
-37 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
+38 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
 escalation, private drafts, payload contents, withdrawal, revocation, CSRF, malformed input on every write route).
 CI runs them against a production build on every pull request. The threat model (STRIDE), OWASP Top 10 mapping, what is
 simulated and the known limitations are in [SECURITY.md](SECURITY.md).
@@ -172,7 +172,7 @@ npm run dev    # http://localhost:3000: creates and seeds an embedded Postgres i
 | Command | What it does |
 |---|---|
 | `npm test` | Unit tests: sensitive-content scanner, quote verification, redirect checks |
-| `npm run test:security` | With the dev server running: the 37 API security tests |
+| `npm run test:security` | With the dev server running: the 38 API security tests |
 | `npm run typecheck && npm run lint` | Type and lint checks, as in CI |
 | `npm run reset` | Wipe local data; it's re-seeded on the next request |
 

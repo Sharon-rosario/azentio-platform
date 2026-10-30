@@ -11,7 +11,7 @@ server for every request, not by what the interface chooses to show.
 | **Deny by default** | One `authorize(principal, permission)` decides every action. Permissions derive only from the roles on the principal's *active* membership; anything not granted is refused (403). | `src/server/policy.ts` |
 | **Tenant isolation** | Every tenant-owned record is checked against the active membership's organisation. A resource from another tenant answers **404**, so identifiers can't be enumerated. | `sameTenant()` in `policy.ts`, `learning.ts` |
 | **Explicit audiences** | Content is `public`, `employee` or `client`; client content also requires a product entitlement. Missing audience metadata means deny, never public. | `canSeeContent()` in `policy.ts`, `content.ts` |
-| **Least privilege** | Employee status grants no administration. Publishing, moderation, inviting and role changes are separate grants. Portal administrators have **no** implicit read access to client contributions. Client administrators can only assign client roles inside their own organisation. | `GRANTS` in `policy.ts`, `members.ts` |
+| **Least privilege** | Employee status grants no administration; employees may suggest improvements, which stay internal until a product owner shows them to clients. Publishing, moderation, inviting and role changes are separate grants. Portal administrators have **no** implicit read access to client contributions. Client administrators can only assign client roles inside their own organisation. | `GRANTS` in `policy.ts`, `members.ts` |
 | **Private by default** | Contributions start as private drafts; saving never shares. Moderators never see unsubmitted drafts. | `learning.ts` |
 | **Consent per purpose** | Storing, publishing a shared copy, organisation attribution and future model training are separate, append-only consent records. Membership is never consent. | `consents` table, `submitObservation()` |
 | **Data minimisation** | Publishing creates a *separate* shared copy containing only reviewed fields. Tenant ids, authors, original wording and moderator notes cannot leave through the shared feed or its API. | `shared_versions`, `sharedFeed()` |
@@ -161,7 +161,7 @@ server for every request, not by what the interface chooses to show.
 
 ## Verification
 
-`tests/security.test.mjs` is a black-box suite of 37 tests that signs in as different personas and calls the API
+`tests/security.test.mjs` is a black-box suite of 38 tests that signs in as different personas and calls the API
 directly, the way an attacker would: cross-tenant reads and writes, private-draft access within an organisation, role
 escalation, moderator and administrator boundaries, feed payload contents, workspace switching, theme suppression, the
 full publish-and-withdraw flow, report and versioning edge cases (a withdrawn or superseded copy can't be restored,
@@ -170,7 +170,7 @@ on every write route.
 
 ```bash
 npm run dev            # in one terminal
-npm run test:security  # in another: 37 passing
+npm run test:security  # in another: 38 passing
 ```
 
 ## What is simulated in this build

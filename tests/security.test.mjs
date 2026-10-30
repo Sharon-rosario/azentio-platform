@@ -508,6 +508,30 @@ test("the shared feed filters by observation period, and a withdrawn copy's peri
   assert.equal((await call("/api/shared/facets")).status, 401, "signed out: no facets");
 });
 
+test("an employee can suggest an improvement; it stays internal until a product owner shows it to clients", async () => {
+  const dev = await login(DEV);
+  const sara = await login(SARA);
+  const priya = await login(PRIYA);
+  const theme = (await call("/api/themes", { cookie: dev })).data.find((t) => !t.suppressed);
+  const title = `Suggestion ${Date.now().toString(36)}`;
+  const s = await call("/api/ideas/suggestions", { cookie: dev, method: "POST", body: { title,
+    problem: "Underwriters re-key bank statements by hand for every seasonal review.", offering: "sme-credit-decisioning", theme_id: theme.id } });
+  assert.equal(s.status, 200, JSON.stringify(s.data));
+  const ideaId = s.data.id;
+  assert.equal((await call("/api/ideas/suggestions", { cookie: sara, method: "POST", body: { title: "From a client",
+    problem: "Clients can't suggest through this route.", offering: "riva" } })).status, 403, "suggesting is for employees");
+  const seen = async () => (await call("/api/ideas", { cookie: sara })).data.some((i) => i.id === ideaId);
+  assert.equal(await seen(), false, "a client never sees an internal suggestion");
+  const onTheme = (await call("/api/themes", { cookie: sara })).data.flatMap((t) => t.ideas ?? []);
+  assert.ok(!onTheme.some((i) => i.id === ideaId), "nor on a theme");
+  assert.equal((await call(`/api/ideas/${ideaId}`, { cookie: dev, method: "PATCH", body: { status: "Planned", public_note: "" } })).status, 403);
+  assert.equal((await call(`/api/ideas/${ideaId}/publish`, { cookie: dev, method: "POST", body: {} })).status, 403, "a plain employee can't publish");
+  assert.equal((await call(`/api/ideas/${ideaId}/publish`, { cookie: priya, method: "POST", body: {} })).status, 200);
+  const shown = (await call("/api/ideas", { cookie: sara })).data.find((i) => i.id === ideaId);
+  assert.ok(shown, "visible once a product owner shows it");
+  assert.equal(shown.problem, undefined, "internal fields stay internal");
+});
+
 test("the audit log's hash chain verifies end to end after every write in this suite", async () => {
   const html = (await call("/portal/admin", { cookie: await login(ADMIN) })).data;
   assert.match(html, /Hash chain intact: all \d+ entries verified/);
