@@ -1,7 +1,8 @@
 # Requirements traceability
 
 Every requirement in the organisers' brief (*azentio.ai Website & Intelligent Collaboration Portal*), where the code
-enforces it, which automated test proves it, and its status. Mapped against `main` at `2bbe526` (30 Oct 2026).
+enforces it, which automated test proves it, and its status. Kept in step with `main`: a pull request that changes
+behaviour updates its rows and the summary in the same change (last full review 30 Oct 2026).
 
 **IDs.** The brief numbers only `IAM-01` and `IAM-02`. Every other ID below is ours: one per requirement sentence or
 bullet, in the brief's order, prefixed by section. The section number after each heading is the brief's.
