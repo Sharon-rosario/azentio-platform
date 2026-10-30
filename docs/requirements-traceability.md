@@ -17,7 +17,7 @@ bullet, in the brief's order, prefixed by section. The section number after each
 | **Gap** | Known defect or missing control, listed under [Open gaps](#open-gaps) |
 | **Out of scope** | Not built, with the reason (brief marks it optional, P1/P2, or outside the minimum scope) |
 
-**Tests.** `S1`-`S37` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
+**Tests.** `S1`-`S38` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
 as real personas and call the API directly. `U1`-`U6` are the unit tests in [`tests/unit.test.mjs`](../tests/unit.test.mjs).
 CI runs all of them against a production build on every push and pull request ([`ci.yml`](../.github/workflows/ci.yml)).
 
@@ -59,7 +59,8 @@ CI runs all of them against a production build on every push and pull request ([
 | S34 | a withdrawn observation is its author's alone: colleagues get a 404 |
 | S35 | revoking a member cancels their pending invitations, so they can't rejoin |
 | S36 | the shared feed filters by observation period, and a withdrawn copy's period leaves the filter options |
-| S37 | the audit log's hash chain verifies end to end after every write in this suite (runs last) |
+| S37 | an employee can suggest an improvement; it stays internal until a product owner shows it to clients |
+| S38 | the audit log's hash chain verifies end to end after every write in this suite (runs last) |
 | U1 | scan flags identifiers that must not reach the shared feed |
 | U2 | scan leaves ordinary market observations alone |
 | U3 | verbatim keeps a quote only when its words are in the source, and returns the source's own words |
@@ -81,7 +82,7 @@ call get the same decision.
 | 01 Reference: server-side enforcement | 2 | 1 | | 1 | | |
 | 03 Personas, IAM-01, IAM-02, access rule | 14 | 12 | 2 | | | |
 | 04 Login and onboarding | 8 | 7 | 1 | | | |
-| 05 Employee portal | 5 | 2 | 1 | 1 | | 1 |
+| 05 Employee portal | 5 | 2 | 1 | 2 | | |
 | 06 Client portal | 7 | 5 | | 1 | | 1 |
 | 07 Observation capture | 5 | 4 | | | | 1 |
 | 08 Review, publication, withdrawal | 9 | 7 | 1 | 1 | | |
@@ -89,7 +90,7 @@ call get the same decision.
 | 10 Insights and improvement | 7 | 2 | 3 | 1 | | 1 |
 | 11 Federated model learning (P2) | 1 | | | | | 1 |
 | Platform controls (not numbered in the brief) | 6 | 5 | 1 | | | |
-| **Total** | **75** | **52** | **13** | **5** | **0** | **5** |
+| **Total** | **75** | **52** | **13** | **6** | **0** | **4** |
 
 No gaps remain open. Every gap found while building and reviewing it (G-01 to G-15) is fixed, with a test where one can show it, and listed at the end.
 
@@ -117,7 +118,7 @@ No gaps remain open. Every gap found while building and reviewing it (G-01 to G-
 | ROLE-CLI | Client member: tenant and entitlement checks on every protected resource; no employee-only experiments | `GRANTS.client_member` (no `content.employee`, no `playground.use`); `sameTenant()` | S4, S9 | **Proven** |
 | ROLE-CADM | Client admin can't grant platform roles, change another tenant or self-enable products | `members.ts` `invite()` limits roles to `CLIENT_ASSIGNABLE`, own org only; no API writes entitlements | S8 | **Proven** |
 | ROLE-PUBL | Content publisher: no identity administration or implicit access to private learning | `GRANTS.publisher` = `content.publish` only | none | **Enforced** |
-| ROLE-ADM | Portal admin: privileged actions audited; client-private content needs explicit moderation authorisation, not a broad role | `GRANTS.portal_admin` has no `observations.*`; every privileged service writes `audit()` in the same transaction | S6 (admin gets 403 on observations and moderation) | **Proven**; the audit trail is hash-chained, so an edited, removed or inserted entry is detected (G-05, S37) |
+| ROLE-ADM | Portal admin: privileged actions audited; client-private content needs explicit moderation authorisation, not a broad role | `GRANTS.portal_admin` has no `observations.*`; every privileged service writes `audit()` in the same transaction | S6 (admin gets 403 on observations and moderation) | **Proven**; the audit trail is hash-chained, so an edited, removed or inserted entry is detected (G-05, S38) |
 | ROLE-MOD | Moderator: no access to unsubmitted drafts | `learning.ts` `moderationQueue()`, `reviewItem()` only return `visibility='community'` and `status in ('submitted','published')` | S7 | **Proven** |
 | ROLE-EMP | Employee: verified work identity plus approved membership; no automatic access to every client's private data | Employee grants carry no `observations.*`; membership is provisioned, never inferred from `@azentio.com` | S3, S6 | **Enforced**: no test signs in a *new* `@azentio.com` address to prove it gets nothing |
 
@@ -142,7 +143,7 @@ No gaps remain open. Every gap found while building and reviewing it (G-01 to G-
 | EMP-02 | Guided playground on synthetic data, clearly labelled, never implying a real credit decision | `src/app/portal/playground/page.tsx` (`playground.use`, employees only); `components/insights/playground.tsx` banner "Sample data · simulated output · not a credit decision" | S21 (a client is refused) | **Enforced**: no structured feedback capture after a run |
 | EMP-03 | Internal broadcasts restricted to employees; only publishers configure them | `src/app/portal/live/page.tsx` → `listContent(p, "broadcast")`; `createContent()` needs `content.publish` | S9 (no employee content for clients), S20 (a plain employee's `POST /api/content` is refused) | **Proven** |
 | EMP-04 | Product owner reviews approved themes, creates an idea, links evidence, updates status; sees only evidence shared for that purpose | `insights.ts` `createIdea()`, `updateIdeaStatus()` (`ideas.write`); themes read published copies only | S6 (non-owner refused) | **Partial**: ideas link to a theme, not to individually chosen contributions |
-| EMP-05 | Experiment submissions, hackathon team spaces, release notes, knowledge library with owners and review dates | n/a | n/a | **Out of scope**: "Add..." items; employee-only content kinds exist (`experiment`, `broadcast`) |
+| EMP-05 | Experiment submissions, hackathon team spaces, release notes, knowledge library with owners and review dates; employees contribute to innovation within their permissions | Employees suggest improvements: `insights.ts` `suggestIdea()` (`ideas.suggest`, a grant separate from `ideas.write`), stored `internal = 1`; `listIdeas()` and `listThemes()` never return an internal idea to a client, and status updates on one notify no client; only a product owner shows it (`publishIdea()`, `ideas.write`, needs a theme with enough evidence); every step audited | S37 (employee suggests; client refused and never sees it; employee can't change status or publish; product owner shows it without internal fields) | **Partial**: suggestions are built; hackathon team spaces, release notes and a knowledge library are not |
 
 ## 06 · Client experience
 
@@ -238,7 +239,7 @@ None. Every gap found while building this table is fixed and tested; see below.
 | G-01 | Restoring an open report on a copy the author had withdrawn republished it | `decideReport()` restores only a copy still `under_review` (409 otherwise); `withdrawObservation()` closes open reports on its copies | S17 |
 | G-02 | A reported old version could be restored next to a newer one | `publish()` supersedes `published` **and** `under_review` copies, closes their reports and clears AIRA summaries that cited them | S18 |
 | G-04 | A de-identified copy carried the organisation's exact industry, and with few contributors the industry filter singled one out | `publish()` defaults a de-identified copy's industry to a general value the moderator can change; `broadValues()` offers and applies industry and region filters only for values covering at least `MIN_ORGS` organisations. Field types on moderation and report input are checked before use | S27, S28 |
-| G-05 | The audit log was append-only by convention only | Hash chain: each row stores `prev_hash` and `hash` = SHA-256 of the previous hash and its own fields; appends take a transaction advisory lock so the chain never forks; earlier rows are chained once at start (`sealAudit()`); `verifyAudit()` recomputes it and the admin page shows the result. Tamper evidence, not prevention: someone with database write access could rebuild the whole chain, so the head hash shown on the admin page should also be recorded outside the database | U6, S37 |
+| G-05 | The audit log was append-only by convention only | Hash chain: each row stores `prev_hash` and `hash` = SHA-256 of the previous hash and its own fields; appends take a transaction advisory lock so the chain never forks; earlier rows are chained once at start (`sealAudit()`); `verifyAudit()` recomputes it and the admin page shows the result. Tamper evidence, not prevention: someone with database write access could rebuild the whole chain, so the head hash shown on the admin page should also be recorded outside the database | U6, S38 |
 | G-06 | Sessions lasted 8 hours regardless of activity | `getPrincipal()` ends a session unused for 30 minutes (`SESSION_IDLE_MINUTES`) on the server and deletes it; `last_seen_at` is refreshed at most once a minute. Existing databases gain the column through an idempotent `add column if not exists` | U5 |
 | G-07 | Public forms weren't rate limited | `createRequest()`: at most 5 stored requests per source and 3 per address in 15 minutes (429 after). The source is a keyed hash of the client IP Vercel sets (`x-real-ip`, which clients can't spoof there); the raw IP is never stored. Field types are checked before use | S25, S26 |
 | G-08 | Rules enforced in code had no negative test | Tests added: plain employee can't publish (S20), client refused the playground (S21), clients never see idea internals (S23), AIRA's evidence is published copies only (S24). A new `@azentio.com` address can't be signed in from the demo outbox (S22: real-mailbox codes are never shown), so "the domain grants nothing" stays proven by S3 and `verifyCode()` | S20-S24 |
@@ -256,7 +257,7 @@ None. Every gap found while building this table is fixed and tested; see below.
 ```bash
 npm run dev               # terminal 1
 npm test                  # unit tests (U1-U6)
-npm run test:security     # terminal 2: API tests (S1-S37)
+npm run test:security     # terminal 2: API tests (S1-S38)
 ```
 
 When a gap is fixed, update its row's status and the summary counts, and add the new test to the legend above.

@@ -17,7 +17,7 @@ export const ROLE_LABEL: Record<Role, string> = {
 };
 
 const GRANTS: Record<Role, string[]> = {
-  employee: ["content.employee", "shared.read", "themes.read", "ideas.read", "playground.use"],
+  employee: ["content.employee", "shared.read", "themes.read", "ideas.read", "ideas.suggest", "playground.use"],
   product_owner: ["ideas.write", "themes.synthesize"],
   moderator: ["moderation.review", "reports.decide", "themes.synthesize", "themes.counts"],
   publisher: ["content.publish"],

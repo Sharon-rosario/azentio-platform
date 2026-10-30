@@ -2,6 +2,8 @@ import { Check, Lightbulb } from "lucide-react";
 import type { Metadata } from "next";
 
 import { IdeaStatusControl } from "@/components/insights/idea-status-control";
+import { PublishIdeaButton } from "@/components/insights/publish-idea-button";
+import { SuggestIdeaButton } from "@/components/insights/suggest-idea-button";
 import { Forbidden } from "@/components/portal/forbidden";
 import { RelativeTime } from "@/components/relative-time";
 import { EmptyState, PageHeader, Panel } from "@/components/states";
@@ -9,7 +11,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { PRODUCT_NAME } from "@/lib/products";
 import { cn } from "@/lib/utils";
 import { getPrincipal } from "@/server/auth";
-import { IDEA_STATUSES, listIdeas } from "@/server/insights";
+import { IDEA_STATUSES, listIdeas, listThemes } from "@/server/insights";
 import { isForbidden, load } from "@/server/page";
 import { can } from "@/server/policy";
 
@@ -21,8 +23,13 @@ const STAGES = ["Proposed", "Under review", "Planned", "In progress", "Released"
 const ORDER = ["In progress", "Planned", "Under review", "Proposed", "Released", "Not proceeding"];
 
 export default async function IdeasPage() {
-  const ideas = await load((p) => listIdeas(p), "/portal/ideas");
-  if (isForbidden(ideas)) return <Forbidden message={ideas.forbidden} />;
+  const data = await load(async (p) => ({
+    ideas: await listIdeas(p),
+    // Themes a suggestion can link to: only those with enough evidence behind them.
+    themes: can(p, "ideas.suggest") ? (await listThemes(p)).filter((t) => !t.suppressed).map((t) => ({ id: t.id, name: t.name })) : [],
+  }), "/portal/ideas");
+  if (isForbidden(data)) return <Forbidden message={data.forbidden} />;
+  const { ideas, themes } = data;
   const p = (await getPrincipal())!;
   const editable = can(p, "ideas.write");
   const client = p.orgKind === "client";
@@ -36,8 +43,9 @@ export default async function IdeasPage() {
         description={
           client
             ? "Ideas that came out of shared learning, and where each one stands. You see the status and the public note."
-            : "Improvement ideas linked to approved themes. Clients see the title, status and public note only."
+            : "Improvement ideas linked to approved themes. Clients see the title, status and public note only; suggestions stay internal until a product owner shows them."
         }
+        actions={can(p, "ideas.suggest") ? <SuggestIdeaButton themes={themes} /> : undefined}
       />
 
       {ideas.length === 0 ? (
@@ -64,6 +72,7 @@ export default async function IdeasPage() {
                       {items.map((i) => (
                         <li key={i.id}>
                           <article className="bg-card shadow-card rounded-xl border p-4">
+                            {i.internal && <InternalBadge />}
                             <h3 className="text-[14px] leading-5">{i.title}</h3>
                             <p className="text-muted-foreground mt-1 text-[12px] leading-4">
                               {[PRODUCT_NAME[i.offering] ?? i.offering, i.theme && `Theme: ${i.theme}`].filter(Boolean).join(" · ")}
@@ -125,6 +134,7 @@ export default async function IdeasPage() {
                     <article className="bg-card shadow-card flex h-full flex-col rounded-2xl border p-5">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
+                          {i.internal && <InternalBadge />}
                           <h3 className="text-[16px] leading-6">{i.title}</h3>
                           <p className="text-muted-foreground mt-0.5 text-[13px]">
                             {[PRODUCT_NAME[i.offering] ?? i.offering, i.theme && `Theme: ${i.theme}`].filter(Boolean).join(" · ")}
@@ -152,7 +162,12 @@ export default async function IdeasPage() {
                             Owner: {i.owner} · Updated <RelativeTime iso={i.updated_at} />
                           </p>
                         </div>
-                        {editable && <IdeaStatusControl ideaId={i.id} status={i.status} note={i.public_note} statuses={IDEA_STATUSES} />}
+                        {editable && (
+                          <div className="space-y-3">
+                            {i.internal && <PublishIdeaButton ideaId={i.id} />}
+                            <IdeaStatusControl ideaId={i.id} status={i.status} note={i.public_note} statuses={IDEA_STATUSES} />
+                          </div>
+                        )}
                       </div>
                     </article>
                   </li>
@@ -163,6 +178,14 @@ export default async function IdeasPage() {
         </>
       )}
     </div>
+  );
+}
+
+function InternalBadge() {
+  return (
+    <span className="bg-warning-soft text-warning mb-2 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium">
+      Internal suggestion
+    </span>
   );
 }
 
