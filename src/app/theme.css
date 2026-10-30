@@ -7,7 +7,7 @@
  * One light theme by design: it is tuned and contrast-checked, rather than shipping a second, weaker one.
  *
  * Contrast rules: mint is a fill only, always with navy text. Text on white uses --primary (5.3:1) or
- * --muted-foreground (5.9:1); text on navy uses white or --navy-muted (8.9:1).
+ * --muted-foreground (5.9:1); text on navy uses white or --navy-muted (8.1:1).
  */
 :root {
   /* Azentio brand (azentio.com): navy #16303D, mint #55FFBE, green #2ED88E, pale mint #DDFFF2. */
@@ -38,7 +38,7 @@
   --brand-soft: #ddfff2;
   --navy: #16303d;
   --navy-2: #1d3d4d;
-  --navy-muted: #b7c9d1; /* text on navy: 8.9:1 */
+  --navy-muted: #b7c9d1; /* text on navy: 8.1:1 */
   --success: oklch(0.5 0.12 150);
   --success-soft: oklch(0.95 0.04 150);
   --warning: oklch(0.52 0.11 70);
@@ -56,7 +56,7 @@
   --shadow-deep: 0 24px 60px -24px rgb(0 0 0 / 0.5);
   --shadow-button: 0 1px 0 rgb(22 48 61 / 0.08);
 
-  /* Motion: strong curves for marketing entrances and on-screen movement (only transform and opacity animate). */
+  /* Motion: strong curves for marketing entrances and on-screen movement. */
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
 

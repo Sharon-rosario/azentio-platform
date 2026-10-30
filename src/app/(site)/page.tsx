@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
 import { upcoming } from "@/components/site/content-index";
+import { Highlight } from "@/components/site/highlight";
 import { AiraProof, FLOW_ART, FlowSteps, HeroOrbit, WithdrawStrip } from "@/components/site/home-visuals";
 import { type Offering, OfferingGrid } from "@/components/site/product-art";
 import { RevealOnScroll } from "@/components/site/reveal";
@@ -125,13 +126,7 @@ export default async function Home() {
               style={{ "--d": "80ms" } as CSSVars}
             >
               Banks learn from each other. <span className="text-brand">Nobody sees </span>
-              <span className="text-brand relative inline-block whitespace-nowrap">
-                who said what.
-                <svg aria-hidden viewBox="0 0 300 24" preserveAspectRatio="none" className="scribble absolute -bottom-3 left-0 h-4 w-full md:-bottom-4 md:h-5">
-                  <path pathLength={1} d="M4 15 C 70 5, 150 4, 296 9" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
-                  <path pathLength={1} d="M30 21 C 110 13, 190 12, 268 16" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" opacity="0.6" />
-                </svg>
-              </span>
+              <Highlight>who said what.</Highlight>
             </h1>
             <p className="hero-rise text-navy-muted mt-8 max-w-[34rem] text-[18px] leading-[29px]" style={{ "--d": "160ms" } as CSSVars}>
               azentio.ai brings Azentio&apos;s AI credit products together with a portal where client organisations share

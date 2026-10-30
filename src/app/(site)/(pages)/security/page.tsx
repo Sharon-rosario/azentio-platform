@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { SiteTitle } from "@/components/site/content-index";
+import { AccessCheckArt } from "@/components/site/page-art";
 import { MIN_ORGS } from "@/server/insights";
 
 export const metadata: Metadata = {
@@ -96,7 +97,7 @@ const SECTIONS: Section[] = [
 export default function SecurityPage() {
   return (
     <div className="space-y-12">
-      <SiteTitle title="Security overview">
+      <SiteTitle title="Security overview" highlight="overview" art={<AccessCheckArt />}>
         How the portal protects identities, tenants, shared learning and AI output. Written for reviewers: what the code
         does, numbered so it can be cited.
       </SiteTitle>
@@ -129,7 +130,7 @@ export default function SecurityPage() {
           </p>
 
           {SECTIONS.map((s, i) => (
-            <section key={s.id} id={s.id} aria-labelledby={`${s.id}-title`} className="mt-14 scroll-mt-24">
+            <section key={s.id} id={s.id} data-reveal aria-labelledby={`${s.id}-title`} className="mt-14 scroll-mt-24">
               <h2 id={`${s.id}-title`} className="flex items-baseline gap-4 text-[24px] leading-[30px] tracking-[-0.015em]">
                 <span className="text-muted-foreground w-8 shrink-0 font-mono text-[13px] leading-[18px] tabular-nums">{i + 1}</span>
                 {s.title}

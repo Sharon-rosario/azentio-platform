@@ -1,67 +1,87 @@
-import { ArrowRight, Boxes, BriefcaseBusiness, FileChartColumn, Network, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
+import { Highlight } from "@/components/site/highlight";
 import { date } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Content } from "@/server/content";
 
 /*
- * Public-site primitives. One visual language for every public page: flush-left display type, hairline rules as
- * structure, mono only for identifiers and dates. No cards: lists are ruled indexes, asides are ruled notes.
+ * Public-site primitives shared by the inner pages: the navy title band, entries as cards, dated broadcast rows and
+ * pale-mint notes. Mono only for identifiers, dates and labels.
  */
 
-/** A public page's opening: display title, standfirst, and at most one action. */
-export function SiteTitle({ title, children, action }: { title: string; children?: ReactNode; action?: ReactNode }) {
+type Vars = CSSProperties & Record<`--${string}`, string>;
+
+/**
+ * The inner pages' opening band: full width, navy like the home hero, with the same dot grid, mint glow and rising
+ * entrance. `highlight` draws the mint underline under part of the title; `art` puts an illustration on the right.
+ */
+export function SiteTitle({
+  title,
+  highlight,
+  back,
+  children,
+  action,
+  art,
+}: {
+  title: string;
+  highlight?: string;
+  back?: { href: string; label: string };
+  children?: ReactNode;
+  action?: ReactNode;
+  art?: ReactNode;
+}) {
+  const at = highlight ? title.lastIndexOf(highlight) : -1;
   return (
-    <header className="grid gap-6 border-b pb-10 md:pb-14 lg:grid-cols-12 lg:items-end lg:gap-6">
-      <div className="lg:col-span-8">
-        <h1 className="text-[44px] leading-[48px] font-semibold tracking-[-0.025em] text-balance md:text-[60px] md:leading-[62px] md:tracking-[-0.03em]">
-          {title}
-        </h1>
-        {children && <p className="text-muted-foreground mt-5 max-w-[38rem] text-[20px] leading-[28px] tracking-[-0.01em]">{children}</p>}
+    // Bleeds out of the page container to the viewport edges; the body clips the scrollbar's few pixels.
+    <header className="bg-navy relative mx-[calc(50%-50vw)] -mt-10 overflow-hidden text-white sm:-mt-14">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:radial-gradient(rgb(255_255_255/0.14)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)]"
+      />
+      <div aria-hidden className="bg-brand/20 pointer-events-none absolute -top-24 right-[6%] hidden size-[380px] rounded-full blur-[110px] md:block" />
+      <div className="relative mx-auto grid max-w-[1280px] grid-cols-1 gap-10 px-4 pt-10 pb-12 sm:px-6 md:pt-14 md:pb-16 lg:grid-cols-12 lg:items-center lg:gap-6">
+        <div className={art ? "lg:col-span-7" : "lg:col-span-8"}>
+          {back && (
+            <Link
+              href={back.href}
+              className="hero-rise text-navy-muted hover:text-brand mb-6 inline-flex items-center gap-1.5 rounded-sm text-[14px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              <ArrowLeft aria-hidden className="size-4" /> {back.label}
+            </Link>
+          )}
+          <h1
+            className="hero-rise text-[34px] leading-[40px] font-semibold tracking-[-0.025em] text-balance sm:text-[40px] sm:leading-[46px] md:text-[56px] md:leading-[62px] md:tracking-[-0.03em]"
+            style={{ "--d": "60ms" } as Vars}
+          >
+            {at >= 0 ? (
+              <>
+                {title.slice(0, at)}
+                <Highlight>{highlight}</Highlight>
+                {title.slice(at + highlight!.length)}
+              </>
+            ) : (
+              title
+            )}
+          </h1>
+          {children && (
+            <p className="hero-rise text-navy-muted mt-6 max-w-[38rem] text-[18px] leading-[28px]" style={{ "--d": "140ms" } as Vars}>
+              {children}
+            </p>
+          )}
+          {art && action && <div className="hero-rise mt-8" style={{ "--d": "220ms" } as Vars}>{action}</div>}
+        </div>
+        {art ? (
+          <div className="hero-rise text-foreground lg:col-span-5" style={{ "--d": "180ms" } as Vars}>{art}</div>
+        ) : (
+          action && <div className="hero-rise lg:col-span-4 lg:justify-self-end" style={{ "--d": "220ms" } as Vars}>{action}</div>
+        )}
       </div>
-      {action && <div className="lg:col-span-4 lg:justify-self-end">{action}</div>}
     </header>
   );
 }
-
-/** Products as a table of contents: name, what it does, and a door. */
-export function ProductIndex({ products }: { products: Content[] }) {
-  if (!products.length) return <Empty>No products are listed yet.</Empty>;
-  return (
-    <ul className="grid gap-5 md:grid-cols-2">
-      {products.map((p) => {
-        const Icon = PRODUCT_ICON[p.slug ?? ""] ?? Boxes;
-        return (
-          <li key={p.id}>
-            <Link
-              href={`/products/${p.slug}`}
-              className="group bg-card shadow-card hover:shadow-lift focus-visible:ring-ring flex h-full flex-col rounded-2xl border p-6 transition-[box-shadow,transform] duration-200 outline-none hover:-translate-y-0.5 focus-visible:ring-2 md:p-7"
-            >
-              <span className="bg-navy text-brand grid size-11 place-items-center rounded-xl">
-                <Icon aria-hidden className="size-5" strokeWidth={1.75} />
-              </span>
-              <span className="mt-5 text-[20px] leading-[28px] font-semibold tracking-[-0.02em]">{p.title}</span>
-              <span className="text-muted-foreground mt-2 flex-1 text-[15px] leading-6">{p.summary}</span>
-              <span className="text-primary mt-5 inline-flex items-center gap-1.5 text-[14px] font-medium">
-                Explore the product
-                <ArrowRight aria-hidden className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
-              </span>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-const PRODUCT_ICON: Record<string, LucideIcon> = {
-  "credit-strategy-simulator": SlidersHorizontal,
-  "sme-credit-decisioning": BriefcaseBusiness,
-  "similar-portfolio-intelligence": Network,
-  riva: FileChartColumn,
-};
 
 /** Pieces without their own page (solutions, insights): title in the left column, the text on the right. */
 export function EntryIndex({ items, empty }: { items: Content[]; empty: string }) {
@@ -69,7 +89,7 @@ export function EntryIndex({ items, empty }: { items: Content[]; empty: string }
   return (
     <ul className="space-y-4">
       {items.map((i) => (
-        <li key={i.id}>
+        <li key={i.id} data-reveal>
           <article className="bg-card shadow-card grid gap-3 rounded-2xl border p-6 md:grid-cols-12 md:gap-6 md:p-7">
             <h2 className="text-[20px] leading-[28px] tracking-[-0.02em] text-balance md:col-span-5">{i.title}</h2>
             <div className="md:col-span-7">
@@ -102,7 +122,7 @@ export function BroadcastList({ items, empty }: { items: Content[]; empty: strin
 /** A pale-mint side note with a mono label: what happens next, what to expect. */
 export function Note({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
   return (
-    <aside className={cn("bg-brand-soft h-fit rounded-2xl border border-[color-mix(in_oklch,var(--brand-strong),transparent_70%)] p-6", className)}>
+    <aside data-reveal className={cn("bg-brand-soft h-fit rounded-2xl border border-[color-mix(in_oklch,var(--brand-strong),transparent_70%)] p-6", className)}>
       <p className="text-muted-foreground font-mono text-[12px] leading-4">{label}</p>
       <div className="mt-3 text-[15px] leading-6">{children}</div>
     </aside>

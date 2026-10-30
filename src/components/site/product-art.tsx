@@ -55,7 +55,7 @@ function Workbench() {
       {rows.map(([l, s]) => (
         <div key={l} className="flex items-center gap-2.5 rounded-lg bg-white/5 px-2.5 py-1.5">
           {s === "ok" ? tick : (
-            <span className="grid size-4 place-items-center rounded-full bg-amber-300 text-amber-900"><Flag className="size-2.5" strokeWidth={3} /></span>
+            <span className="grid size-4 place-items-center rounded-full bg-warning-soft text-warning"><Flag className="size-2.5" strokeWidth={3} /></span>
           )}
           <span className="text-[11px]">{l}</span>
         </div>
@@ -75,7 +75,7 @@ function Portfolio() {
       </p>
       {segments.map(([l, m], i) => (
         <div key={l} className="flex items-center gap-2.5 rounded-lg bg-white/5 px-2.5 py-1 leading-4">
-          <span className="w-[62px] shrink-0 text-[11px]">{l}</span>
+          <span className="w-[62px] shrink-0 text-[11px] whitespace-nowrap">{l}</span>
           <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
             <span className={cn("block h-full rounded-full", i === 0 ? "bg-brand" : "bg-brand/50")} style={{ width: m }} />
           </span>
@@ -125,7 +125,7 @@ function Decisioning() {
         <circle cx="60" cy="62" r="5" fill="white" />
       </svg>
       <div className="min-w-0 space-y-1.5">
-        <p className="rounded-full bg-amber-300 px-2 py-0.5 text-center text-[10px] font-semibold text-amber-900">Refer</p>
+        <p className="rounded-full bg-warning-soft px-2 py-0.5 text-center text-[10px] font-semibold text-warning">Refer</p>
         <p className="flex items-center gap-1 text-[10px]"><UserCheck className="text-brand size-3 shrink-0" /> Officer decides</p>
         <p className="text-navy-muted text-[10px]">3 reasons cited</p>
       </div>
@@ -209,6 +209,12 @@ const ART: Record<string, () => ReactElement> = {
   "ai-agents-automation": Agents,
   "trusted-enterprise-ai": TrustedAi,
 };
+
+/** One offering's drawing by slug (nothing when it has none). */
+export function OfferingArt({ slug }: { slug: string }) {
+  const Art = ART[slug];
+  return Art ? <Art /> : null;
+}
 
 export type Offering = { slug: string; href: string; kind: "Product" | "Solution"; title: string; summary: string };
 

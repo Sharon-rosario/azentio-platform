@@ -1,9 +1,12 @@
 import { ArrowRight, Building2, Compass, Eye, ShieldCheck, Target, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
 import { SiteTitle } from "@/components/site/content-index";
 import { Button } from "@/components/ui/button";
+
+type CSSVars = CSSProperties & Record<`--${string}`, string>;
 
 export const metadata: Metadata = {
   title: "About",
@@ -27,14 +30,14 @@ const AUDIENCES = [
 export default function AboutPage() {
   return (
     <div className="space-y-12">
-      <SiteTitle title="Built on curiosity. Driven by purpose.">
+      <SiteTitle title="Built on curiosity. Driven by purpose." highlight="Driven by purpose.">
         We combine domain understanding, product thinking, AI engineering and a culture of experimentation to build
         intelligent solutions for financial services.
       </SiteTitle>
 
       <ul className="grid gap-5 sm:grid-cols-2">
-        {PRINCIPLES.map((p) => (
-          <li key={p.title} className="bg-card shadow-card rounded-2xl border p-6 sm:p-7">
+        {PRINCIPLES.map((p, i) => (
+          <li key={p.title} data-reveal style={{ "--reveal-delay": `${(i % 2) * 70}ms` } as CSSVars} className="bg-card shadow-card lift rounded-2xl border p-6 sm:p-7">
             <span className="bg-navy text-brand grid size-11 place-items-center rounded-xl">
               <p.icon aria-hidden className="size-5" strokeWidth={1.75} />
             </span>
@@ -44,7 +47,7 @@ export default function AboutPage() {
         ))}
       </ul>
 
-      <section aria-labelledby="platform-title" className="bg-navy relative overflow-hidden rounded-3xl px-6 py-10 text-white sm:px-10 md:py-14">
+      <section data-reveal aria-labelledby="platform-title" className="bg-navy relative overflow-hidden rounded-3xl px-6 py-10 text-white sm:px-10 md:py-14">
         <div aria-hidden className="bg-brand-strong/15 pointer-events-none absolute -top-10 -right-10 size-56 rotate-12 rounded-3xl" />
         <div className="relative grid gap-10 lg:grid-cols-12 lg:gap-6">
           <div className="lg:col-span-5">
@@ -78,7 +81,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section aria-labelledby="next-title" className="bg-card shadow-card flex flex-col gap-6 rounded-2xl border p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
+      <section data-reveal aria-labelledby="next-title" className="bg-card shadow-card flex flex-col gap-6 rounded-2xl border p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 id="next-title" className="text-[22px] leading-[30px] tracking-[-0.02em]">The next intelligent idea starts here.</h2>
           <p className="text-muted-foreground mt-1.5 text-[15px] leading-6">

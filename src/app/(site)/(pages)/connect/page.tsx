@@ -12,13 +12,13 @@ export default async function ConnectPage({ searchParams }: PageProps<"/connect"
 
   return (
     <div className="space-y-12">
-      <SiteTitle title="Request a demo">
+      <SiteTitle title="Request a demo" highlight="demo">
         {product
           ? `Tell us a little about you and we'll arrange a walkthrough of ${PRODUCT_NAME[product]}.`
           : "Tell us a little about you and what you'd like to see."}
       </SiteTitle>
       <div className="grid gap-12 lg:grid-cols-12 lg:gap-6">
-        <div className="lg:col-span-7">
+        <div data-reveal className="lg:col-span-7">
           <RequestForm kind="demo" defaultProduct={product} />
         </div>
         <Note label="what happens next" className="lg:col-span-4 lg:col-start-9">

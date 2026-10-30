@@ -23,7 +23,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
           <Link href="/" className="shrink-0 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <Wordmark />
           </Link>
-          <nav aria-label="Main" className="hidden md:block">
+          <nav aria-label="Main" className="hidden lg:block">
             <SiteNav />
           </nav>
           <div className="ml-auto flex shrink-0 items-center gap-5">
@@ -46,7 +46,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
             )}
           </div>
         </div>
-        <nav aria-label="Main" className="overflow-x-auto px-4 pb-2 [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
+        <nav aria-label="Main" className="overflow-x-auto px-4 pb-2 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden">
           <SiteNav />
         </nav>
       </header>
@@ -72,7 +72,9 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
               { href: "/solutions", label: "Solutions" },
               { href: "/insights", label: "Insights" },
               { href: "/security", label: "Security" },
+              { href: "/media", label: "Media" },
               { href: "/hackathon/register", label: "Hackathons" },
+              { href: "/about", label: "About" },
               { href: "/connect", label: "Request a demo" },
             ]}
           />
