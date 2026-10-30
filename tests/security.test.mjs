@@ -544,6 +544,64 @@ test("an ended session is sent to sign-in with the reason; a visitor who never s
   assert.match(page.data, /Your session ended after \d+ minutes without activity/);
 });
 
+test("SQL injection payloads in search, filters, ids and sign-in are treated as plain text", async () => {
+  const sara = await login(SARA);
+  const all = (await call("/api/shared", { cookie: sara })).data.length;
+  for (const q of ["' OR '1'='1", "x%' OR 1=1 --", "'; DROP TABLE observations; --"]) {
+    const r = await call(`/api/shared?q=${encodeURIComponent(q)}`, { cookie: sara });
+    assert.equal(r.status, 200, q);
+    assert.equal(r.data.length, 0, `search for ${q} matched nothing, rather than everything`);
+  }
+  const filtered = await call(`/api/shared?industry=${encodeURIComponent("' OR 1=1 --")}`, { cookie: sara });
+  assert.ok(filtered.status === 200 && filtered.data.length <= all);
+  for (const raw of ["1%20OR%201%3D1", "1%3B%20DROP%20TABLE%20observations"]) {
+    assert.equal((await call(`/api/observations/${raw}`, { cookie: sara })).status, 404, raw);
+  }
+  const code = await call("/api/auth/code", { method: "POST", body: { email: "x' OR '1'='1@test.example" } });
+  assert.ok(code.status >= 400 && code.status < 500, `sign-in with an injected address -> ${code.status}`);
+  assert.equal((await call("/api/shared", { cookie: sara })).data.length, all, "the tables are all still there");
+});
+
+test("stored XSS: markup in a contribution is kept as text and rendered escaped", async () => {
+  const chen = await login(CHEN);
+  const title = `<script>alert('xss')</script> Collections note ${Date.now().toString(36)}`;
+  const body = "Repayments slip each harvest. <img src=x onerror=alert(1)> End of note.";
+  const created = await call("/api/observations", { cookie: chen, method: "POST", body: { title, body,
+    category: "Market observation", offering: "riva", period: "Q4 2026", evidence_type: "Review", confidence: "Low" } });
+  assert.equal(created.status, 200);
+  const stored = (await call(`/api/observations/${created.data.id}`, { cookie: chen })).data;
+  assert.equal(stored.title, title, "stored exactly as typed: data, not markup");
+  const html = (await call(`/portal/observations/${created.data.id}`, { cookie: chen })).data;
+  assert.ok(!html.includes("<script>alert('xss')</script>"), "no live script tag in the page");
+  assert.ok(!html.includes("<img src=x onerror"), "no live event handler in the page");
+  assert.match(html, /&lt;script&gt;alert/, "shown to the reader as text");
+});
+
+test("the session cookie is HttpOnly and SameSite, a forged one is refused, and pages carry the browser security headers", async () => {
+  const email = `cookie.${Date.now().toString(36)}@test.example`;
+  await call("/api/auth/code", { method: "POST", body: { email } });
+  const code = (await call("/api/dev/outbox")).data.find((m) => m.to_email === email).body.match(/\b(\d{6})\b/)[1];
+  const verify = await call("/api/auth/verify", { method: "POST", body: { email, code } });
+  const cookie = verify.res.headers.get("set-cookie") ?? "";
+  assert.match(cookie, /HttpOnly/i, "scripts can't read the session");
+  assert.match(cookie, /SameSite=Lax/i, "other sites can't send it on a cross-site POST");
+  assert.ok((cookie.split(";")[0].split("=")[1] ?? "").length >= 32, "an opaque random id, not data");
+  const forged = "azp_session=forged-session-id; __Host-azp_session=forged-session-id";
+  assert.equal((await call("/api/observations", { cookie: forged })).status, 401, "a forged session is no session");
+  const page = (await call("/")).res.headers;
+  assert.equal(page.get("x-content-type-options"), "nosniff");
+  assert.equal(page.get("x-frame-options"), "DENY", "no clickjacking in a frame");
+  assert.ok(page.get("referrer-policy") && page.get("permissions-policy"));
+  assert.match(page.get("strict-transport-security") ?? "", /max-age=\d+/);
+});
+
+test("signing in doesn't reveal whether an address has an account", async () => {
+  const known = await call("/api/auth/code", { method: "POST", body: { email: RAVI } });
+  const unknown = await call("/api/auth/code", { method: "POST", body: { email: `nobody.${Date.now().toString(36)}@test.example` } });
+  assert.equal(known.status, unknown.status);
+  assert.deepEqual(known.data, unknown.data, "the same answer for an account and a stranger");
+});
+
 test("the audit log's hash chain verifies end to end after every write in this suite", async () => {
   const html = (await call("/portal/admin", { cookie: await login(ADMIN) })).data;
   assert.match(html, /Hash chain intact: all \d+ entries verified/);
