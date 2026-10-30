@@ -51,7 +51,8 @@ export async function getObservation(p: Principal | null, id: number) {
   const o = await one<Observation>(`select ${OBS_COLS} from observations o join users u on u.id = o.author_id where o.id = ?`, id);
   if (!o) throw new HttpError(404, "Not found");
   sameTenant(p, o.org_id);
-  if (o.author_id !== p.userId && o.visibility === "private") throw new HttpError(404, "Not found");
+  // Private drafts, and anything its author withdrew, are the author's alone.
+  if (o.author_id !== p.userId && (o.visibility === "private" || o.status === "withdrawn")) throw new HttpError(404, "Not found");
   const consents = await all<{ purpose: string; granted: number; at: string }>(
     "select purpose, granted, at from consents where observation_id = ? order by id", id);
   const current = Object.fromEntries(PURPOSES.map((k) => [k, !!consents.filter((c) => c.purpose === k).at(-1)?.granted]));
@@ -194,6 +195,8 @@ type PublishInput = { title?: unknown; body?: unknown; period?: unknown; region?
  * industry can point at one of them. The moderator can choose another value, as with region and period.
  */
 export const GENERAL_INDUSTRY = "Financial services";
+/** Region of a de-identified copy unless the moderator broadens it by hand: with few contributors a region can point at one. */
+export const GENERAL_REGION = "Not disclosed";
 
 /** A reviewed field: the moderator's value if sent (a non-empty string within the limit), else the fallback. */
 function reviewed(v: unknown, fallback: string, name: string, max: number): string {
@@ -213,7 +216,7 @@ export async function publish(p: Principal | null, id: number, input: PublishInp
   const title = reviewed(input.title, o.title, "Title", 140);
   const bodyText = reviewed(input.body, o.body, "Text", 4000);
   const attribution = input.attribute === true && o.consents.attribute ? o.org : null; // opt-in by the author AND the moderator
-  const region = reviewed(input.region, o.region, "Region", 80);
+  const region = reviewed(input.region, attribution ? o.region : GENERAL_REGION, "Region", 80);
   const period = reviewed(input.period, o.period, "Period", 60);
   const industry = reviewed(input.industry, attribution ? o.industry : GENERAL_INDUSTRY, "Industry", 80);
   // Every free-text field that is published is scanned, not just the title and text.
@@ -267,6 +270,7 @@ export async function sharedFeed(p: Principal | null, f: Filters = {}): Promise<
   // Industry and region filters only apply when the value covers enough organisations (see broadValues).
   if (f.industry && !(await broadValues("industry")).includes(f.industry)) f = { ...f, industry: undefined };
   if (f.region && !(await broadValues("region")).includes(f.region)) f = { ...f, region: undefined };
+  if (f.offering && !(await broadValues("offering")).includes(f.offering)) f = { ...f, offering: undefined };
   const where = ["s.status = 'published'"];
   const args: string[] = [];
   if (f.q) { where.push("(s.title like ? or s.body like ?)"); args.push(`%${f.q}%`, `%${f.q}%`); }
@@ -283,14 +287,14 @@ export async function sharedFeed(p: Principal | null, f: Filters = {}): Promise<
 export async function feedFacets(p: Principal | null) {
   authorize(p, "shared.read");
   const col = async (c: string) => (await all<{ v: string }>(`select distinct ${c} as v from shared_versions where status='published' order by 1`)).map((r) => r.v);
-  return { offering: await col("offering"), industry: await broadValues("industry"), region: await broadValues("region"), category: await col("category") };
+  return { offering: await broadValues("offering"), industry: await broadValues("industry"), region: await broadValues("region"), category: await col("category") };
 }
 
 /**
  * Identifying dimensions are only offered as filters when a value covers at least MIN_ORGS organisations, so a filter
  * can't single one out (the brief: suppress differencing-friendly filters). `column` is one of two fixed names.
  */
-async function broadValues(column: "industry" | "region") {
+async function broadValues(column: "industry" | "region" | "offering") {
   return (await all<{ v: string }>(`select s.${column} as v from shared_versions s join observations o on o.id = s.observation_id
     where s.status = 'published' group by s.${column} having count(distinct o.org_id) >= ? order by 1`, MIN_ORGS)).map((r) => r.v);
 }
