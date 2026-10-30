@@ -28,7 +28,8 @@ server for every request, not by what the interface chooses to show.
 - **No implicit trust from an email.** A newly verified address gets a user with **no** memberships. Organisations are
   joined only through a single-use, expiring invitation bound to the invited, verified address.
 - **Sessions.** 256-bit random opaque identifiers; only their SHA-256 hash is stored server-side. The cookie is
-  `HttpOnly`, `SameSite=Lax`, `Secure` and `__Host-`-prefixed in production, 8-hour lifetime. Sign-out deletes the
+  `HttpOnly`, `SameSite=Lax`, `Secure` and `__Host-`-prefixed in production. A session ends after 30 minutes without
+  activity (enforced and deleted on the server) and after 8 hours at most. Sign-out deletes the
   server-side session. A new session id is issued at every sign-in (no fixation).
 - **Redirects.** The post-sign-in destination (`?next=`) and notification links pass `safePath()`: same-origin paths only.
   `//host` and `/\host` are refused because browsers resolve them to another origin, so there is no open redirect.

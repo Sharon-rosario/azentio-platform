@@ -8,10 +8,10 @@ import { cookies } from "next/headers";
 import { audit } from "./audit";
 import { all, insert, now, one, run, tx } from "./db";
 import { HttpError, permsFor, type Principal, type Role } from "./policy";
+import { isIdle, needsTouch, SESSION_HOURS } from "./session-policy";
 
 // __Host- prefix in production: the browser only accepts it over HTTPS, host-only, path=/ (no subdomain can set it).
 export const COOKIE = process.env.NODE_ENV === "production" ? "__Host-azp_session" : "azp_session";
-const SESSION_HOURS = 8;
 const CODE_MINUTES = 10;
 const MAX_ATTEMPTS = 5;
 /**
@@ -75,9 +75,9 @@ export async function verifyCode(rawEmail: string, code: string) {
       user = { id };
     }
     const first = await one<{ id: number }>("select id from memberships where user_id = ? and status = 'active' order by id limit 1", user.id);
-    await run("insert into sessions (id,user_id,membership_id,created_at,expires_at) values (?,?,?,?,?)",
+    await run("insert into sessions (id,user_id,membership_id,created_at,expires_at,last_seen_at) values (?,?,?,?,?,?)",
       createHash("sha256").update(sid).digest("hex"), user.id, first?.id ?? null, now(),
-      new Date(Date.now() + SESSION_HOURS * 3_600_000).toISOString());
+      new Date(Date.now() + SESSION_HOURS * 3_600_000).toISOString(), now());
     await audit({ actorId: user.id, actor: email }, "auth.sign_in", "user", user.id);
     return user.id;
   });
@@ -98,9 +98,18 @@ export async function signOut() {
 export async function getPrincipal(): Promise<Principal | null> {
   const sid = (await cookies()).get(COOKIE)?.value;
   if (!sid) return null;
-  const session = await one<{ user_id: number; membership_id: number | null }>(
-    "select user_id, membership_id from sessions where id = ? and expires_at > ?", createHash("sha256").update(sid).digest("hex"), now());
+  const key = createHash("sha256").update(sid).digest("hex");
+  const session = await one<{ user_id: number; membership_id: number | null; created_at: string; last_seen_at: string | null }>(
+    "select user_id, membership_id, created_at, last_seen_at from sessions where id = ? and expires_at > ?", key, now());
   if (!session) return null;
+  // Idle timeout: a session unused for too long is ended on the server, not just hidden in the browser.
+  const lastSeen = session.last_seen_at ?? session.created_at;
+  const t = Date.now();
+  if (isIdle(lastSeen, t)) {
+    await run("delete from sessions where id = ?", key);
+    return null;
+  }
+  if (needsTouch(lastSeen, t)) await run("update sessions set last_seen_at = ? where id = ?", now(), key);
   const user = (await one<{ id: number; email: string; name: string }>("select id, email, name from users where id = ?", session.user_id))!;
   const memberships = (await all<{ id: number; org_id: number; name: string; kind: string; roles: string }>(
     `select m.id, m.org_id, o.name, o.kind, m.roles from memberships m join organisations o on o.id = m.org_id

@@ -32,6 +32,8 @@ create table if not exists sessions (
   id text primary key, user_id int not null references users(id), membership_id int references memberships(id),
   created_at text not null, expires_at text not null
 );
+-- Idle timeout (added after first deploy): idempotent, so existing databases gain the column on the next start.
+alter table sessions add column if not exists last_seen_at text;
 create table if not exists login_codes (
   id serial primary key, email text not null, code_hash text not null, expires_at text not null,
   attempts int not null default 0, used_at text
