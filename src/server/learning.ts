@@ -3,6 +3,7 @@ import "server-only";
 import { audit, notify } from "./audit";
 import { all, insert, now, one, run, tx } from "./db";
 import { authorize, HttpError, type Principal, sameTenant } from "./policy";
+import { MIN_ORGS } from "./insights";
 import { type Flag, scan } from "./scan";
 
 export const CATEGORIES = ["Market observation", "Emerging trend", "Product gap", "Operational challenge", "Successful practice",
@@ -181,19 +182,40 @@ export async function reviewItem(p: Principal | null, id: number) {
   return { ...o, flags: scan(o.title, o.body), consents: { publish: await consent("publish"), attribute: await consent("attribute"), train: await consent("train") } };
 }
 
-type PublishInput = { title?: string; body?: string; period?: string; region?: string; theme_id?: number | null; attribute?: boolean };
+type PublishInput = { title?: unknown; body?: unknown; period?: unknown; region?: unknown; industry?: unknown; theme_id?: unknown; attribute?: unknown };
+
+/**
+ * A de-identified copy names no organisation, so its industry is general by default: with few contributors an exact
+ * industry can point at one of them. The moderator can choose another value, as with region and period.
+ */
+export const GENERAL_INDUSTRY = "Financial services";
+
+/** A reviewed field: the moderator's value if sent (a non-empty string within the limit), else the fallback. */
+function reviewed(v: unknown, fallback: string, name: string, max: number): string {
+  if (v === undefined || v === null) return fallback;
+  if (typeof v !== "string" || !v.trim()) throw new HttpError(422, `${name} is required`);
+  if (v.trim().length > max) throw new HttpError(422, `${name} must be under ${max} characters`);
+  return v.trim();
+}
+
+const note = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 
 /** Publish a reviewed copy: a new row with only the reviewed fields. Refused while the copy still looks sensitive. */
 export async function publish(p: Principal | null, id: number, input: PublishInput) {
   const o = await reviewItem(p, id);
   if (o.status !== "submitted") throw new HttpError(409, "Already published");
   if (!o.consents.publish) throw new HttpError(409, "The author hasn't given permission to publish");
-  const title = (input.title ?? o.title).trim();
-  const bodyText = (input.body ?? o.body).trim();
+  const title = reviewed(input.title, o.title, "Title", 140);
+  const bodyText = reviewed(input.body, o.body, "Text", 4000);
   const flags: Flag[] = scan(title, bodyText);
   if (flags.length) throw new HttpError(422, `Redact before publishing: ${flags.map((f) => `${f.kind} "${f.match}"`).join(", ")}`);
-  if (input.theme_id != null && !await one("select id from themes where id = ?", input.theme_id)) throw new HttpError(422, "Unknown theme");
-  const attribution = input.attribute && o.consents.attribute ? o.org : null; // opt-in by the author AND the moderator
+  if (input.theme_id != null && (!Number.isInteger(input.theme_id) || !await one("select id from themes where id = ?", input.theme_id as number))) {
+    throw new HttpError(422, "Unknown theme");
+  }
+  const attribution = input.attribute === true && o.consents.attribute ? o.org : null; // opt-in by the author AND the moderator
+  const region = reviewed(input.region, o.region, "Region", 80);
+  const period = reviewed(input.period, o.period, "Period", 60);
+  const industry = reviewed(input.industry, attribution ? o.industry : GENERAL_INDUSTRY, "Industry", 80);
   await tx(async () => {
     const version = ((await one<{ v: number }>("select coalesce(max(version),0)::int as v from shared_versions where observation_id = ?", id))?.v ?? 0) + 1;
     // Every earlier live or reported copy is replaced, so a reported old version can't later be restored beside this one.
@@ -203,8 +225,8 @@ export async function publish(p: Principal | null, id: number, input: PublishInp
     await invalidateSummaries(replaced);
     const sid = await insert(`insert into shared_versions (observation_id,version,title,body,category,offering,industry,region,period,
       evidence_type,confidence,attribution,theme_id,published_by,published_at) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      id, version, title, bodyText, o.category, o.offering, o.industry, (input.region ?? o.region).trim(),
-      (input.period ?? o.period).trim(), o.evidence_type, o.confidence, attribution, input.theme_id ?? null, p!.userId, now());
+      id, version, title, bodyText, o.category, o.offering, industry, region, period, o.evidence_type, o.confidence, attribution,
+      (input.theme_id as number | null | undefined) ?? null, p!.userId, now());
     await run("update observations set status='published', moderator_note=null, updated_at=? where id = ?", now(), id);
     await audit(p!, "moderation.publish", "observation", id, { shared_version: sid, version, attribution: !!attribution,
       edited: title !== o.title || bodyText !== o.body });
@@ -212,14 +234,15 @@ export async function publish(p: Principal | null, id: number, input: PublishInp
   });
 }
 
-export async function sendBack(p: Principal | null, id: number, decision: "return" | "reject", note: string) {
+export async function sendBack(p: Principal | null, id: number, decision: "return" | "reject", rawNote: unknown) {
+  const text = note(rawNote);
   const o = await reviewItem(p, id);
   if (o.status !== "submitted") throw new HttpError(409, "Not waiting for review");
-  if (note.trim().length < 5) throw new HttpError(422, "Tell the author why (at least 5 characters)");
+  if (text.length < 5) throw new HttpError(422, "Tell the author why (at least 5 characters)");
   const status = decision === "return" ? "returned" : "rejected";
   await tx(async () => {
-    await run("update observations set status=?, moderator_note=?, updated_at=? where id = ?", status, note.trim(), now(), id);
-    await audit(p!, `moderation.${decision}`, "observation", id, { note: note.trim() });
+    await run("update observations set status=?, moderator_note=?, updated_at=? where id = ?", status, text, now(), id);
+    await audit(p!, `moderation.${decision}`, "observation", id, { note: text });
     await notify(o.author_id, decision === "return" ? `"${o.title}" needs a change before it can be shared` : `"${o.title}" wasn't published`,
       `/portal/observations/${id}`);
   });
@@ -232,6 +255,9 @@ export type Filters = { q?: string; offering?: string; industry?: string; region
 /** The cross-client feed: published copies only, safe columns only. No tenant id, author or notes in the payload. */
 export async function sharedFeed(p: Principal | null, f: Filters = {}): Promise<SharedItem[]> {
   authorize(p, "shared.read");
+  // Industry and region filters only apply when the value covers enough organisations (see broadValues).
+  if (f.industry && !(await broadValues("industry")).includes(f.industry)) f = { ...f, industry: undefined };
+  if (f.region && !(await broadValues("region")).includes(f.region)) f = { ...f, region: undefined };
   const where = ["s.status = 'published'"];
   const args: string[] = [];
   if (f.q) { where.push("(s.title like ? or s.body like ?)"); args.push(`%${f.q}%`, `%${f.q}%`); }
@@ -248,11 +274,21 @@ export async function sharedFeed(p: Principal | null, f: Filters = {}): Promise<
 export async function feedFacets(p: Principal | null) {
   authorize(p, "shared.read");
   const col = async (c: string) => (await all<{ v: string }>(`select distinct ${c} as v from shared_versions where status='published' order by 1`)).map((r) => r.v);
-  return { offering: await col("offering"), industry: await col("industry"), region: await col("region"), category: await col("category") };
+  return { offering: await col("offering"), industry: await broadValues("industry"), region: await broadValues("region"), category: await col("category") };
+}
+
+/**
+ * Identifying dimensions are only offered as filters when a value covers at least MIN_ORGS organisations, so a filter
+ * can't single one out (the brief: suppress differencing-friendly filters). `column` is one of two fixed names.
+ */
+async function broadValues(column: "industry" | "region") {
+  return (await all<{ v: string }>(`select s.${column} as v from shared_versions s join observations o on o.id = s.observation_id
+    where s.status = 'published' group by s.${column} having count(distinct o.org_id) >= ? order by 1`, MIN_ORGS)).map((r) => r.v);
 }
 
 /** Report: temporarily unpublished while a moderator looks. The reporter's identity isn't shown to other clients. */
-export async function report(p: Principal | null, sharedId: number, reason: string) {
+export async function report(p: Principal | null, sharedId: number, rawReason: unknown) {
+  const reason = note(rawReason);
   authorize(p, "reports.create");
   const s = await one<{ id: number; title: string }>("select id, title from shared_versions where id = ? and status = 'published'", sharedId);
   if (!s) throw new HttpError(404, "Not found");
@@ -267,7 +303,8 @@ export async function report(p: Principal | null, sharedId: number, reason: stri
   for (const m of await moderators()) await notify(m, `Reported for review: ${s.title}`, "/portal/moderation");
 }
 
-export async function decideReport(p: Principal | null, reportId: number, decision: "restore" | "remove", note: string) {
+export async function decideReport(p: Principal | null, reportId: number, decision: "restore" | "remove", rawNote: unknown) {
+  const decisionNote = note(rawNote);
   authorize(p, "reports.decide");
   const r = await one<{ id: number; shared_id: number; status: string; shared_status: string }>(
     "select r.id, r.shared_id, r.status, s.status as shared_status from reports r join shared_versions s on s.id = r.shared_id where r.id = ?", reportId);
@@ -275,10 +312,10 @@ export async function decideReport(p: Principal | null, reportId: number, decisi
   // Only a copy still held for this review can be restored; a withdrawn or replaced copy must stay down.
   if (r.shared_status !== "under_review") throw new HttpError(409, "This copy was withdrawn or replaced, so it can't be restored");
   await tx(async () => {
-    await run("update reports set status='closed', decision=? where id = ?", `${decision}: ${note.trim()}`, reportId);
+    await run("update reports set status='closed', decision=? where id = ?", `${decision}: ${decisionNote}`, reportId);
     await run("update shared_versions set status=?, withdrawn_at=? where id = ?", decision === "restore" ? "published" : "withdrawn",
       decision === "remove" ? now() : null, r.shared_id);
-    await audit(p, `report.${decision}`, "shared_version", r.shared_id, { report: reportId, note: note.trim() });
+    await audit(p, `report.${decision}`, "shared_version", r.shared_id, { report: reportId, note: decisionNote });
     const author = (await one<{ author_id: number; title: string }>(
       "select o.author_id, s.title from shared_versions s join observations o on o.id = s.observation_id where s.id = ?", r.shared_id))!;
     await notify(author.author_id, decision === "restore" ? `"${author.title}" was reviewed and is visible again`
