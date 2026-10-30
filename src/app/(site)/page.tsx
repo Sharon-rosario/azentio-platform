@@ -3,10 +3,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
-import { ProductIndex, upcoming } from "@/components/site/content-index";
+import { upcoming } from "@/components/site/content-index";
 import { AiraProof, FLOW_ART, FlowSteps, HeroOrbit, WithdrawStrip } from "@/components/site/home-visuals";
+import { type Offering, OfferingGrid } from "@/components/site/product-art";
 import { RevealOnScroll } from "@/components/site/reveal";
 import { Button } from "@/components/ui/button";
+import { SOLUTION_DETAIL } from "@/lib/catalog";
 import { date } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { listContent } from "@/server/content";
@@ -38,6 +40,9 @@ const LIFECYCLE = [
   { state: "withdrawn", title: "Gone, everywhere, at once.",
     body: "Withdraw it and the copy leaves the feed, search and AI summaries in the same database transaction." },
 ];
+
+// The four solutions shown beside the products on the home page; the rest are on /solutions.
+const HOME_SOLUTIONS = ["intelligent-decisioning", "document-intelligence", "ai-agents-automation", "trusted-enterprise-ai"];
 
 // Verbatim test names from tests/security.test.mjs, which runs on every pull request.
 const TESTS = [
@@ -74,9 +79,23 @@ const TESTS = [
 ];
 
 export default async function Home() {
-  const [products, broadcasts] = await Promise.all([listContent(null, "product"), listContent(null, "broadcast")]);
+  const [products, solutions, broadcasts] = await Promise.all([
+    listContent(null, "product"),
+    listContent(null, "solution"),
+    listContent(null, "broadcast"),
+  ]);
   const next = upcoming(broadcasts)[0];
-  const ordered = [...products].sort((a, b) => a.title.localeCompare(b.title));
+  // Published copy wins over the catalogue's, as on /solutions.
+  const offerings: Offering[] = [
+    ...[...products]
+      .filter((p) => p.slug)
+      .sort((a, b) => a.title.localeCompare(b.title))
+      .map((p) => ({ slug: p.slug!, href: `/products/${p.slug}`, kind: "Product" as const, title: p.title, summary: p.summary })),
+    ...HOME_SOLUTIONS.map((slug) => {
+      const row = solutions.find((s) => s.slug === slug);
+      return { slug, href: `/solutions#${slug}`, kind: "Solution" as const, title: row?.title ?? SOLUTION_DETAIL[slug].title, summary: row?.summary ?? SOLUTION_DETAIL[slug].summary };
+    }),
+  ];
 
   return (
     <>
@@ -146,22 +165,26 @@ export default async function Home() {
         </Wrap>
       </section>
 
-      {/* S1 — products, each with a small drawing of what it does */}
+      {/* S1 — products and solutions, each with a small drawing of what it does */}
       <section aria-labelledby="products-title" className="py-16 md:py-24">
         <Wrap>
           <div data-reveal className="flex items-end justify-between gap-6">
             <div>
-              <p className="text-primary text-[13px] font-semibold">Products</p>
+              <p className="text-primary text-[13px] font-semibold">Products and solutions</p>
               <h2 id="products-title" className="mt-2 text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-balance md:text-[40px] md:leading-[46px]">
                 Credit, risk and reporting software for banks.
               </h2>
             </div>
-            <Link href="/products" className="text-muted-foreground hover:text-foreground hidden shrink-0 rounded-sm text-[14px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring sm:inline">
-              All products
-            </Link>
+            <p className="hidden shrink-0 gap-5 text-[14px] sm:flex">
+              {[["/products", "All products"], ["/solutions", "All solutions"]].map(([href, label]) => (
+                <Link key={href} href={href} className="text-muted-foreground hover:text-foreground rounded-sm outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring">
+                  {label}
+                </Link>
+              ))}
+            </p>
           </div>
-          <div data-reveal className="mt-10" style={{ "--reveal-delay": "80ms" } as CSSVars}>
-            <ProductIndex products={ordered} art />
+          <div className="mt-10">
+            <OfferingGrid items={offerings} />
           </div>
         </Wrap>
       </section>
