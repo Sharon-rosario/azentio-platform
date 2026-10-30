@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { safePath } from "../src/lib/safe-path.ts";
 import { locate } from "../src/server/evidence.ts";
 import { scan } from "../src/server/scan.ts";
 
@@ -25,4 +26,12 @@ test("locate finds exact and lightly garbled quotes, rejects invented or trivial
   assert.ok(locate("treat a singel low quarter as deterioration", source) >= 0.85);
   assert.equal(locate("the bank lost money on every seasonal loan", source), 0);
   assert.equal(locate("scorecards treat", source), 0, "quotes under three words prove nothing");
+});
+
+test("safePath allows same-origin paths only (no open redirect)", () => {
+  for (const ok of ["/portal", "/portal/themes?x=1", "/"]) assert.equal(safePath(ok), ok);
+  for (const bad of ["//evil.example", "/\\evil.example", "https://evil.example", "javascript:alert(1)", "portal",
+    "/portal\nSet-Cookie: x", "", null, undefined, 42, ["/portal"]]) {
+    assert.equal(safePath(bad), null, String(bad));
+  }
 });

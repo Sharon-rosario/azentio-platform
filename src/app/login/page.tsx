@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Wordmark } from "@/components/brand";
+import { safePath } from "@/lib/safe-path";
 import { DEMO_MODE } from "@/server/auth";
 
 import { LoginForm } from "./login-form";
@@ -33,7 +34,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
             We email you a 6-digit code. Clients join through an invitation from their organisation; employees use their
             @azentio.com address.
           </p>
-          <LoginForm next={typeof next === "string" && next.startsWith("/") ? next : "/portal"} demo={DEMO_MODE} />
+          <LoginForm next={safePath(next) ?? "/portal"} demo={DEMO_MODE} />
         </section>
         {DEMO_MODE && (
           <section className="rounded-2xl border border-dashed p-6">

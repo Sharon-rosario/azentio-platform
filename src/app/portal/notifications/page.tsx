@@ -5,6 +5,7 @@ import Link from "next/link";
 import { RelativeTime } from "@/components/relative-time";
 import { EmptyState, PageHeader, Panel } from "@/components/states";
 import { cn } from "@/lib/utils";
+import { safePath } from "@/lib/safe-path";
 import { myNotifications } from "@/server/members";
 import { isForbidden, load } from "@/server/page";
 
@@ -35,9 +36,9 @@ export default async function NotificationsPage() {
                     <RelativeTime iso={n.created_at} />
                   </p>
                 </div>
-                {n.link && n.link.startsWith("/") && (
+                {safePath(n.link) && (
                   <Link
-                    href={n.link}
+                    href={safePath(n.link)!}
                     className="text-primary inline-flex shrink-0 items-center gap-1 text-[13px] outline-none hover:underline focus-visible:underline"
                   >
                     Open <ArrowRight className="size-3.5" />
