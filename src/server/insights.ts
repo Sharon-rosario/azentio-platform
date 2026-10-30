@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { audit, notify } from "./audit";
 import { all, insert, now, one, run, tx } from "./db";
-import { locate } from "./evidence";
+import { verbatim } from "./evidence";
 import { parse } from "./llm";
 import { authorize, can, HttpError, type Principal } from "./policy";
 
@@ -75,11 +75,22 @@ export async function synthesize(p: Principal | null, themeId: number) {
   const res = await parse(`Theme: ${theme.name}\n\n${sources.join("\n\n")}\n\nSummarise this theme.`, Summary, SYSTEM);
   if (!res.data) throw new HttpError(502, res.note ?? "AIRA couldn't summarise this");
   const byId = new Map(theme.evidence.map((e) => [e.id, `${e.title} ${e.body}`]));
-  const kept = res.data.citations.filter((c) => byId.has(c.shared_id) && locate(c.quote, byId.get(c.shared_id)!) > 0);
+  // Keep a citation only when its words are in the source, and save the source's own words, not the model's.
+  const kept = res.data.citations.flatMap((c) => {
+    const quote = byId.has(c.shared_id) ? verbatim(c.quote, byId.get(c.shared_id)!) : null;
+    return quote ? [{ shared_id: c.shared_id, quote }] : [];
+  });
   const dropped = res.data.citations.length - kept.length;
   if (!kept.length) throw new HttpError(502, "AIRA's summary couldn't be backed by the contributions, so it wasn't saved");
   const summary = `${res.data.summary}\n\nLimitations: ${res.data.limitations}`;
+  const read = theme.evidence.map((e) => e.id).sort((a, b) => a - b).join(",");
   await tx(async () => {
+    // The model call takes a while. Lock the theme (withdrawals lock it too), then save only if the evidence AIRA read
+    // is still exactly what's published: a copy withdrawn or reported meanwhile mustn't live on in the summary.
+    await one("select id from themes where id = ? for update", themeId);
+    const live = (await all<{ id: number }>("select id from shared_versions where theme_id = ? and status = 'published' order by id", themeId))
+      .map((r) => r.id).join(",");
+    if (live !== read) throw new HttpError(409, "A contribution changed while AIRA was reading. Summarise again");
     await run("update themes set summary=?, summary_citations=?, summary_at=?, summary_model=? where id = ?", summary,
       JSON.stringify(kept), now(), res.model, themeId);
     await audit(p!, "aira.summarise", "theme", themeId, { sources: theme.evidence.map((e) => e.id), citations: kept.length, unverified_dropped: dropped });
@@ -112,8 +123,9 @@ export async function createIdea(p: Principal | null, input: { title: string; pr
   const theme = (await listThemes(p)).find((t) => t.id === Number(input.theme_id));
   if (!theme || theme.suppressed) throw new HttpError(422, "Link the idea to a theme with enough evidence");
   for (const k of ["title", "problem", "proposed_outcome", "owner"] as const) {
-    if (!input[k]?.trim()) throw new HttpError(422, `${k.replace("_", " ")} is required`);
+    if (typeof input[k] !== "string" || !input[k].trim()) throw new HttpError(422, `${k.replace("_", " ")} is required`);
   }
+  if (input.priority != null && !["Low", "Medium", "High"].includes(input.priority)) throw new HttpError(422, "Priority must be Low, Medium or High");
   return await tx(async () => {
     const id = await insert(`insert into ideas (title,problem,offering,theme_id,proposed_outcome,owner,priority,status,created_by,created_at,updated_at)
       values (?,?,?,?,?,?,?,'Proposed',?,?,?)`, input.title.trim(), input.problem.trim(), theme.offering, theme.id,
@@ -127,6 +139,7 @@ export async function createIdea(p: Principal | null, input: { title: string; pr
 export async function updateIdeaStatus(p: Principal | null, id: number, status: string, publicNote: string) {
   authorize(p, "ideas.write");
   if (!IDEA_STATUSES.includes(status as (typeof IDEA_STATUSES)[number])) throw new HttpError(422, "Unknown status");
+  if (typeof publicNote !== "string") throw new HttpError(422, "The public note must be text");
   const idea = await one<{ id: number; title: string; status: string; theme_id: number | null }>("select id, title, status, theme_id from ideas where id = ?", id);
   if (!idea) throw new HttpError(404, "Not found");
   await tx(async () => {
