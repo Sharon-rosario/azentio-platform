@@ -3,7 +3,7 @@ import { IBM_Plex_Mono, Poppins } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { appConfig } from "@/config/app";
+import { appConfig, siteUrl } from "@/config/app";
 
 import "./globals.css";
 
@@ -20,9 +20,17 @@ const plexMono = IBM_Plex_Mono({
   weight: ["400", "500"],
 });
 
+const description =
+  "Azentio's AI credit products and a secure portal where banks and lenders share market observations: reviewed, de-identified and governed by their own consent.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl()),
   title: { default: appConfig.name, template: `%s · ${appConfig.name}` },
-  description: appConfig.tagline,
+  description,
+  applicationName: appConfig.name,
+  // The preview image comes from app/opengraph-image.tsx and applies to every URL.
+  openGraph: { type: "website", siteName: appConfig.name, title: appConfig.name, description, locale: "en_IN" },
+  twitter: { card: "summary_large_image", title: appConfig.name, description },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
