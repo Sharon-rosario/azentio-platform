@@ -12,7 +12,7 @@ shared learning that improves Azentio's products.**
 [![React 19](https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white)](https://react.dev)
 [![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript&logoColor=white)](tsconfig.json)
 [![Postgres](https://img.shields.io/badge/Postgres-Supabase_·_PGlite-336791?style=flat-square&logo=postgresql&logoColor=white)](docs/adr/0002-postgres-everywhere-with-rls-lockdown.md)
-[![API security tests](https://img.shields.io/badge/API_security_tests-39_passing-2ed88e?style=flat-square)](tests/security.test.mjs)
+[![API security tests](https://img.shields.io/badge/API_security_tests-43_passing-2ed88e?style=flat-square)](tests/security.test.mjs)
 
 [**Live demo**](https://azentio-platform.vercel.app) · [How it works](https://azentio-platform.vercel.app/how-it-works) · [Security model](SECURITY.md) ·
 [Requirements traceability](docs/requirements-traceability.md) · [Architecture](docs/architecture.md) ·
@@ -175,7 +175,7 @@ still open.
 | Retention policy and withdrawal SLA; expired codes and sessions purged | [SECURITY.md](SECURITY.md#data-retention-and-withdrawal), `purgeExpired()` |
 | Locked installs, actions pinned to SHAs, CI fails on high advisories, Dependabot security updates | [SECURITY.md](SECURITY.md#supply-chain), `.github/workflows/ci.yml` |
 
-39 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
+43 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
 escalation, private drafts, payload contents, withdrawal, revocation, CSRF, malformed input on every write route).
 CI runs them against a production build on every pull request. The threat model (STRIDE), OWASP Top 10 mapping, what is
 simulated and the known limitations are in [SECURITY.md](SECURITY.md).
@@ -195,7 +195,8 @@ npm run dev    # http://localhost:3000: creates and seeds an embedded Postgres i
 | Command | What it does |
 |---|---|
 | `npm test` | Unit tests: sensitive-content scanner, verbatim quote check, redirect checks, session idle timeout, audit hash chain |
-| `npm run test:security` | With the dev server running: the 39 API security tests |
+| `npm run test:security` | With the dev server running: the 43 API security tests |
+| `npm run attack` | Fifteen common attacks against the live site (or `npm run attack -- http://localhost:3000`), each reported as blocked or not |
 | `npm run typecheck && npm run lint` | Type and lint checks, as in CI |
 | `npm run reset` | Wipe local data; it's re-seeded on the next request |
 
