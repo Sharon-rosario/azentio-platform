@@ -36,6 +36,17 @@ Built for the **Azentio.ai Build Labs Special Challenge**.
 - **AI that can only say what the evidence shows.** AIRA reads approved copies only, answers in a validated schema, and
   every claim cites a quote that is verified against its source. Unbacked summaries are discarded.
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Public home page](docs/screenshots/home.jpg) | ![Client workspace](docs/screenshots/client-home.jpg) |
+| **Public site:** offerings, how governed sharing works, the security model | **Client workspace:** entitled demos, invitation-only sessions, improvement status |
+| ![Moderation review](docs/screenshots/moderation.jpg) | ![Themes with AIRA](docs/screenshots/themes.jpg) |
+| **Moderation:** the original beside the reviewed copy; an email and account number are flagged and publication is blocked until they're removed | **Themes:** three organisations behind the theme, de-identified evidence, AIRA summary with a limitations line and verified quotes |
+| ![Shared learning](docs/screenshots/shared.jpg) | |
+| **Shared learning:** reviewed, de-identified copies only, searchable and reportable | |
+
 ## Live demo
 
 > Deployment link: _added after the Vercel deployment_.
