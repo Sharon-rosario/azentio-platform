@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { getPrincipal } from "@/server/auth";
 import { CATEGORIES, CONFIDENCE, getObservation } from "@/server/learning";
+import { id as parseId } from "@/server/http";
 import { isForbidden, load } from "@/server/page";
 
 export const metadata: Metadata = { title: "Edit observation" };
@@ -16,7 +17,7 @@ export const metadata: Metadata = { title: "Edit observation" };
 export default async function EditObservationPage({ params }: PageProps<"/portal/observations/[id]/edit">) {
   const { id } = await params;
   const p = (await getPrincipal())!;
-  const o = await load((p) => getObservation(p, Number(id)), `/portal/observations/${id}/edit`);
+  const o = await load((p) => getObservation(p, parseId(id)), `/portal/observations/${id}/edit`);
   if (isForbidden(o)) return <Forbidden message={o.forbidden} />;
   if (!o.mine) return <Forbidden message="Only the author can edit this" />;
 

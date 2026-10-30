@@ -11,6 +11,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { date, dateTime } from "@/lib/format";
 import { PRODUCT_NAME } from "@/lib/products";
 import { getObservation } from "@/server/learning";
+import { id as parseId } from "@/server/http";
 import { isForbidden, load } from "@/server/page";
 
 export const metadata: Metadata = { title: "Observation" };
@@ -32,7 +33,7 @@ function statusLine(status: string, visibility: string) {
 export default async function ObservationPage({ params, searchParams }: PageProps<"/portal/observations/[id]">) {
   const { id } = await params;
   const { share } = await searchParams;
-  const o = await load((p) => getObservation(p, Number(id)), `/portal/observations/${id}`);
+  const o = await load((p) => getObservation(p, parseId(id)), `/portal/observations/${id}`);
   if (isForbidden(o)) return <Forbidden message={o.forbidden} />;
 
   const canEdit = o.mine && ["draft", "returned", "published"].includes(o.status);
