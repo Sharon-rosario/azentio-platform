@@ -34,8 +34,8 @@ const AZENTIO: Persona[] = [
     can: ["Themes", "AIRA summaries", "Create and progress ideas"], cannot: ["Bank notes"] },
   { name: "Lena", role: "Content publisher", does: "Posts sessions and updates to the right audience: public, employees or client banks.",
     can: ["Publish content"], cannot: ["Members", "Moderation"] },
-  { name: "Kavya", role: "Employee", does: "Explores internal sessions, experiments and the practice playground.",
-    can: ["Internal broadcasts", "Playground"], cannot: ["Moderate or decide"] },
+  { name: "Kavya", role: "Employee", does: "Explores internal sessions and the playground, and suggests improvements that stay internal until a product owner shares them.",
+    can: ["Internal broadcasts", "Playground", "Suggest improvements"], cannot: ["Moderate or decide"] },
   { name: "Arjun", role: "Portal administrator", does: "Runs organisations, roles and the audit log. Even the administrator can't read a bank's notes.",
     can: ["Organisations and roles", "Hash-chained audit log"], cannot: ["Bank notes"] },
 ];
@@ -71,6 +71,7 @@ const MATRIX: { group: string; rows: { feature: string; note?: string; cells: Ce
     { feature: "Review, redact, publish", cells: [false, false, false, false, true, false, false, false, false] },
     { feature: "Decide reports", cells: [false, false, false, false, true, false, false, false, false] },
     { feature: "AIRA summaries", cells: [false, false, false, false, true, true, false, false, false] },
+    { feature: "Suggest improvements", note: "internal until shared", cells: [false, false, false, false, true, true, true, true, true] },
     { feature: "Create and progress ideas", cells: [false, false, false, false, false, true, false, false, false] },
     { feature: "Publish content", cells: [false, false, false, false, false, false, true, false, false] },
     { feature: "Internal content and playground", cells: [false, false, false, false, true, true, true, true, true] },
