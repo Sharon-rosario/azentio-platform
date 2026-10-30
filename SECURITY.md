@@ -30,6 +30,8 @@ server for every request, not by what the interface chooses to show.
 - **Sessions.** 256-bit random opaque identifiers; only their SHA-256 hash is stored server-side. The cookie is
   `HttpOnly`, `SameSite=Lax`, `Secure` and `__Host-`-prefixed in production, 8-hour lifetime. Sign-out deletes the
   server-side session. A new session id is issued at every sign-in (no fixation).
+- **Redirects.** The post-sign-in destination (`?next=`) and notification links pass `safePath()`: same-origin paths only.
+  `//host` and `/\host` are refused because browsers resolve them to another origin, so there is no open redirect.
 - **Immediate revocation.** The principal and its memberships are reloaded from the database on every request, so a
   revoked membership or role change applies on the very next request.
 - **Workspaces.** A user with several memberships acts in exactly one active organisation at a time and can only switch
