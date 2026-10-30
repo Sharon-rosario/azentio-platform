@@ -117,7 +117,7 @@ export default async function ReviewPage({ params }: PageProps<"/portal/moderati
           <ReviewForm
             id={o.id}
             org={o.org}
-            original={{ title: o.title, body: o.body, period: o.period, region: o.region }}
+            original={{ title: o.title, body: o.body, period: o.period, region: o.region, industry: o.industry }}
             flags={o.flags}
             themes={themes}
             attributionAllowed={o.consents.attribute}

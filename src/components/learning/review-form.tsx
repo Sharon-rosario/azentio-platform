@@ -22,6 +22,7 @@ const schema = z.object({
   body: z.string().trim().min(1, "The shared copy needs a text").max(4000, "Keep it under 4,000 characters"),
   period: z.string().trim().min(1, "Add a period, even a broad one").max(60),
   region: z.string().trim().min(1, "Add a region, even a broad one").max(80),
+  industry: z.string().trim().min(1, "Add an industry, even a broad one").max(80),
   theme: z.string(),
   attribute: z.boolean(),
 });
@@ -38,7 +39,7 @@ export function ReviewForm({
   org,
 }: {
   id: number;
-  original: { title: string; body: string; period: string; region: string };
+  original: { title: string; body: string; period: string; region: string; industry: string };
   flags: { kind: string; match: string }[];
   themes: { id: number; name: string }[];
   attributionAllowed: boolean;
@@ -48,7 +49,8 @@ export function ReviewForm({
   const [sendBack, setSendBack] = useState<"return" | "reject" | null>(null);
   const form = useForm<z.input<typeof schema>, unknown, z.output<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { ...original, theme: NO_THEME, attribute: false },
+    // The industry starts general: an exact one can point at the contributor when only a few organisations take part.
+    defaultValues: { ...original, industry: "Financial services", theme: NO_THEME, attribute: false },
   });
   const busy = form.formState.isSubmitting;
   const [title, body, attribute] = useWatch({ control: form.control, name: ["title", "body", "attribute"] });
@@ -69,6 +71,7 @@ export function ReviewForm({
           body: v.body,
           period: v.period,
           region: v.region,
+          industry: v.industry,
           theme_id: v.theme === NO_THEME ? null : Number(v.theme),
           attribute: attributionAllowed && v.attribute,
         });
@@ -113,6 +116,8 @@ export function ReviewForm({
         <div className="grid gap-5 sm:grid-cols-2">
           <TextField form={form} name="period" label="Period" description="Broaden it if it narrows down who wrote it." />
           <TextField form={form} name="region" label="Region" description="For example a country or a wider region." />
+          <TextField form={form} name="industry" label="Industry"
+            description={`The organisation's is ${original.industry}. Keep it general unless the organisation is named.`} />
         </div>
         <SelectField
           form={form}
