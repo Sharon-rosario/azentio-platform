@@ -17,6 +17,7 @@ server for every request, not by what the interface chooses to show.
 | **Data minimisation** | Publishing creates a *separate* shared copy containing only reviewed fields. Tenant ids, authors, original wording and moderator notes cannot leave through the shared feed or its API. | `shared_versions`, `sharedFeed()` |
 | **Withdrawal** | Removes the shared copy from the feed, search and every AI summary that cited it in the same database transaction (seconds, not the 60 s required). | `withdrawObservation()`, `invalidateSummaries()` |
 | **Aggregation safety** | Theme statistics, evidence and AI summaries are suppressed below a configurable minimum of distinct contributing organisations (default 3). Repeat posts from one organisation count once. | `listThemes()` in `insights.ts` |
+| **Database-layer defence in depth** | Row-level security is enabled on every table with no policies, and the `anon` and `authenticated` roles have their table and sequence privileges revoked, so a hosted Postgres's auto-generated REST API (Supabase exposes `public` tables to a key that ships to browsers) returns nothing. The app connects as the table owner, so all access still goes through `authorize()`. | `LOCKDOWN` in `db.ts` |
 | **Accountability** | Every state change writes an append-only audit row in the same transaction as the change. | `audit.ts`, `tx()` in `db.ts` |
 
 ## Identity and sessions
@@ -80,7 +81,7 @@ server for every request, not by what the interface chooses to show.
 | A02 Cryptographic failures | HMAC-SHA-256 code hashing, SHA-256 session-id hashing, HTTPS-only `__Host-` cookies, HSTS |
 | A03 Injection | Parameterised SQL only; CSP limits script and resource origins |
 | A04 Insecure design | Separate shared representation, consent per purpose, small-cohort suppression, fail-closed AI |
-| A05 Security misconfiguration | Security headers on every response; production refuses to start without `SESSION_SECRET`; demo features off by default in production |
+| A05 Security misconfiguration | Security headers on every response; production refuses to start without `SESSION_SECRET` (or, on Vercel, `DATABASE_URL`); demo features off by default in production; row-level security and revoked grants so a hosted database's auto-generated API exposes nothing |
 | A07 Identification and authentication failures | Single-use expiring codes, attempt limits, server-side sessions, immediate revocation |
 | A08 Software and data integrity failures | Model output schema-validated and never executed; quotes verified against sources |
 | A09 Security logging and monitoring failures | Append-only audit trail of privileged and data-changing actions |

@@ -100,6 +100,29 @@ create table if not exists audit (
 );
 `;
 
+const TABLES = ["organisations", "users", "memberships", "entitlements", "sessions", "login_codes", "invitations", "outbox",
+  "content", "requests", "observations", "consents", "themes", "shared_versions", "reports", "ideas", "notifications", "audit"];
+
+/**
+ * Defence in depth for hosted Postgres. Supabase exposes tables in the public schema through its REST API to the
+ * `anon` and `authenticated` roles, with a key that ships to browsers. Row-level security with no policies denies
+ * those roles everything, and their privileges are revoked. The app connects as the table owner, which RLS doesn't
+ * restrict, so every access still goes through authorize(). Safe to run on PGlite (no such roles).
+ */
+const LOCKDOWN = `
+${TABLES.map((t) => `alter table ${t} enable row level security;`).join("\n")}
+do $$ begin
+  if exists (select 1 from pg_roles where rolname = 'anon') then
+    revoke all on all tables in schema public from anon;
+    revoke all on all sequences in schema public from anon;
+  end if;
+  if exists (select 1 from pg_roles where rolname = 'authenticated') then
+    revoke all on all tables in schema public from authenticated;
+    revoke all on all sequences in schema public from authenticated;
+  end if;
+end $$;
+`;
+
 async function connect(): Promise<Driver> {
   if (process.env.DATABASE_URL) {
     const { default: postgres } = await import("postgres");
@@ -132,6 +155,7 @@ function driver(): Promise<Driver> {
   g.__azpDb ??= (async () => {
     const d = await connect();
     await d.script(SCHEMA);
+    await d.script(LOCKDOWN);
     const [{ n }] = await d.exec("select count(*)::int as n from organisations", []);
     if (n === 0) await d.transaction((exec) => seed(exec));
     return d;
