@@ -241,3 +241,54 @@ test("malformed input is refused with 4xx on every write route, never a 500", as
   }
   assert.deepEqual(failures, []);
 });
+
+// A published contribution by Chen, used by the report/withdraw/edit tests below. Returns ids and a feed lookup.
+async function publishedByChen(title) {
+  const chen = await login(CHEN);
+  const omar = await login(OMAR);
+  const created = await call("/api/observations", { cookie: chen, method: "POST", body: {
+    title, body: `${title}: seen across several branch portfolios this quarter.`, category: "Market observation",
+    offering: "sme-credit-decisioning", period: "Q4 2026", evidence_type: "Portfolio review", confidence: "Medium" } });
+  const id = created.data.id;
+  assert.equal((await call(`/api/observations/${id}/submit`, { cookie: chen, method: "POST", body: { publish: true } })).status, 200);
+  assert.equal((await call(`/api/moderation/${id}`, { cookie: omar, method: "POST", body: { decision: "publish" } })).status, 200);
+  const sara = await login(SARA);
+  const feed = async () => (await call(`/api/shared?q=${encodeURIComponent(title)}`, { cookie: sara })).data;
+  return { id, chen, omar, sara, feed };
+}
+
+test("a withdrawn copy can't be republished by restoring an open report on it", async () => {
+  const { id, chen, omar, sara, feed } = await publishedByChen(`Withdraw-report ${Date.now().toString(36)}`);
+  const [copy] = await feed();
+  assert.equal((await call(`/api/shared/${copy.id}/report`, { cookie: sara, method: "POST", body: { reason: "Looks identifying" } })).status, 200);
+  const reportId = (await call("/api/moderation", { cookie: omar })).data.reports.find((r) => r.shared_id === copy.id).id;
+  assert.equal((await call(`/api/observations/${id}/withdraw`, { cookie: chen, method: "POST" })).status, 200);
+  const restore = await call(`/api/reports/${reportId}`, { cookie: omar, method: "POST", body: { decision: "restore", note: "fine" } });
+  assert.notEqual(restore.status, 200, "restoring must not succeed after withdrawal");
+  assert.equal((await feed()).length, 0, "the withdrawn copy stays out of the feed");
+});
+
+test("publishing a new version retires a reported old one, so only one copy can ever be live", async () => {
+  const { id, chen, omar, sara, feed } = await publishedByChen(`Supersede-report ${Date.now().toString(36)}`);
+  const [v1] = await feed();
+  assert.equal((await call(`/api/shared/${v1.id}/report`, { cookie: sara, method: "POST", body: { reason: "Needs another look" } })).status, 200);
+  const reportId = (await call("/api/moderation", { cookie: omar })).data.reports.find((r) => r.shared_id === v1.id).id;
+  assert.equal((await call(`/api/observations/${id}`, { cookie: chen, method: "PATCH", body: { body: "Updated wording after review." } })).status, 200);
+  assert.equal((await call(`/api/moderation/${id}`, { cookie: omar, method: "POST", body: { decision: "publish" } })).status, 200);
+  const restore = await call(`/api/reports/${reportId}`, { cookie: omar, method: "POST", body: { decision: "restore", note: "fine" } });
+  assert.notEqual(restore.status, 200, "the superseded version can't come back");
+  const live = await feed();
+  assert.equal(live.length, 1, "exactly one live copy");
+  assert.equal(live[0].version, 2);
+});
+
+test("visibility can't be changed around the review: community only via submit, and kept until withdrawal", async () => {
+  const { id, chen } = await publishedByChen(`Visibility-edit ${Date.now().toString(36)}`);
+  const edit = await call(`/api/observations/${id}`, { cookie: chen, method: "PATCH", body: { visibility: "private", body: "Edited." } });
+  assert.equal(edit.status, 200);
+  assert.equal((await call(`/api/observations/${id}`, { cookie: chen })).data.visibility, "community", "editing can't silently leave review");
+  const draft = await call("/api/observations", { cookie: chen, method: "POST", body: {
+    title: "Draft visibility probe", body: "A private note.", category: "Market observation", offering: "riva", period: "Q4 2026",
+    evidence_type: "Internal note", confidence: "Low", visibility: "community" } });
+  assert.equal(draft.status, 422, "community visibility can't be set without submit and consent");
+});
