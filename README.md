@@ -12,7 +12,7 @@ shared learning that improves Azentio's products.**
 [![React 19](https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white)](https://react.dev)
 [![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript&logoColor=white)](tsconfig.json)
 [![Postgres](https://img.shields.io/badge/Postgres-Supabase_·_PGlite-336791?style=flat-square&logo=postgresql&logoColor=white)](docs/adr/0002-postgres-everywhere-with-rls-lockdown.md)
-[![API security tests](https://img.shields.io/badge/API_security_tests-19_passing-2ed88e?style=flat-square)](tests/security.test.mjs)
+[![API security tests](https://img.shields.io/badge/API_security_tests-24_passing-2ed88e?style=flat-square)](tests/security.test.mjs)
 
 [**Live demo**](https://azentio-platform.vercel.app) · [Security model](SECURITY.md) ·
 [Requirements traceability](docs/requirements-traceability.md) · [Architecture](docs/architecture.md) ·
@@ -134,7 +134,7 @@ still open.
 | Supabase's public API locked: RLS on every table, `anon` grants revoked | `LOCKDOWN` in `src/server/db.ts` |
 | Every state change audited in the same transaction | `src/server/audit.ts`, `tx()` |
 
-19 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
+24 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
 escalation, private drafts, payload contents, withdrawal, revocation, CSRF, malformed input on every write route).
 CI runs them against a production build on every pull request. The threat model (STRIDE), OWASP Top 10 mapping, what is
 simulated and the known limitations are in [SECURITY.md](SECURITY.md).
@@ -150,7 +150,7 @@ npm run dev    # http://localhost:3000: creates and seeds an embedded Postgres i
 | Command | What it does |
 |---|---|
 | `npm test` | Unit tests: sensitive-content scanner, quote verification, redirect checks |
-| `npm run test:security` | With the dev server running: the 19 API security tests |
+| `npm run test:security` | With the dev server running: the 24 API security tests |
 | `npm run typecheck && npm run lint` | Type and lint checks, as in CI |
 | `npm run reset` | Wipe local data; it's re-seeded on the next request |
 

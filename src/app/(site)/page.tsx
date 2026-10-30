@@ -57,6 +57,11 @@ const TESTS = [
   "a withdrawn copy can't be republished by restoring an open report on it",
   "publishing a new version retires a reported old one, so only one copy can ever be live",
   "visibility can't be changed around the review: community only via submit, and kept until withdrawal",
+  "an employee without a publishing grant can't publish content",
+  "the playground is for employees: a client gets the refusal, not the tool",
+  "a sign-in code for a real mailbox is never shown, even in demo mode",
+  "clients see an idea's status and public note, never its internal fields",
+  "AIRA's input is published shared copies only: theme evidence has no tenant or author data",
 ];
 
 export default async function Home() {
