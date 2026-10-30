@@ -1,4 +1,4 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight, Boxes, BriefcaseBusiness, FileChartColumn, Network, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -16,7 +16,7 @@ export function SiteTitle({ title, children, action }: { title: string; children
   return (
     <header className="grid gap-6 border-b pb-10 md:pb-14 lg:grid-cols-12 lg:items-end lg:gap-6">
       <div className="lg:col-span-8">
-        <h1 className="text-[44px] leading-[48px] font-normal tracking-[-0.025em] text-balance md:text-[60px] md:leading-[62px] md:tracking-[-0.03em]">
+        <h1 className="text-[44px] leading-[48px] font-semibold tracking-[-0.025em] text-balance md:text-[60px] md:leading-[62px] md:tracking-[-0.03em]">
           {title}
         </h1>
         {children && <p className="text-muted-foreground mt-5 max-w-[38rem] text-[20px] leading-[28px] tracking-[-0.01em]">{children}</p>}
@@ -30,38 +30,50 @@ export function SiteTitle({ title, children, action }: { title: string; children
 export function ProductIndex({ products }: { products: Content[] }) {
   if (!products.length) return <Empty>No products are listed yet.</Empty>;
   return (
-    <ul className="border-t">
-      {products.map((p) => (
-        <li key={p.id} className="border-b">
-          <Link
-            href={`/products/${p.slug}`}
-            className="group focus-visible:bg-muted grid gap-2 py-6 transition-colors duration-150 outline-none md:grid-cols-12 md:items-baseline md:gap-6 md:py-7"
-          >
-            <span className="text-[24px] leading-[30px] tracking-[-0.015em] md:col-span-5">{p.title}</span>
-            <span className="text-muted-foreground text-[15px] leading-6 md:col-span-6">{p.summary}</span>
-            <ArrowUpRight
-              aria-hidden
-              strokeWidth={1.5}
-              className="text-muted-foreground group-hover:text-foreground hidden size-5 justify-self-end transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 md:col-span-1 md:block"
-            />
-          </Link>
-        </li>
-      ))}
+    <ul className="grid gap-5 md:grid-cols-2">
+      {products.map((p) => {
+        const Icon = PRODUCT_ICON[p.slug ?? ""] ?? Boxes;
+        return (
+          <li key={p.id}>
+            <Link
+              href={`/products/${p.slug}`}
+              className="group bg-card shadow-card hover:shadow-lift focus-visible:ring-ring flex h-full flex-col rounded-2xl border p-6 transition-[box-shadow,transform] duration-200 outline-none hover:-translate-y-0.5 focus-visible:ring-2 md:p-7"
+            >
+              <span className="bg-navy text-brand grid size-11 place-items-center rounded-xl">
+                <Icon aria-hidden className="size-5" strokeWidth={1.75} />
+              </span>
+              <span className="mt-5 text-[20px] leading-[28px] font-semibold tracking-[-0.02em]">{p.title}</span>
+              <span className="text-muted-foreground mt-2 flex-1 text-[15px] leading-6">{p.summary}</span>
+              <span className="text-primary mt-5 inline-flex items-center gap-1.5 text-[14px] font-medium">
+                Explore the product
+                <ArrowRight aria-hidden className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          </li>
+        );
+      })}
     </ul>
   );
 }
+
+const PRODUCT_ICON: Record<string, LucideIcon> = {
+  "credit-strategy-simulator": SlidersHorizontal,
+  "sme-credit-decisioning": BriefcaseBusiness,
+  "similar-portfolio-intelligence": Network,
+  riva: FileChartColumn,
+};
 
 /** Pieces without their own page (solutions, insights): title in the left column, the text on the right. */
 export function EntryIndex({ items, empty }: { items: Content[]; empty: string }) {
   if (!items.length) return <Empty>{empty}</Empty>;
   return (
-    <ul className="border-t">
+    <ul className="space-y-4">
       {items.map((i) => (
         <li key={i.id}>
-          <article className="grid gap-3 border-b py-8 md:grid-cols-12 md:gap-6">
-            <h2 className="text-[24px] leading-[30px] tracking-[-0.015em] text-balance md:col-span-5">{i.title}</h2>
+          <article className="bg-card shadow-card grid gap-3 rounded-2xl border p-6 md:grid-cols-12 md:gap-6 md:p-7">
+            <h2 className="text-[20px] leading-[28px] tracking-[-0.02em] text-balance md:col-span-5">{i.title}</h2>
             <div className="md:col-span-7">
-              <p className="text-[16px] leading-6">{i.summary}</p>
+              <p className="text-[16px] leading-[26px]">{i.summary}</p>
               {i.body && <p className="text-muted-foreground mt-3 text-[15px] leading-6 whitespace-pre-line">{i.body}</p>}
             </div>
           </article>
@@ -87,10 +99,10 @@ export function BroadcastList({ items, empty }: { items: Content[]; empty: strin
   );
 }
 
-/** A ruled side note with a mono label: what happens next, what to expect. */
+/** A pale-mint side note with a mono label: what happens next, what to expect. */
 export function Note({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
   return (
-    <aside className={cn("border-t pt-5", className)}>
+    <aside className={cn("bg-brand-soft h-fit rounded-2xl border border-[color-mix(in_oklch,var(--brand-strong),transparent_70%)] p-6", className)}>
       <p className="text-muted-foreground font-mono text-[12px] leading-4">{label}</p>
       <div className="mt-3 text-[15px] leading-6">{children}</div>
     </aside>
@@ -98,7 +110,7 @@ export function Note({ label, children, className }: { label: string; children: 
 }
 
 function Empty({ children }: { children: ReactNode }) {
-  return <p className="text-muted-foreground border-y py-8 text-[15px] leading-6">{children}</p>;
+  return <p className="bg-card text-muted-foreground rounded-2xl border p-8 text-[15px] leading-6">{children}</p>;
 }
 
 /** Broadcasts that haven't started yet, soonest first. */

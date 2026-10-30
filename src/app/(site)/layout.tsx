@@ -18,7 +18,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       >
         Skip to content
       </a>
-      <header className="bg-background/95 supports-[backdrop-filter]:bg-background/85 sticky top-0 z-30 border-b backdrop-blur-sm">
+      <header className="sticky top-0 z-30 border-b bg-white/95 shadow-header backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-[1280px] items-center gap-8 px-4 sm:px-6">
           <Link href="/" className="shrink-0 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <Wordmark />
@@ -55,11 +55,11 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
         {children}
       </main>
 
-      <footer className="border-t">
+      <footer className="bg-navy text-white">
         <div className="mx-auto grid max-w-[1280px] gap-10 px-4 pt-14 pb-10 sm:px-6 md:grid-cols-12">
           <div className="md:col-span-5">
             <Wordmark />
-            <p className="text-muted-foreground mt-4 max-w-sm text-[14px] leading-[22px]">
+            <p className="text-navy-muted mt-4 max-w-sm text-[14px] leading-[22px]">
               AI credit products, and a portal where client organisations learn from each other without exposing who
               said what.
             </p>
@@ -78,7 +78,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
           />
         </div>
         <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
-          <p className="text-muted-foreground border-t py-6 text-[12px] leading-4">
+          <p className="text-navy-muted border-t border-white/10 py-6 text-[12px] leading-4">
             Built for the azentio.ai Build Labs challenge. Every organisation, person and figure on this site and in the
             portal is synthetic.
           </p>
@@ -91,13 +91,13 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
 function FooterList({ title, links, className }: { title: string; links: { href: string; label: string }[]; className?: string }) {
   return (
     <div className={className}>
-      <p className="text-[13px] font-medium">{title}</p>
+      <p className="text-brand text-[13px] font-semibold">{title}</p>
       <ul className="mt-4 space-y-2.5">
         {links.map((l) => (
           <li key={l.href}>
             <Link
               href={l.href}
-              className="text-muted-foreground hover:text-foreground rounded-sm text-[14px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring"
+              className="text-navy-muted rounded-sm text-[14px] outline-none transition-colors duration-150 hover:text-white focus-visible:ring-2 focus-visible:ring-brand"
             >
               {l.label}
             </Link>
