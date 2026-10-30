@@ -18,16 +18,16 @@ export function PageHeader({
 }) {
   return (
     <div className={cn("flex flex-wrap items-end justify-between gap-4", className)}>
-      <div className="min-w-0 space-y-1">
-        <h1 className="text-[24px] leading-[30px] font-medium tracking-[-0.015em] text-balance">{title}</h1>
-        {description && <p className="text-muted-foreground text-sm">{description}</p>}
+      <div className="min-w-0">
+        <h1 className="text-[32px] leading-[38px] font-normal tracking-[-0.02em] text-balance">{title}</h1>
+        {description && <p className="text-muted-foreground mt-1.5 text-[15px] leading-6">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
 
-/** White rounded panel with an optional title row. The base surface of every page. */
+/** A ruled section with an optional title row: the base unit of every portal page. Hairline on top, no card. */
 export function Panel({
   title,
   description,
@@ -44,12 +44,12 @@ export function Panel({
   bodyClassName?: string;
 }) {
   return (
-    <section className={cn("bg-card flex flex-col rounded-2xl p-5", className)}>
+    <section className={cn("flex flex-col border-t pt-5", className)}>
       {(title || action) && (
         <header className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            {title && <h2 className="text-[15px] leading-5 font-medium">{title}</h2>}
-            {description && <p className="text-muted-foreground mt-0.5 text-[13px]">{description}</p>}
+            {title && <h2 className="text-[17px] leading-6 font-medium tracking-[-0.005em]">{title}</h2>}
+            {description && <p className="text-muted-foreground mt-0.5 text-[14px] leading-5">{description}</p>}
           </div>
           {action}
         </header>
@@ -73,12 +73,10 @@ export function EmptyState({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-2 py-12 text-center", className)}>
-      <div className="bg-muted grid size-10 place-items-center rounded-full">
-        <Icon className="text-muted-foreground size-[18px]" strokeWidth={1.75} />
-      </div>
-      <p className="text-sm font-medium">{title}</p>
-      {description && <p className="text-muted-foreground max-w-sm text-[13px]">{description}</p>}
+    <div className={cn("flex flex-col items-center justify-center gap-1.5 py-10 text-center", className)}>
+      <Icon aria-hidden className="text-muted-foreground mb-1 size-5" strokeWidth={1.5} />
+      <p className="text-[15px] font-medium">{title}</p>
+      {description && <p className="text-muted-foreground max-w-sm text-[14px] leading-5">{description}</p>}
       {action && <div className="mt-2">{action}</div>}
     </div>
   );
@@ -105,7 +103,7 @@ export function LoadingRows({ rows = 6, className }: { rows?: number; className?
   return (
     <div className={cn("space-y-2", className)} aria-busy="true" aria-label="Loading">
       {Array.from({ length: rows }).map((_, i) => (
-        <Skeleton key={i} className="h-10 w-full rounded-xl" />
+        <Skeleton key={i} className="h-10 w-full rounded-md" />
       ))}
     </div>
   );

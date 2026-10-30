@@ -5,11 +5,12 @@ import { cn } from "@/lib/utils";
 
 type Tone = "info" | "success" | "warning" | "danger";
 
+// A toned rule on the left. Only warning and danger keep a soft fill: they must be noticed before acting.
 const STYLE: Record<Tone, { box: string; icon: LucideIcon; iconColor: string }> = {
-  info: { box: "bg-info-soft", icon: Info, iconColor: "text-info" },
-  success: { box: "bg-success-soft", icon: CircleCheck, iconColor: "text-success" },
-  warning: { box: "bg-warning-soft", icon: TriangleAlert, iconColor: "text-warning" },
-  danger: { box: "bg-danger-soft", icon: OctagonX, iconColor: "text-danger" },
+  info: { box: "border-info", icon: Info, iconColor: "text-info" },
+  success: { box: "border-success", icon: CircleCheck, iconColor: "text-success" },
+  warning: { box: "border-warning bg-warning-soft", icon: TriangleAlert, iconColor: "text-warning" },
+  danger: { box: "border-danger bg-danger-soft", icon: OctagonX, iconColor: "text-danger" },
 };
 
 /**
@@ -36,11 +37,11 @@ export function Banner({
   return (
     <div
       role={tone === "danger" ? "alert" : "status"}
-      className={cn("flex gap-3 rounded-[12px] px-4 py-3 text-[13px] leading-5", s.box, className)}
+      className={cn("flex gap-3 border-l-2 py-2.5 pr-4 pl-4 text-[14px] leading-[21px]", s.box, className)}
     >
       <s.icon className={cn("mt-0.5 size-4 shrink-0", s.iconColor)} strokeWidth={2} />
       <div className="min-w-0 flex-1">
-        {title && <p className="text-foreground text-[14px] font-medium">{title}</p>}
+        {title && <p className="text-foreground text-[15px] font-medium">{title}</p>}
         {children && <div className={cn(title ? "text-foreground/80 mt-0.5" : "text-foreground/90")}>{children}</div>}
         {action && <div className="mt-2.5">{action}</div>}
       </div>
