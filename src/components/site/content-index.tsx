@@ -2,6 +2,7 @@ import { ArrowRight, Boxes, BriefcaseBusiness, FileChartColumn, Network, Sliders
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { ProductArt } from "@/components/site/product-art";
 import { date } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Content } from "@/server/content";
@@ -27,7 +28,8 @@ export function SiteTitle({ title, children, action }: { title: string; children
 }
 
 /** Products as a table of contents: name, what it does, and a door. */
-export function ProductIndex({ products }: { products: Content[] }) {
+/** Product cards; `art` swaps the icon for a small illustration of what the product does (the home page). */
+export function ProductIndex({ products, art = false }: { products: Content[]; art?: boolean }) {
   if (!products.length) return <Empty>No products are listed yet.</Empty>;
   return (
     <ul className="grid gap-5 md:grid-cols-2">
@@ -39,9 +41,13 @@ export function ProductIndex({ products }: { products: Content[] }) {
               href={`/products/${p.slug}`}
               className="group bg-card shadow-card hover:shadow-lift focus-visible:ring-ring flex h-full flex-col rounded-2xl border p-6 transition-[box-shadow,transform] duration-200 outline-none hover:-translate-y-0.5 focus-visible:ring-2 md:p-7"
             >
-              <span className="bg-navy text-brand grid size-11 place-items-center rounded-xl">
-                <Icon aria-hidden className="size-5" strokeWidth={1.75} />
-              </span>
+              {art ? (
+                <ProductArt slug={p.slug} />
+              ) : (
+                <span className="bg-navy text-brand grid size-11 place-items-center rounded-xl">
+                  <Icon aria-hidden className="size-5" strokeWidth={1.75} />
+                </span>
+              )}
               <span className="mt-5 text-[20px] leading-[28px] font-semibold tracking-[-0.02em]">{p.title}</span>
               <span className="text-muted-foreground mt-2 flex-1 text-[15px] leading-6">{p.summary}</span>
               <span className="text-primary mt-5 inline-flex items-center gap-1.5 text-[14px] font-medium">

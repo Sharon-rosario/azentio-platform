@@ -1,10 +1,11 @@
 import { ArrowRight, Check } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { ProductIndex, upcoming } from "@/components/site/content-index";
-import { RedactionArtifact } from "@/components/site/redaction-artifact";
+import { AiraProof, FLOW_ART, FlowSteps, HeroOrbit, WithdrawStrip } from "@/components/site/home-visuals";
+import { RevealOnScroll } from "@/components/site/reveal";
 import { Button } from "@/components/ui/button";
 import { date } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,8 @@ export const metadata: Metadata = {
   description:
     "Azentio's AI credit products, and a portal where client organisations share market observations that are reviewed, de-identified and governed by their own consent.",
 };
+
+type CSSVars = CSSProperties & Record<`--${string}`, string>;
 
 /** The page's one container: 1280 max, 12 columns, gutters from the locked system. */
 function Wrap({ className, children }: { className?: string; children: ReactNode }) {
@@ -77,31 +80,43 @@ export default async function Home() {
 
   return (
     <>
+      <RevealOnScroll />
+
       {/* S0 — the fold */}
       <section aria-labelledby="hero-title" className="bg-navy relative overflow-hidden text-white">
-        {/* Azentio's mint as a quiet structural accent: two offset blocks at the right edge, as on azentio.com. */}
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 hidden w-[38%] lg:block">
-          <div className="bg-brand-strong/15 absolute top-0 right-0 h-1/2 w-2/3" />
-          <div className="bg-brand/10 absolute right-1/3 bottom-0 h-1/3 w-1/3" />
-        </div>
-        <Wrap className="relative grid gap-12 pt-14 pb-16 md:pt-[84px] md:pb-24 lg:grid-cols-12 lg:gap-6">
+        {/* A quiet dot grid and a mint glow behind the artifact: depth without decoration that competes. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:radial-gradient(rgb(255_255_255/0.14)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:linear-gradient(to_bottom,black,transparent_85%)]"
+        />
+        <div aria-hidden className="bg-brand/20 pointer-events-none absolute top-1/4 right-[8%] hidden size-[460px] rounded-full blur-[120px] lg:block" />
+        <Wrap className="relative grid gap-14 pt-14 pb-16 md:pt-[84px] md:pb-24 lg:grid-cols-12 lg:gap-6">
           <div className="lg:col-span-7 lg:pr-10">
-            <p className="text-brand inline-flex items-center gap-2 text-[14px] font-medium">
-              <span aria-hidden className="bg-brand size-1.5 rounded-full" /> Governed collective learning for BFSI
+            <p className="hero-rise inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 py-1 pr-3.5 pl-2 text-[13px] font-medium">
+              <span className="bg-brand text-brand-foreground rounded-full px-2 py-0.5 text-[11px] font-semibold">BFSI</span>
+              <span className="text-white/85">Governed collective learning</span>
             </p>
             <h1
               id="hero-title"
-              className="mt-5 text-[42px] leading-[48px] font-semibold tracking-[-0.03em] text-balance md:text-[58px] md:leading-[64px]"
+              className="hero-rise mt-6 text-[42px] leading-[50px] font-semibold tracking-[-0.03em] text-balance md:text-[60px] md:leading-[68px]"
+              style={{ "--d": "80ms" } as CSSVars}
             >
-              Banks learn from each other. <span className="text-brand">Nobody sees who said what.</span>
+              Banks learn from each other. <span className="text-brand">Nobody sees </span>
+              <span className="text-brand relative inline-block whitespace-nowrap">
+                who said what.
+                <svg aria-hidden viewBox="0 0 300 24" preserveAspectRatio="none" className="scribble absolute -bottom-3 left-0 h-4 w-full md:-bottom-4 md:h-5">
+                  <path pathLength={1} d="M4 15 C 70 5, 150 4, 296 9" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
+                  <path pathLength={1} d="M30 21 C 110 13, 190 12, 268 16" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" opacity="0.6" />
+                </svg>
+              </span>
             </h1>
-            <p className="text-navy-muted mt-6 max-w-[34rem] text-[18px] leading-[29px]">
+            <p className="hero-rise text-navy-muted mt-8 max-w-[34rem] text-[18px] leading-[29px]" style={{ "--d": "160ms" } as CSSVars}>
               azentio.ai brings Azentio&apos;s AI credit products together with a portal where client organisations share
               what they see in their markets, reviewed, de-identified and governed by their own consent.
             </p>
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-7">
-              <Button size="lg" className="h-12 px-6 text-[15px]" render={<Link href="/connect" />}>
-                Request a demo <ArrowRight />
+            <div className="hero-rise mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-7" style={{ "--d": "240ms" } as CSSVars}>
+              <Button size="lg" className="group h-12 px-6 text-[15px] shadow-[0_8px_24px_-8px_rgb(85_255_190/0.55)]" render={<Link href="/connect" />}>
+                Request a demo <ArrowRight className="transition-transform duration-200 group-hover:translate-x-0.5" />
               </Button>
               <Link
                 href="#safe"
@@ -110,68 +125,77 @@ export default async function Home() {
                 How sharing stays safe
               </Link>
             </div>
+            {/* Facts the code enforces, not marketing numbers. */}
+            <dl className="hero-rise mt-12 grid max-w-xl grid-cols-3 divide-x divide-white/10 border-t border-white/10 pt-6" style={{ "--d": "320ms" } as CSSVars}>
+              {[
+                [String(TESTS.length), "security tests on every pull request"],
+                ["404", "for another organisation's data, even by id"],
+                [`${MIN_ORGS}+`, "organisations before a theme is shown"],
+              ].map(([n, l]) => (
+                <div key={l} className="px-4 first:pl-0">
+                  <dt className="sr-only">{l}</dt>
+                  <dd className="text-brand text-[26px] leading-8 font-semibold tracking-[-0.02em] tabular-nums">{n}</dd>
+                  <dd aria-hidden className="text-navy-muted mt-1 text-[12px] leading-4">{l}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
-          <div className="text-foreground lg:col-span-5 lg:self-center">
-            <RedactionArtifact />
+          <div className="hero-rise text-foreground lg:col-span-5 lg:self-center" style={{ "--d": "200ms" } as CSSVars}>
+            <HeroOrbit />
           </div>
         </Wrap>
       </section>
 
-      {/* S1 — products as an index, not cards */}
+      {/* S1 — products, each with a small drawing of what it does */}
       <section aria-labelledby="products-title" className="py-16 md:py-24">
         <Wrap>
-          <div className="flex items-end justify-between gap-6">
+          <div data-reveal className="flex items-end justify-between gap-6">
             <div>
-              <h2 id="products-title" className="text-[32px] leading-[38px] font-semibold tracking-[-0.02em]">Products</h2>
-              <p className="text-muted-foreground mt-2 text-[16px] leading-6">Credit, risk and reporting software for banks and lenders.</p>
+              <p className="text-primary text-[13px] font-semibold">Products</p>
+              <h2 id="products-title" className="mt-2 text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-balance md:text-[40px] md:leading-[46px]">
+                Credit, risk and reporting software for banks.
+              </h2>
             </div>
             <Link href="/products" className="text-muted-foreground hover:text-foreground hidden shrink-0 rounded-sm text-[14px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring sm:inline">
               All products
             </Link>
           </div>
-          <div className="mt-10">
-            <ProductIndex products={ordered} />
+          <div data-reveal className="mt-10" style={{ "--reveal-delay": "80ms" } as CSSVars}>
+            <ProductIndex products={ordered} art />
           </div>
         </Wrap>
       </section>
 
-      {/* S2 — the objection, answered with the actual lifecycle */}
+      {/* S2 — the objection, answered with the actual lifecycle, drawn */}
       <section id="safe" aria-labelledby="safe-title" className="bg-brand-soft scroll-mt-20 py-16 md:py-24">
-        <Wrap className="grid gap-10 lg:grid-cols-12 lg:gap-6">
-          <div className="lg:col-span-4">
-            <div className="lg:sticky lg:top-28">
-              <h2 id="safe-title" className="text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-balance md:text-[44px] md:leading-[48px] md:tracking-[-0.025em]">
-                How sharing stays safe
-              </h2>
-              <p className="text-muted-foreground mt-4 max-w-sm text-[16px] leading-6">
-                The first question every client asks: could this reach a competitor? Here is exactly what happens to an
-                observation, in the order it happens.
-              </p>
-            </div>
+        <Wrap>
+          <div data-reveal className="mx-auto max-w-2xl text-center">
+            <p className="text-primary text-[13px] font-semibold">How sharing stays safe</p>
+            <h2 id="safe-title" className="mt-2 text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-balance md:text-[44px] md:leading-[50px] md:tracking-[-0.025em]">
+              Could this reach a competitor? Here is what actually happens.
+            </h2>
+            <p className="text-muted-foreground mt-4 text-[16px] leading-[26px]">
+              Every observation goes through the same states, in this order, and the server enforces each one.
+            </p>
           </div>
-          <ol className="bg-card shadow-card divide-y overflow-hidden rounded-2xl border lg:col-span-8">
-            {LIFECYCLE.map((s, i) => (
-              <li key={s.state} className="grid gap-3 px-6 py-6 sm:grid-cols-8 sm:gap-6 sm:px-7">
-                <span className="sm:col-span-2">
-                  <span className="bg-navy text-brand inline-flex h-7 items-center gap-2 rounded-full pr-3 pl-1 font-mono text-[12px]">
-                    <span className="bg-brand text-brand-foreground grid size-5 place-items-center rounded-full text-[11px] font-semibold">{i + 1}</span>
-                    {s.state}
-                  </span>
-                </span>
-                <div className="sm:col-span-6">
-                  <h3 className="text-[19px] leading-[28px] tracking-[-0.015em]">{s.title}</h3>
-                  <p className="text-muted-foreground mt-2 text-[15px] leading-6">{s.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+          <div className="mt-12">
+            <FlowSteps
+              steps={[
+                { ...LIFECYCLE[0], art: FLOW_ART.draft },
+                { ...LIFECYCLE[1], art: FLOW_ART.consent },
+                { ...LIFECYCLE[2], art: FLOW_ART.review },
+                { ...LIFECYCLE[3], art: FLOW_ART.theme },
+              ]}
+            />
+            <WithdrawStrip title={LIFECYCLE[4].title} body={LIFECYCLE[4].body} />
+          </div>
         </Wrap>
       </section>
 
       {/* S3 — the proof, checkable: an ink band with the real test names */}
       <section aria-labelledby="proof-title" className="bg-foreground text-background py-16 md:py-24">
         <Wrap className="grid gap-10 lg:grid-cols-12 lg:gap-6">
-          <div className="lg:col-span-5 lg:pr-8">
+          <div data-reveal className="lg:col-span-5 lg:pr-8">
             <h2 id="proof-title" className="text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-balance md:text-[44px] md:leading-[48px] md:tracking-[-0.025em]">
               Tested the way an attacker would try.
             </h2>
@@ -186,7 +210,7 @@ export default async function Home() {
               Read the security overview <ArrowRight className="size-4" />
             </Link>
           </div>
-          <div className="lg:col-span-7">
+          <div data-reveal className="lg:col-span-7" style={{ "--reveal-delay": "100ms" } as CSSVars}>
             <div className="bg-navy-2 overflow-hidden rounded-2xl border border-white/10 shadow-deep">
               <p className="flex items-center justify-between border-b border-white/10 px-5 py-3 font-mono text-[12px] leading-4">
                 <span className="text-navy-muted">tests/security.test.mjs</span>
@@ -205,28 +229,21 @@ export default async function Home() {
         </Wrap>
       </section>
 
-      {/* S4 — AI that can only say what the evidence shows */}
+      {/* S4 — AI that can only say what the evidence shows: the quote beside its source */}
       <section aria-labelledby="aira-title" className="py-16 md:py-24">
-        <Wrap className="grid lg:grid-cols-12 lg:gap-6">
-          <div className="lg:col-span-8 lg:col-start-3">
-            <h2 id="aira-title" className="text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-balance md:text-[44px] md:leading-[48px] md:tracking-[-0.025em]">
+        <Wrap>
+          <div data-reveal className="max-w-2xl">
+            <p className="text-primary text-[13px] font-semibold">AIRA</p>
+            <h2 id="aira-title" className="mt-2 text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-balance md:text-[44px] md:leading-[50px] md:tracking-[-0.025em]">
               AI that can only say what the evidence shows.
             </h2>
-            <p className="text-muted-foreground mt-5 max-w-2xl text-[17px] leading-[27px]">
+            <p className="text-muted-foreground mt-5 text-[17px] leading-[27px]">
               AIRA summarises a theme from approved, de-identified copies and nothing else. Every quote it relies on is
               checked against its source before the summary is saved, and a summary that can&apos;t be backed isn&apos;t kept.
             </p>
-            <blockquote className="bg-card shadow-card border-brand-strong mt-10 rounded-r-2xl border border-l-4 px-7 py-6">
-              <p className="text-[24px] leading-[32px] tracking-[-0.015em] md:text-[28px] md:leading-[36px]">
-                “Debt-service ratios computed on trailing three months look alarming in August.”
-              </p>
-              <footer className="text-muted-foreground mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[12px] leading-4">
-                <span className="text-primary inline-flex items-center gap-1.5">
-                  <Check className="size-3.5" strokeWidth={2.5} aria-hidden /> quote verified against its source
-                </span>
-                <span>shared copy · market observation · Jun-Sep 2026</span>
-              </footer>
-            </blockquote>
+          </div>
+          <div className="mt-12">
+            <AiraProof />
           </div>
         </Wrap>
       </section>
@@ -234,7 +251,7 @@ export default async function Home() {
       {/* S5 — the action again, with what's next */}
       <section aria-labelledby="close-title" className="pb-20 md:pb-28">
         <Wrap>
-        <div className="bg-navy relative grid gap-12 overflow-hidden rounded-3xl px-6 py-12 text-white sm:px-10 md:py-16 lg:grid-cols-12 lg:gap-6 lg:px-14">
+        <div data-reveal className="bg-navy relative grid gap-12 overflow-hidden rounded-3xl px-6 py-12 text-white sm:px-10 md:py-16 lg:grid-cols-12 lg:gap-6 lg:px-14">
           <div aria-hidden className="bg-brand-strong/15 pointer-events-none absolute -right-10 -bottom-10 size-64 rotate-12 rounded-3xl" />
           <div className="relative lg:col-span-7">
             <h2 id="close-title" className="text-[36px] leading-[42px] font-semibold tracking-[-0.03em] text-balance md:text-[48px] md:leading-[54px]">
