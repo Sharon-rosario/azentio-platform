@@ -5,10 +5,11 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { z } from "zod";
 
-// Structured model calls. Production: the Anthropic API (ANTHROPIC_API_KEY), with the output forced through a single
-// tool whose input schema is the zod schema. Local development without a key: the Claude Code CLI
-// (`claude -p --json-schema`). Either way the result is re-validated with zod and the call fails closed:
-// it returns null and a plain reason, never a half-parsed object.
+// Structured model calls. Production: the Anthropic API (ANTHROPIC_API_KEY) with structured outputs: the response is
+// constrained to the zod schema (`output_config.format`). Current models reject forcing a tool call for this
+// (`tool_choice: tool` returns a 400 on Claude Sonnet 5.5), so structured outputs are the supported way to get JSON.
+// Local development without a key: the Claude Code CLI (`claude -p --json-schema`). Either way the result is
+// re-validated with zod and the call fails closed: it returns null and a plain reason, never a half-parsed object.
 
 const MODEL = process.env.LLM_MODEL ?? "claude-sonnet-5-5";
 const TIMEOUT_MS = 180_000;
@@ -34,22 +35,27 @@ function jsonSchemaOf(schema: z.ZodType): Record<string, unknown> {
 
 async function viaApi<T extends z.ZodType>(prompt: string, schema: T, system: string): Promise<Result<z.infer<T>>> {
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
+  const { zodOutputFormat } = await import("@anthropic-ai/sdk/helpers/zod");
   const client = new Anthropic({ timeout: TIMEOUT_MS, maxRetries: 2 });
   try {
-    const res = await client.messages.create({
+    const res = await client.messages.parse({
       model: MODEL,
-      max_tokens: 4000,
+      // Room for adaptive thinking plus the answer; a summary of a few contributions needs medium effort, not high.
+      max_tokens: 16000,
       system,
       messages: [{ role: "user", content: prompt }],
-      tools: [{ name: "respond", description: "Return the answer in this exact structure.",
-        input_schema: jsonSchemaOf(schema) as { type: "object" } }],
-      tool_choice: { type: "tool", name: "respond" },
+      output_config: { effort: "medium", format: zodOutputFormat(schema) },
     });
-    const block = res.content.find((b) => b.type === "tool_use");
-    const parsed = schema.safeParse(block && "input" in block ? block.input : undefined);
+    if (res.stop_reason === "refusal") return { data: null, note: "The model declined to summarise this", model: MODEL };
+    if (res.stop_reason === "max_tokens") return { data: null, note: "The model's answer was cut off; try again", model: MODEL };
+    // Validated again with our own schema, so the guarantee doesn't depend on the SDK helper.
+    const parsed = schema.safeParse(res.parsed_output);
     return parsed.success ? { data: parsed.data, model: MODEL } : { data: null, note: "The model's answer didn't match", model: MODEL };
   } catch (e) {
-    console.error("anthropic api", e instanceof Error ? e.message : e);
+    console.error("anthropic api", e instanceof Anthropic.APIError ? `${e.status} ${e.message}` : e instanceof Error ? e.message : e);
+    if (e instanceof Anthropic.APIError && e.status !== undefined && e.status < 500 && e.status !== 408 && e.status !== 429) {
+      return { data: null, note: "The model service refused the request", model: MODEL };
+    }
     return { data: null, note: "The model service didn't answer; try again", model: MODEL };
   }
 }
