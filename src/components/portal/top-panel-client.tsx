@@ -9,6 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -57,22 +58,24 @@ export function WorkspaceSwitcher({ active, options }: { active: number | null; 
         {options.length > 1 && <ChevronDown className="text-muted-foreground size-3.5" />}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-56">
-        <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
-        {options.map((o) => (
-          <DropdownMenuItem
-            key={o.id}
-            onClick={async () => {
-              if (o.id === active) return;
-              await api("/api/me/workspace", "POST", { membershipId: o.id });
-              toast.success(`Now working in ${o.label}`);
-              router.push("/portal");
-              router.refresh();
-            }}
-          >
-            {o.id === active ? <Check className="size-4" /> : <span className="size-4" />}
-            {o.label}
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
+          {options.map((o) => (
+            <DropdownMenuItem
+              key={o.id}
+              onClick={async () => {
+                if (o.id === active) return;
+                await api("/api/me/workspace", "POST", { membershipId: o.id });
+                toast.success(`Now working in ${o.label}`);
+                router.push("/portal");
+                router.refresh();
+              }}
+            >
+              {o.id === active ? <Check className="size-4" /> : <span className="size-4" />}
+              {o.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -90,11 +93,14 @@ export function UserMenu({ name, email, role }: { name: string; email: string; r
         {initials}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-60">
-        <DropdownMenuLabel>
-          <span className="block text-[13px] font-medium text-foreground">{name}</span>
-          <span className="block text-[12px] font-normal">{email}</span>
-          <span className="mt-1 block text-[12px] font-normal">{role}</span>
-        </DropdownMenuLabel>
+        {/* Base UI requires a group label inside a Menu.Group; outside one it throws when the menu opens. */}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>
+            <span className="block text-[13px] font-medium text-foreground">{name}</span>
+            <span className="block text-[12px] font-normal">{email}</span>
+            <span className="mt-1 block text-[12px] font-normal">{role}</span>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={async () => {
