@@ -121,7 +121,8 @@ export async function getPrincipal(): Promise<Principal | null> {
 export async function switchWorkspace(p: Principal, membershipId: number) {
   const m = p.memberships.find((x) => x.id === membershipId);
   if (!m) throw new HttpError(404, "Not found");
-  const sid = (await cookies()).get(COOKIE)?.value!;
+  const sid = (await cookies()).get(COOKIE)?.value;
+  if (!sid) throw new HttpError(401, "Sign in first");
   await run("update sessions set membership_id = ? where id = ?", m.id, createHash("sha256").update(sid).digest("hex"));
   await audit(p, "auth.switch_workspace", "membership", m.id, { org: m.orgName });
 }
