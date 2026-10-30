@@ -144,7 +144,14 @@ async function connect(): Promise<Driver> {
     const exec = (s: typeof sql): Exec => async (q, p) => [...(await s.unsafe(q, p as never[]))] as Record<string, unknown>[];
     return {
       exec: exec(sql),
-      transaction: (fn) => sql.begin((t) => fn(exec(t as unknown as typeof sql))) as never,
+      // Every transaction guards itself (SET LOCAL lasts only until it ends, so pooled connections stay clean): a lock
+      // wait gives up after 5 s instead of queueing behind a stuck writer, and a transaction left open by a request the
+      // platform killed is ended after 15 s idle, releasing its locks, instead of blocking every later write.
+      transaction: (fn) => sql.begin(async (t) => {
+        await t.unsafe("set local lock_timeout = '5s'");
+        await t.unsafe("set local idle_in_transaction_session_timeout = '15s'");
+        return fn(exec(t as unknown as typeof sql));
+      }) as never,
       script: async (q) => { await sql.unsafe(q); },
     };
   }
