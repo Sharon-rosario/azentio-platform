@@ -85,6 +85,7 @@ const TESTS = [
   "revoking a member cancels their pending invitations, so they can't rejoin",
   "the shared feed filters by observation period, and a withdrawn copy's period leaves the filter options",
   "an employee can suggest an improvement; it stays internal until a product owner shows it to clients",
+  "an ended session is sent to sign-in with the reason; a visitor who never signed in isn't told one",
 ];
 
 export default async function Home() {

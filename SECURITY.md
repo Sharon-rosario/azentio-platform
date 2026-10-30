@@ -166,7 +166,7 @@ server for every request, not by what the interface chooses to show.
 
 ## Verification
 
-`tests/security.test.mjs` is a black-box suite of 38 tests that signs in as different personas and calls the API
+`tests/security.test.mjs` is a black-box suite of 39 tests that signs in as different personas and calls the API
 directly, the way an attacker would: cross-tenant reads and writes, private-draft access within an organisation, role
 escalation, moderator and administrator boundaries, feed payload contents, workspace switching, theme suppression, the
 full publish-and-withdraw flow, report and versioning edge cases (a withdrawn or superseded copy can't be restored,
@@ -175,7 +175,7 @@ on every write route.
 
 ```bash
 npm run dev            # in one terminal
-npm run test:security  # in another: 38 passing
+npm run test:security  # in another: 39 passing
 ```
 
 ## What is simulated in this build

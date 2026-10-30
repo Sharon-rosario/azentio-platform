@@ -532,6 +532,18 @@ test("an employee can suggest an improvement; it stays internal until a product 
   assert.equal(shown.problem, undefined, "internal fields stay internal");
 });
 
+test("an ended session is sent to sign-in with the reason; a visitor who never signed in isn't told one", async () => {
+  // Both cookie names: dev uses azp_session, a production build __Host-azp_session.
+  const stale = "azp_session=ended-session; __Host-azp_session=ended-session";
+  const ended = await call("/portal/observations", { cookie: stale });
+  assert.ok([302, 303, 307, 308].includes(ended.status), `redirect expected, got ${ended.status}`);
+  assert.match(ended.res.headers.get("location") ?? "", /\/login\?next=.*&ended=1$/);
+  const fresh = await call("/portal/observations");
+  assert.ok(!(fresh.res.headers.get("location") ?? "").includes("ended=1"), "no reason for someone who never signed in");
+  const page = await call("/login?next=%2Fportal&ended=1");
+  assert.match(page.data, /Your session ended after \d+ minutes without activity/);
+});
+
 test("the audit log's hash chain verifies end to end after every write in this suite", async () => {
   const html = (await call("/portal/admin", { cookie: await login(ADMIN) })).data;
   assert.match(html, /Hash chain intact: all \d+ entries verified/);
