@@ -1,0 +1,44 @@
+# Weekly version updates, grouped so a normal week is one or two pull requests, each verified by CI.
+# Security updates are separate: they open as soon as an advisory lands (Settings → Code security → Dependabot).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Asia/Kolkata
+    # A new release waits a week before it's proposed: most malicious or broken publishes are pulled within days.
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    labels: [dependencies]
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Next.js and its ESLint config are released together and must match.
+      next:
+        patterns: ["next", "eslint-config-next"]
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Node types track the runtime we support (engines: node >=20.9), not the latest Node.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Asia/Kolkata
+    labels: [dependencies]
+    commit-message:
+      prefix: "ci"
+    groups:
+      actions:
+        patterns: ["*"]
