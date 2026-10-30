@@ -1,0 +1,229 @@
+# Requirements traceability
+
+Every requirement in the organisers' brief (*azentio.ai Website & Intelligent Collaboration Portal*), where the code
+enforces it, which automated test proves it, and its status. Mapped against `main` at `2bbe526` (30 Oct 2026).
+
+**IDs.** The brief numbers only `IAM-01` and `IAM-02`. Every other ID below is ours: one per requirement sentence or
+bullet, in the brief's order, prefixed by section. The section number after each heading is the brief's.
+
+**Status**
+
+| Status | Meaning |
+|---|---|
+| **Proven** | Enforced on the server and exercised by an automated test that would fail if the rule broke |
+| **Enforced** | Enforced on the server; no automated test yet (named code location to read) |
+| **Partial** | Part of the requirement is met; the gap is stated |
+| **Gap** | Known defect or missing control, listed under [Open gaps](#open-gaps) |
+| **Out of scope** | Not built, with the reason (brief marks it optional, P1/P2, or outside the minimum scope) |
+
+**Tests.** `S1`-`S16` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
+as real personas and call the API directly. `U1`-`U4` are the unit tests in [`tests/unit.test.mjs`](../tests/unit.test.mjs).
+CI runs all of them against a production build on every push and pull request ([`ci.yml`](../.github/workflows/ci.yml)).
+
+| Test | Name in the file |
+|---|---|
+| S1 | signed out: only public content, everything else refused |
+| S2 | a wrong code is refused, and a code works once |
+| S3 | a new verified email gets no organisation: no tenant is trusted by default |
+| S4 | tenant isolation: another organisation's observation is not found, even by id |
+| S5 | a private draft stays private, even inside the same organisation |
+| S6 | roles: clients can't moderate or administer; admins can't read client observations |
+| S7 | a moderator never sees unsubmitted drafts |
+| S8 | client admins can't escalate or reach another tenant |
+| S9 | content follows audience and entitlements |
+| S10 | the shared feed carries no tenant, author or moderator data |
+| S11 | workspace switch only to memberships you hold, and one tenant at a time |
+| S12 | themes below three organisations are suppressed for clients, visible to moderators |
+| S13 | governed flow: submit → sensitive copy refused → redacted copy published → withdraw removes it at once |
+| S14 | revoking a membership takes effect on the next request |
+| S15 | cross-site writes are refused |
+| S16 | malformed input is refused with 4xx on every write route, never a 500 |
+| U1 | scan flags identifiers that must not reach the shared feed |
+| U2 | scan leaves ordinary market observations alone |
+| U3 | locate finds exact and lightly garbled quotes, rejects invented or trivial ones |
+| U4 | safePath allows same-origin paths only (no open redirect) |
+
+**Where the rules live.** One policy module decides everything: [`src/server/policy.ts`](../src/server/policy.ts)
+(`GRANTS`, `authorize`, `sameTenant`, `canSeeContent`). API routes ([`http.ts`](../src/server/http.ts) `route()`) and
+server pages ([`page.ts`](../src/server/page.ts) `load()`) call the same service functions, so a page and a direct API
+call get the same decision.
+
+---
+
+## Summary
+
+| Section | Requirements | Proven | Enforced | Partial | Gap | Out of scope |
+|---|---|---|---|---|---|---|
+| 01 Reference: server-side enforcement | 2 | 1 | | 1 | | |
+| 03 Personas, IAM-01, IAM-02, access rule | 14 | 11 | 2 | 1 | | |
+| 04 Login and onboarding | 8 | 6 | 1 | 1 | | |
+| 05 Employee portal | 5 | 1 | 2 | 1 | | 1 |
+| 06 Client portal | 7 | 4 | 1 | 1 | | 1 |
+| 07 Observation capture | 5 | 4 | | | | 1 |
+| 08 Review, publication, withdrawal | 9 | 4 | 2 | 1 | 2 | |
+| 09 Sharing, consent, aggregation | 11 | 5 | 4 | 1 | 1 | |
+| 10 Insights and improvement | 7 | 2 | 3 | 1 | | 1 |
+| 11 Federated model learning (P2) | 1 | | | | | 1 |
+| Platform controls (not numbered in the brief) | 6 | 4 | 1 | 1 | | |
+| **Total** | **75** | **42** | **16** | **9** | **3** | **5** |
+
+Eight open gaps (G-01 to G-08) are listed at the end, with a suggested fix and the test that would prove each.
+
+---
+
+## 01 · Reference and status
+
+| ID | Requirement | Enforced in | Proven by | Status |
+|---|---|---|---|---|
+| REF-01 | Enforce access on the server, including direct API requests | Every route: `http.ts` `route()` → service → `policy.ts` `authorize()`; pages: `page.ts` `load()` | S1, S4-S9, S14 (all call the API directly, no UI) | **Proven** |
+| REF-02 | ...and direct media requests | No media files are served: `public/` holds no media, the `content.media_url` column is unused, content is text served through `content.ts` `getContent()` (unseen = 404) | S9 (content API) | **Partial**: nothing to leak today; a media route must reuse `canSeeContent()` before any file is added |
+
+## 03 · Personas and access boundaries
+
+| ID | Requirement | Enforced in | Proven by | Status |
+|---|---|---|---|---|
+| IAM-01a | Server-side RBAC plus tenant membership, resource audience and product entitlement checks | `policy.ts` `authorize()`, `sameTenant()`, `canSeeContent()`; `content.ts` `entitlements()` | S4 (tenant), S6 (role), S9 (audience + entitlement) | **Proven** |
+| IAM-01b | Multiple memberships; explicit active workspace | `sessions.membership_id`; `auth.ts` `getPrincipal()` (one active membership), `switchWorkspace()` (only memberships held) | S11 | **Proven** |
+| IAM-01c | Never derive authority from navigation, localStorage, email suffix alone or a user-supplied tenant id | Principal is reloaded from the database on every request (`getPrincipal()`); no code grants by email domain; client-supplied `orgId` ignored or 404 (`members.ts` `invite()`, `listMembers()`) | S3 (new email gets nothing), S8 (`orgId: 3` → 404) | **Proven** |
+| IAM-02a | Least privilege; employee status doesn't imply admin | `policy.ts` `GRANTS.employee` has no admin, moderation, publishing or membership grant | S6 (plain employee can't create ideas) | **Proven** |
+| IAM-02b | Publish videos, moderate, invite and change roles are separate grants | `content.publish`, `moderation.review`, `members.manage`, `admin.roles` are separate entries in `GRANTS` | S6, S8 | **Proven** |
+| IAM-02c | Deny unless permission and audience conditions are met | `authorize()` throws unless the permission is in the active membership's set; `canSeeContent()` returns false for unknown audiences | S1, S6, S9 | **Proven** |
+| ACC-01 | Access only when audience permits, active membership valid, action authorised; public is explicit, never a fallback | `canSeeContent()`: `public` is an explicit value, anything unrecognised is denied; revoked memberships drop out of `getPrincipal()` | S1, S9, S14 | **Proven** |
+| ROLE-PUB | Public visitor: catalogue, solutions, insights, demo enquiries, event registration; no private data or config writes | Pages under `src/app/(site)`; `content.ts` `createRequest()`; writes need a grant (`createContent()` → `content.publish`) | S1 (signed-out reads), S16 (signed-out writes refused) | **Partial**: no dedicated *about* page or approved media gallery |
+| ROLE-CLI | Client member: tenant and entitlement checks on every protected resource; no employee-only experiments | `GRANTS.client_member` (no `content.employee`, no `playground.use`); `sameTenant()` | S4, S9 | **Proven** |
+| ROLE-CADM | Client admin can't grant platform roles, change another tenant or self-enable products | `members.ts` `invite()` limits roles to `CLIENT_ASSIGNABLE`, own org only; no API writes entitlements | S8 | **Proven** |
+| ROLE-PUBL | Content publisher: no identity administration or implicit access to private learning | `GRANTS.publisher` = `content.publish` only | none | **Enforced** |
+| ROLE-ADM | Portal admin: privileged actions audited; client-private content needs explicit moderation authorisation, not a broad role | `GRANTS.portal_admin` has no `observations.*`; every privileged service writes `audit()` in the same transaction | S6 (admin gets 403 on observations and moderation) | **Proven**, except: the audit trail is append-only by convention, not tamper-evident (see G-05) |
+| ROLE-MOD | Moderator: no access to unsubmitted drafts | `learning.ts` `moderationQueue()`, `reviewItem()` only return `visibility='community'` and `status in ('submitted','published')` | S7 | **Proven** |
+| ROLE-EMP | Employee: verified work identity plus approved membership; no automatic access to every client's private data | Employee grants carry no `observations.*`; membership is provisioned, never inferred from `@azentio.com` | S3, S6 | **Enforced**: no test signs in a *new* `@azentio.com` address to prove it gets nothing |
+
+## 04 · Login, onboarding and session lifecycle
+
+| ID | Requirement | Enforced in | Proven by | Status |
+|---|---|---|---|---|
+| AUTH-01 | Employees: verified identity plus approved employee membership (Entra ID preferred; managed email code allowed) | `auth.ts` `requestCode()`, `verifyCode()`: HMAC-hashed 6-digit code, 10 min, single use, 5 attempts | S2 | **Proven** (email code; Entra ID documented as the production path in SECURITY.md) |
+| AUTH-02 | Clients join by invitation tied to a registered organisation | `members.ts` `invite()`, `acceptInvitation()` | S14 | **Proven** |
+| AUTH-03 | Client admin invites only into own org, within policy | `invite()` | S8 | **Proven** |
+| AUTH-04 | Arbitrary external email never creates a trusted membership | `verifyCode()` creates a user with no membership | S3 | **Proven** |
+| AUTH-05 | Single-use, expiring invitation naming organisation and role | `invite()` (7-day expiry, SHA-256 token hash), `acceptInvitation()` (410 when used/expired/revoked) | S14 (second accept → 410) | **Proven** |
+| AUTH-06 | Accept only as the intended verified account | `acceptInvitation()` compares the invitation email with the signed-in email | S14 (wrong account → 403) | **Proven** |
+| AUTH-07 | Show workspace terms and sharing explanation; joining is not consent | `src/app/invite/[token]/page.tsx` explanation; accepting writes no consent rows | none | **Enforced** |
+| AUTH-08 | Land on the right dashboard with only entitled features, active org shown, switcher for multi-membership users | `src/app/portal/page.tsx` (entitled demos, empty states), top panel workspace switcher | S11 | **Partial**: session lifetime is 8 h absolute with no idle timeout (G-06) |
+
+## 05 · Employee experience
+
+| ID | Requirement | Enforced in | Proven by | Status |
+|---|---|---|---|---|
+| EMP-01 | Employee dashboard; internal notes and sessions separate from public information | `src/app/portal/page.tsx`; `canSeeContent()` keeps `employee` content out of public and client lists | S9 | **Proven** |
+| EMP-02 | Guided playground on synthetic data, clearly labelled, never implying a real credit decision | `src/app/portal/playground/page.tsx` (`playground.use`, employees only); `components/insights/playground.tsx` banner "Sample data · simulated output · not a credit decision" | none | **Enforced**: no structured feedback capture after a run |
+| EMP-03 | Internal broadcasts restricted to employees; only publishers configure them | `src/app/portal/live/page.tsx` → `listContent(p, "broadcast")`; `createContent()` needs `content.publish` | S9 (no employee content for clients) | **Enforced**: no test that a plain employee's `POST /api/content` is refused |
+| EMP-04 | Product owner reviews approved themes, creates an idea, links evidence, updates status; sees only evidence shared for that purpose | `insights.ts` `createIdea()`, `updateIdeaStatus()` (`ideas.write`); themes read published copies only | S6 (non-owner refused) | **Partial**: ideas link to a theme, not to individually chosen contributions |
+| EMP-05 | Experiment submissions, hackathon team spaces, release notes, knowledge library with owners and review dates | n/a | n/a | **Out of scope**: "Add..." items; employee-only content kinds exist (`experiment`, `broadcast`) |
+
+## 06 · Client experience
+
+| ID | Requirement | Enforced in | Proven by | Status |
+|---|---|---|---|---|
+| CLI-01 | Client dashboard: active org, entitled offerings, sessions, contribution status, ideas; empty states, never another tenant's data | `src/app/portal/page.tsx` (`EmptyState` for no entitlements, sessions, ideas) | S9 | **Proven** |
+| CLI-02 | Entitled sandboxes isolated by tenant; no employee-only tools by URL | Playground page refuses without `playground.use`; demos filtered by entitlement in `canSeeContent()` | S9 | **Partial**: clients get entitled demo *content*, not an interactive sandbox; no saved runs exist to isolate |
+| CLI-03 | My observations and our organisation's: drafts, submit, follow status, amend returned, withdraw; private vs shared feed distinct | `learning.ts` `listObservations()` (`mine` / `org`), `updateObservation()`, `submitObservation()`, `withdrawObservation()`; separate `/portal/observations` and `/portal/shared` | S5, S13 | **Proven** |
+| CLI-04 | Browse and search approved shared observations and safe themes; filters for offering, industry, region, period, topic; search, counts, suggestions and exports follow the same rules | `sharedFeed()` (published copies only, every filter in SQL), `feedFacets()` (published only), `listThemes()` | S10, S12, S13 (search finds the item, then not after withdrawal) | **Proven** (no exports exist; no period filter) |
+| CLI-05 | Client admins invite/revoke members within their org; membership and invitation states shown; no escalation | `members.ts` `invite()`, `revokeMember()`, `listMembers()` (states Pending/Accepted/Revoked/Expired) | S8, S14 | **Proven** |
+| CLI-06 | Improvement ideas with plain-language status, owner and last update; no private tickets or internal prioritisation | `insights.ts` `listIdeas()` strips `problem`, `proposed_outcome`, `priority` for non-employees | none | **Enforced** |
+| CLI-07 | Saved searches, bookmarks, comments, support tickets, client resources | `notifications` only | n/a | **Out of scope** ("Add..." items); in-app notifications built |
+
+## 07 · Observation capture
+
+| ID | Requirement | Enforced in | Proven by | Status |
+|---|---|---|---|---|
+| OBS-01 | Structured form for the six contribution types; starts as a private draft; Save never shares | `learning.ts` `CATEGORIES`, `createObservation()` (always `status='draft'`); the form sends `private` even when community is picked | S5, S13 | **Proven** |
+| OBS-02 | Validate required fields and lengths on client and server | Server: `learning.ts` `clean()`, `http.ts` `text()`/`oneOf()`/`body()`; client: zod schema in `observation-form.tsx` | S16 | **Proven** |
+| OBS-03 | Draft, submit, edit-returned and withdraw actions | `updateObservation()` (returned → draft), `submitObservation()`, `withdrawObservation()` | S13 | **Proven** |
+| OBS-04 | Attachments with limits and private storage, or links instead | n/a | n/a | **Out of scope**: brief allows omitting attachments in P0 |
+| OBS-05 | Prompt to exclude identities, account numbers, credentials; flag likely sensitive content before publication | Form warning in `observation-form.tsx`; `scan.ts` `scan()` shown to author and moderator; `publish()` refuses while any flag matches | U1, U2, S13 (422 "Redact") | **Proven** (pattern-based, stated as a limitation) |
+
+## 08 · Review, publication and withdrawal
+
+| ID | Requirement | Enforced in | Proven by | Status |
+|---|---|---|---|---|
+| WF-01 | Explicit allowed transitions with audit events | Status guards in each service function (`updateObservation`, `submitObservation`, `publish`, `sendBack`, `withdrawObservation`), `audit()` in the same transaction | S13 | **Proven** for the main path; see G-01, G-02 for report edge cases |
+| WF-02 | Private source kept separate from the shared copy; copy holds reviewed fields only | `shared_versions` table; `publish()` writes only reviewed fields | S10 (payload has no `org_id`, `author_id`, `author`, `moderator_note`, `observation_id`, `email`) | **Proven** |
+| WF-03 | Moderators redact, request clarification, reject duplicates or unsafe material, publish | `publish()` (moderator-edited title, body, region, period), `sendBack()` (`return` / `reject` with a reason) | S13 (redacted copy published) | **Proven** |
+| WF-04 | Notify the author in-app on each state change | `audit.ts` `notify()` from `publish()`, `sendBack()`, `decideReport()`, `updateIdeaStatus()` | none | **Enforced**: no notification when a report temporarily unpublishes the author's item |
+| WF-05 | Material edits create a new version and need renewed review; never silently widen an audience | `updateObservation()` sends published → submitted; `publish()` increments `version` and supersedes the old copy | none | **Gap**: the API accepts a `visibility` change on edit (G-03) |
+| WF-06 | Report action; moderator can unpublish during review, decide, inform the contributor; reporter not exposed | `report()` (copy → `under_review`, summaries invalidated), `decideReport()`; `moderationQueue()` returns no reporter id | none | **Gap**: restore can republish a withdrawn copy (G-01, G-02) |
+| WF-07 | Withdrawal invalidates search, index, cache and future AIRA retrieval within 60 s | `withdrawObservation()`: copy withdrawn and `invalidateSummaries()` in one transaction; AIRA reads published copies only | S13 (feed search drops it on the next request) | **Proven** |
+| WF-08 | State the production propagation SLA; explain already-viewed copies can't be recalled | SECURITY.md "Withdrawal" row (same transaction); `observation-actions.tsx` withdraw dialog text | n/a | **Enforced** (documentation) |
+| NOT-01 | Persisted notification and outbox records; never label anything "email delivered" | `notifications`, `outbox` tables; outbox shown only in demo mode and only for synthetic addresses (`members.ts` `outbox()`) | S2, S14 (read codes from the outbox) | **Partial**: no idempotency key, since no provider sends anything |
+
+## 09 · Sharing, consent and confidentiality
+
+| ID | Requirement | Enforced in | Proven by | Status |
+|---|---|---|---|---|
+| SHR-01 | Three choices: private, organisation, proposed community; organisation-only never shared by default | `VISIBILITIES`; community only through `submitObservation()` + `publish()` | S5, S7 | **Proven** |
+| SHR-02 | Separate consent for store, publish, attribute, train; append-only history | `consents` table, one row per purpose per change (`createObservation()`, `submitObservation()`, `withdrawObservation()`); history in `getObservation()` | S13 (submit without publish consent → 422) | **Proven** for publish; attribute and train are **Enforced** |
+| SHR-03 | No tenant ids, author profiles, attachments or reviewer notes in shared payloads | `sharedFeed()` column list; `listThemes()` strips `org_id` | S10 | **Proven** |
+| SHR-04 | De-identified wording by default; attribution opt-in and reviewed | `publish()`: attribution only when the author consented **and** the moderator ticks it | S10 (only the consenting org is attributed) | **Proven** |
+| SHR-05 | Reduce specific geography, dates or details that could identify a contributor | Moderator can rewrite `region` and `period`; `industry` is copied from the organisation unchanged | none | **Gap**: with three seeded organisations each industry maps to exactly one organisation (G-04) |
+| SHR-06 | No pricing, customer records, secrets | `scan()` + publish block; synthetic seed data only | U1, S13 | **Enforced** (pattern-based) |
+| SHR-07 | Raw private records stay out of analytics, indexes, logs and AI payloads | `synthesize()` builds its prompt from published shared copies only; the audit `detail` stores ids, not bodies | none | **Enforced**: no test asserts the prompt contents |
+| SHR-08 | Show the contributor who can see each version and how it may be used | "Who can see it" column and observation detail page (consents, shared versions) | none | **Enforced** |
+| SHR-09 | Accessible withdrawal; retain consent history, approved version and moderation decisions | `withdrawObservation()` keeps rows, marks them withdrawn; `consents` append-only | S13 | **Partial**: retention period isn't written down as a policy |
+| SHR-10 | Never claim withdrawal can undo a trained model | No model is trained; the `train` consent is recorded only | n/a | **Enforced** |
+| AGG-01 | Configurable minimum distinct organisations (3 for judging); suppress small cohorts and differencing-friendly filters | `insights.ts` `MIN_ORGS` (env), `listThemes()` counts distinct `org_id`, suppresses counts, evidence and summary below it; `synthesize()` refuses below it | S12 | **Proven** for themes; the feed's industry filter is affected by G-04 |
+
+## 10 · Insights and improvement loop
+
+| ID | Requirement | Enforced in | Proven by | Status |
+|---|---|---|---|---|
+| INS-01 | Searchable feed and theme dashboard: offerings, evidence, period, distinct org count, limitations, latest update; repeat posts from one org count once | `listThemes()` (`Set` of org ids), `src/app/portal/themes/page.tsx` | S12 (Seasonality context = 3 orgs) | **Proven** |
+| INS-02 | Ideas: title, problem, offering, evidence, proposed outcome, owner, priority, status, last update; the six statuses | `insights.ts` `IDEA_STATUSES`, `createIdea()` | none | **Partial**: evidence linked by theme, not per contribution (see EMP-04) |
+| INS-03 | Status changes audited | `updateIdeaStatus()` → `audit("idea.status")` | none | **Enforced** |
+| INS-04 | Close the loop with contributors without exposing private source or roadmaps | `updateIdeaStatus()` notifies authors of published evidence with the status only; `listIdeas()` strips internal fields | none | **Enforced** |
+| INS-05 | AI synthesis cites approved contributions; uncertainty preserved; popularity isn't prevalence | `synthesize()`: zod schema with `limitations`, every quote checked by `evidence.ts` `locate()`, unverified quotes dropped, nothing saved if none survive; LLM fails closed (`llm.ts`) | U3, S12 (refused below threshold) | **Proven** |
+| INS-06 | Product changes never automatic | Ideas are records only; nothing deploys | n/a | **Enforced** |
+| INS-07 | Clustering, duplicate detection, digests, assisted prioritisation, quality feedback | n/a | n/a | **Out of scope** ("Add..." items) |
+
+## 11 · Optional federated model-learning track (P2)
+
+| ID | Requirement | Enforced in | Proven by | Status |
+|---|---|---|---|---|
+| FED-01 | Separate, opt-in federated training with local jobs, aggregation, holdout evaluation, threat model | n/a | n/a | **Out of scope**: optional P2 track; stated in SECURITY.md "What is simulated", never simulated or claimed |
+
+## Platform controls (implied by the brief, not numbered)
+
+| ID | Control | Enforced in | Proven by | Status |
+|---|---|---|---|---|
+| PLAT-01 | CSRF: same-origin check on every write, SameSite cookie | `http.ts` `route()` origin check; `auth.ts` cookie options | S15 | **Proven** |
+| PLAT-02 | Session cookie: `__Host-` prefix, HttpOnly, Secure, hashed id at rest, revocation on next request | `auth.ts` `COOKIE`, `verifyCode()`, `getPrincipal()` | S14 | **Proven** |
+| PLAT-03 | No 500s or stack traces from malformed input | `http.ts` `body()`, `id()`, `text()`, `oneOf()`; generic 500 body | S16 | **Proven** |
+| PLAT-04 | No open redirect after sign-in or from notification links | `src/lib/safe-path.ts` `safePath()` | U4 | **Proven** |
+| PLAT-05 | Security headers (CSP, HSTS, frame-ancestors, nosniff) | `next.config.ts` `headers()` | none | **Partial**: `script-src` still allows `'unsafe-inline'` |
+| PLAT-06 | Hosted database's public REST API exposes nothing | `db.ts` `LOCKDOWN` (RLS on every table, `anon`/`authenticated` grants revoked) | none (needs a hosted Supabase) | **Enforced** |
+
+---
+
+## Open gaps
+
+Found while building this table. Each is small; fixes belong in shared server code.
+
+| # | Gap | Where | Why it matters | Suggested fix and test |
+|---|---|---|---|---|
+| G-01 | **Restore after withdrawal republishes.** If a shared copy is reported (`under_review`) and the author then withdraws, the copy becomes `withdrawn`; a moderator choosing *restore* on the still-open report sets it back to `published`. | `learning.ts` `decideReport()` updates status without checking the current one | Withdrawn material reappears in the feed, against WF-07 and SHR-09 | Only restore when the copy is still `under_review` (`... where id = ? and status = 'under_review'`); close open reports in `withdrawObservation()`. Test: report → withdraw → restore → feed search returns 0 |
+| G-02 | **Two live versions.** `publish()` supersedes only `published` rows; a reported older version stays `under_review` and *restore* later makes it published next to the new version | `learning.ts` `publish()` | An outdated, un-reviewed wording returns | Supersede `published` **and** `under_review` rows in `publish()`; same guard as G-01 |
+| G-03 | **Visibility can change on edit via the API.** The form never sends `visibility` for community items, but `PATCH /api/observations/:id` accepts it. Setting a published item to `private` moves it to `submitted`, where the moderation queue (community only) never shows it, while the old shared copy stays live | `learning.ts` `updateObservation()` → `clean({ ...o, ...input })` | Direct-API behaviour differs from the UI; audience changes should go through submit or withdraw | Ignore `input.visibility` when `o.visibility === 'community'`; reject widening to `community` outside `submitObservation()`. Test: PATCH a published item with `visibility: "private"` → visibility unchanged |
+| G-04 | **Industry re-identifies the organisation.** Shared copies and theme evidence carry the contributing org's `industry` verbatim; the three seeded organisations each have a unique industry, so the industry filter is an organisation filter | `learning.ts` `publish()`, `sharedFeed()`; `insights.ts` `listThemes()` | The brief: "Removing a name alone does not make a rare observation anonymous" | Let the moderator generalise `industry` (as with region and period) and drop industry from the feed filters until a cohort is large enough. Test: feed items carry only generalised values |
+| G-05 | **Audit log is append-only by convention.** The app's database role can update or delete `audit` rows | `audit.ts` `audit()` | ROLE-ADM asks for audited privileged actions; tamper evidence makes that credible | Hash chain (`prev_hash`, `hash` per row) plus a verify function on the admin page; or revoke update/delete on `audit` |
+| G-06 | **No idle timeout.** Sessions last 8 hours from sign-in regardless of activity | `auth.ts` `SESSION_HOURS`, `getPrincipal()` | Shared or unattended devices | Track `last_seen_at`; expire after 30 minutes idle |
+| G-07 | **Public forms aren't rate limited.** Only sign-in code requests are (5 per address per 15 minutes) | `content.ts` `createRequest()` | Spam, storage growth | Per-IP limit on `/api/requests`, as already planned in SECURITY.md "Known limitations" |
+| G-08 | **Missing negative tests** for rules that are enforced but unproven: employee `POST /api/content` → 403; client reads `/portal/playground` → forbidden; new `@azentio.com` address gets no membership; `listIdeas()` hides internal fields from clients; AIRA prompt built only from shared copies | `tests/security.test.mjs` | Each would move a row from **Enforced** to **Proven** | One `test()` each, same style as S6 |
+
+## How to re-check this table
+
+```bash
+npm run dev               # terminal 1
+npm test                  # unit tests (U1-U4)
+npm run test:security     # terminal 2: API tests (S1-S16)
+```
+
+When a gap is fixed, update its row's status and the summary counts, and add the new test to the legend above.
