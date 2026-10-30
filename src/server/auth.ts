@@ -20,8 +20,13 @@ const MAX_ATTEMPTS = 5;
  */
 export const DEMO_MODE = process.env.DEMO_MODE === "1" || (process.env.NODE_ENV !== "production" && process.env.DEMO_MODE !== "0");
 
+/** HMAC key for login codes. Required in production; generated once into data/ for local development. */
 function secret(): string {
-  if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
+  if (process.env.SESSION_SECRET) {
+    if (process.env.SESSION_SECRET.length < 32) throw new Error("SESSION_SECRET must be at least 32 characters");
+    return process.env.SESSION_SECRET;
+  }
+  if (process.env.NODE_ENV === "production") throw new Error("SESSION_SECRET is required in production");
   mkdirSync(join(process.cwd(), "data"), { recursive: true });
   const file = join(process.cwd(), "data", "secret");
   if (!existsSync(file)) writeFileSync(file, randomBytes(32).toString("hex"));
