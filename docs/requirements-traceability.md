@@ -71,7 +71,7 @@ call get the same decision.
 | Section | Requirements | Proven | Enforced | Partial | Gap | Out of scope |
 |---|---|---|---|---|---|---|
 | 01 Reference: server-side enforcement | 2 | 1 | | 1 | | |
-| 03 Personas, IAM-01, IAM-02, access rule | 14 | 11 | 2 | 1 | | |
+| 03 Personas, IAM-01, IAM-02, access rule | 14 | 12 | 2 | | | |
 | 04 Login and onboarding | 8 | 7 | 1 | | | |
 | 05 Employee portal | 5 | 2 | 1 | 1 | | 1 |
 | 06 Client portal | 7 | 5 | | 1 | | 1 |
@@ -81,7 +81,7 @@ call get the same decision.
 | 10 Insights and improvement | 7 | 2 | 3 | 1 | | 1 |
 | 11 Federated model learning (P2) | 1 | | | | | 1 |
 | Platform controls (not numbered in the brief) | 6 | 5 | 1 | | | |
-| **Total** | **75** | **50** | **13** | **7** | **0** | **5** |
+| **Total** | **75** | **51** | **13** | **6** | **0** | **5** |
 
 No gaps remain open, with a suggested fix and the test that would prove each. All eight found while building it (G-01 to G-08) are fixed, with tests S17-S29, U5 and U6, and listed at the end.
 
@@ -105,7 +105,7 @@ No gaps remain open, with a suggested fix and the test that would prove each. Al
 | IAM-02b | Publish videos, moderate, invite and change roles are separate grants | `content.publish`, `moderation.review`, `members.manage`, `admin.roles` are separate entries in `GRANTS` | S6, S8 | **Proven** |
 | IAM-02c | Deny unless permission and audience conditions are met | `authorize()` throws unless the permission is in the active membership's set; `canSeeContent()` returns false for unknown audiences | S1, S6, S9 | **Proven** |
 | ACC-01 | Access only when audience permits, active membership valid, action authorised; public is explicit, never a fallback | `canSeeContent()`: `public` is an explicit value, anything unrecognised is denied; revoked memberships drop out of `getPrincipal()` | S1, S9, S14 | **Proven** |
-| ROLE-PUB | Public visitor: catalogue, solutions, insights, demo enquiries, event registration; no private data or config writes | Pages under `src/app/(site)`; `content.ts` `createRequest()`; writes need a grant (`createContent()` → `content.publish`) | S1 (signed-out reads), S16 (signed-out writes refused) | **Partial**: no dedicated *about* page or approved media gallery |
+| ROLE-PUB | Public visitor: catalogue, solutions, insights, demo enquiries, event registration; no private data or config writes | Pages under `src/app/(site)`, including *about* and *media* (which lists only public-audience sessions and recordings, read signed out); `content.ts` `createRequest()`; writes need a grant (`createContent()` → `content.publish`) | S1 (signed-out reads), S16 (signed-out writes refused) | **Proven** |
 | ROLE-CLI | Client member: tenant and entitlement checks on every protected resource; no employee-only experiments | `GRANTS.client_member` (no `content.employee`, no `playground.use`); `sameTenant()` | S4, S9 | **Proven** |
 | ROLE-CADM | Client admin can't grant platform roles, change another tenant or self-enable products | `members.ts` `invite()` limits roles to `CLIENT_ASSIGNABLE`, own org only; no API writes entitlements | S8 | **Proven** |
 | ROLE-PUBL | Content publisher: no identity administration or implicit access to private learning | `GRANTS.publisher` = `content.publish` only | none | **Enforced** |

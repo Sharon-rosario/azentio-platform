@@ -1,4 +1,4 @@
-import { ArrowUpRight, Check, FileSearch, ShieldCheck, Workflow, type LucideIcon } from "lucide-react";
+import { ArrowUpRight, BarChart3, Bot, Check, FileSearch, Settings2, ShieldCheck, Workflow, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -13,12 +13,20 @@ const ICON: Record<string, LucideIcon> = {
   "intelligent-decisioning": Workflow,
   "document-intelligence": FileSearch,
   "trusted-enterprise-ai": ShieldCheck,
+  "ai-agents-automation": Bot,
+  "analytics-insights": BarChart3,
+  "configurable-ai-platforms": Settings2,
 };
 
 export default async function SolutionsPage() {
   const solutions = await listContent(null, "solution");
-  const detailed = solutions.filter((s) => s.slug && SOLUTION_DETAIL[s.slug]);
-  const other = solutions.filter((s) => !detailed.includes(s));
+  // Published content first, then catalogue capabilities that have no content row yet (same card, code-defined copy).
+  const fromContent = solutions.filter((s) => s.slug && SOLUTION_DETAIL[s.slug]).map((s) => ({ key: s.slug!, title: s.title, summary: s.summary }));
+  const fromCatalogue = Object.entries(SOLUTION_DETAIL)
+    .filter(([slug]) => !fromContent.some((c) => c.key === slug))
+    .map(([slug, d]) => ({ key: slug, title: d.title, summary: d.summary }));
+  const detailed = [...fromContent, ...fromCatalogue];
+  const other = solutions.filter((s) => !(s.slug && SOLUTION_DETAIL[s.slug]));
 
   return (
     <div className="space-y-12">
@@ -36,10 +44,10 @@ export default async function SolutionsPage() {
       {detailed.length > 0 && (
         <ul className="space-y-6">
           {detailed.map((s) => {
-            const d = SOLUTION_DETAIL[s.slug!];
-            const Icon = ICON[s.slug!] ?? Workflow;
+            const d = SOLUTION_DETAIL[s.key];
+            const Icon = ICON[s.key] ?? Workflow;
             return (
-              <li key={s.id}>
+              <li key={s.key}>
                 <article className="bg-card shadow-card grid gap-8 rounded-2xl border p-6 sm:p-8 lg:grid-cols-12 lg:gap-6">
                   <div className="lg:col-span-5">
                     <span className="bg-navy text-brand grid size-12 place-items-center rounded-xl">
@@ -81,7 +89,7 @@ export default async function SolutionsPage() {
         </ul>
       )}
       {other.length > 0 && <EntryIndex items={other} empty="" />}
-      {solutions.length === 0 && <EntryIndex items={[]} empty="No solutions are listed yet." />}
+      {detailed.length === 0 && other.length === 0 && <EntryIndex items={[]} empty="No solutions are listed yet." />}
     </div>
   );
 }
