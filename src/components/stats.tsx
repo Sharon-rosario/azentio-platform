@@ -41,7 +41,7 @@ export function StatChip({
   );
 }
 
-/** A ledger figure: label, number, what it means. Ruled on top, no card; with href it opens the list it counts. */
+/** A KPI card: label, number, what it means. With href it opens the list it counts. */
 export function StatTile({
   label,
   value,
@@ -61,13 +61,16 @@ export function StatTile({
         {label}
         {href && <ArrowRight aria-hidden className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" strokeWidth={1.5} />}
       </span>
-      <span className="mt-3 block text-[44px] leading-[48px] font-normal tracking-[-0.025em] tabular-nums">{value}</span>
+      <span className="mt-3 block text-[38px] leading-[44px] font-semibold tracking-[-0.03em] tabular-nums">{value}</span>
       {hint && <span className="text-muted-foreground mt-1 block text-[13px] leading-[18px]">{hint}</span>}
     </>
   );
-  const cls = cn("block border-t pt-4 pb-1", className);
+  const cls = cn(
+    "bg-card shadow-card before:bg-brand-strong relative block overflow-hidden rounded-2xl border p-5 before:absolute before:inset-y-0 before:left-0 before:w-1",
+    className,
+  );
   return href ? (
-    <Link href={href} className={cn(cls, "group hover:border-foreground focus-visible:ring-ring rounded-none outline-none transition-colors duration-150 focus-visible:ring-2")}>
+    <Link href={href} className={cn(cls, "group hover:shadow-lift focus-visible:ring-ring transition-[box-shadow,transform] duration-200 outline-none hover:-translate-y-0.5 focus-visible:ring-2")}>
       {body}
     </Link>
   ) : (

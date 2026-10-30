@@ -5,13 +5,13 @@ import Link from "next/link"
 import { isValidElement } from "react"
 import { cn } from "cn"
 
-// Pill buttons (design/system.md). Primary is the one orange action per view.
+// Pill buttons. Primary is the one mint action per view (mint fill, navy text; see src/app/theme.css).
 const buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-[background-color,color,border-color,transform] duration-150 ease-out outline-none select-none focus-visible:ring-3 focus-visible:ring-ring active:not-aria-[haspopup]:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-[color-mix(in_oklch,var(--primary),black_10%)]",
+        default: "bg-brand text-brand-foreground font-medium shadow-button hover:bg-brand-strong",
         dark: "bg-foreground text-background hover:bg-[color-mix(in_oklch,var(--foreground),white_14%)]",
         outline:
           "border-border bg-card hover:bg-muted aria-expanded:bg-muted dark:border-input",

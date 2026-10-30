@@ -48,7 +48,7 @@ function ThemePanel({ t, p }: { t: Theme; p: Principal }) {
 
   if (t.suppressed) {
     return (
-      <Panel title={<span className="text-[24px] leading-[30px] font-normal tracking-[-0.015em]">{t.name}</span>} description={offering}>
+      <Panel title={<span className="text-[24px] leading-[30px] font-semibold tracking-[-0.015em]">{t.name}</span>} description={offering}>
         <p className="text-muted-foreground flex items-start gap-2 text-[15px] leading-6">
           <EyeOff className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
           Not enough organisations yet (needs at least {MIN_ORGS} distinct organisations before details are shared)
@@ -67,7 +67,7 @@ function ThemePanel({ t, p }: { t: Theme; p: Principal }) {
   return (
     <Panel
       title={
-        <span className="flex flex-wrap items-center gap-3 text-[24px] leading-[30px] font-normal tracking-[-0.015em]">
+        <span className="flex flex-wrap items-center gap-3 text-[24px] leading-[30px] font-semibold tracking-[-0.015em]">
           {t.name}
           {below && (
             <span className={cn("inline-flex h-6 items-center rounded-full px-2.5 text-xs font-medium", TONES.warning)}>
@@ -81,7 +81,7 @@ function ThemePanel({ t, p }: { t: Theme; p: Principal }) {
     >
       <p className="max-w-[68ch] text-[16px] leading-[26px]">{t.description}</p>
 
-      <dl className="mt-6 grid gap-6 sm:grid-cols-3">
+      <dl className="mt-6 grid gap-4 sm:grid-cols-3">
         <Fact label="distinct organisations" value={<span className="tabular-nums">{t.orgs ?? 0}</span>} />
         <Fact label="contributions" value={<span className="tabular-nums">{t.contributions ?? 0}</span>} />
         <Fact label="observation period" value={<span className="text-[16px] leading-6">{t.period ?? "—"}</span>} />
@@ -168,9 +168,9 @@ function ThemePanel({ t, p }: { t: Theme; p: Principal }) {
 
 function Fact({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="border-t pt-3">
-      <dt className="text-muted-foreground font-mono text-[12px] leading-4">{label}</dt>
-      <dd className="mt-1.5 text-[24px] leading-[30px] tracking-[-0.015em]">{value}</dd>
+    <div className="bg-brand-soft rounded-xl p-4">
+      <dt className="text-primary font-mono text-[12px] leading-4">{label}</dt>
+      <dd className="mt-1.5 text-[26px] leading-[32px] font-semibold tracking-[-0.02em]">{value}</dd>
     </div>
   );
 }

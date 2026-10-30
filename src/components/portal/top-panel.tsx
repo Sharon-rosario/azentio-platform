@@ -28,9 +28,9 @@ export function navFor(p: Principal): NavItem[] {
 export function TopPanel({ p, unread }: { p: Principal; unread: number }) {
   const roleLabel = p.roles.map((r) => ROLE_LABEL[r]).join(" · ") || "No workspace";
   return (
-    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/85 sticky top-0 z-30 border-b backdrop-blur-sm">
+    <header className="bg-navy sticky top-0 z-30 text-white shadow-nav">
       <div className="mx-auto flex h-16 max-w-[1280px] items-center gap-4 px-4 sm:px-6">
-        <Link href="/portal" className="shrink-0 outline-none focus-visible:underline">
+        <Link href="/portal" className="focus-visible:ring-brand shrink-0 rounded-sm outline-none focus-visible:ring-2">
           <Wordmark />
         </Link>
         <WorkspaceSwitcher
@@ -41,11 +41,11 @@ export function TopPanel({ p, unread }: { p: Principal; unread: number }) {
           <Link
             href="/portal/notifications"
             aria-label={unread ? `${unread} unread notifications` : "Notifications"}
-            className="hover:bg-muted focus-visible:ring-ring relative grid size-9 place-items-center rounded-full outline-none focus-visible:ring-2"
+            className="focus-visible:ring-brand relative grid size-9 place-items-center rounded-full text-white/85 transition-colors outline-none hover:bg-white/10 hover:text-white focus-visible:ring-2"
           >
             <Bell className="size-[18px]" strokeWidth={1.75} />
             {unread > 0 && (
-              <span className="bg-primary text-primary-foreground absolute -top-0.5 -right-0.5 grid min-w-4 place-items-center rounded-full px-1 text-[10px] font-medium tabular-nums">
+              <span className="bg-brand text-brand-foreground absolute -top-0.5 -right-0.5 grid min-w-4 place-items-center rounded-full px-1 text-[10px] font-semibold tabular-nums">
                 {unread}
               </span>
             )}

@@ -68,9 +68,9 @@ export default async function SharedPage({ searchParams }: PageProps<"/portal/sh
       </p>
 
       {items.length ? (
-        <ul className="border-t">
+        <ul className="space-y-4">
           {items.map((s) => (
-            <li key={s.id} className="grid gap-5 border-b py-8 lg:grid-cols-12 lg:gap-6">
+            <li key={s.id} className="bg-card shadow-card grid gap-5 rounded-2xl border p-6 lg:grid-cols-12 lg:gap-6 lg:p-7">
               <article className="lg:col-span-8 lg:col-start-5 lg:row-start-1">
                 <div className="flex items-start justify-between gap-4">
                   <h2 className="text-[20px] leading-[28px] tracking-[-0.01em] text-balance">{s.title}</h2>
@@ -87,7 +87,7 @@ export default async function SharedPage({ searchParams }: PageProps<"/portal/sh
                   {canReport && !s.mine && <ReportButton sharedId={s.id} title={s.title} />}
                 </div>
               </article>
-              <dl className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-x-3 gap-y-1 font-mono text-[12px] leading-5 lg:col-span-4 lg:row-start-1">
+              <dl className="bg-muted/70 grid h-fit grid-cols-[7.5rem_minmax(0,1fr)] gap-x-3 gap-y-1 rounded-xl p-4 font-mono text-[12px] leading-5 lg:col-span-4 lg:row-start-1">
                 {[
                   ["category", s.category],
                   ["offering", PRODUCT_NAME[s.offering] ?? s.offering],

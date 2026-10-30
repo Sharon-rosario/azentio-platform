@@ -226,7 +226,7 @@ function Ratio({ label, value, hint }: { label: string; value: number; hint: str
   return (
     <div className="border-t pt-3">
       <p className="text-muted-foreground font-mono text-[12px] leading-4">{label}</p>
-      <p className="mt-1.5 text-[32px] leading-[38px] font-normal tracking-[-0.02em] tabular-nums">{pct(value, 1)}</p>
+      <p className="mt-1.5 text-[32px] leading-[38px] font-semibold tracking-[-0.02em] tabular-nums">{pct(value, 1)}</p>
       <p className="text-muted-foreground text-[12px] tabular-nums">{hint}</p>
     </div>
   );

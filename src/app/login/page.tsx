@@ -30,7 +30,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
     <main className="mx-auto grid min-h-svh w-full max-w-[1280px] content-center gap-14 px-4 py-14 sm:px-6 lg:grid-cols-12 lg:gap-6">
       <section className="lg:col-span-5">
         <Link href="/" className="inline-block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"><Wordmark /></Link>
-        <h1 className="mt-14 text-[44px] leading-[48px] font-normal tracking-[-0.025em]">Sign in</h1>
+        <h1 className="mt-14 text-[44px] leading-[48px] font-semibold tracking-[-0.025em]">Sign in</h1>
         <p className="text-muted-foreground mt-4 max-w-md text-[17px] leading-[27px]">
           We email you a 6-digit code. Clients join through an invitation from their organisation; employees use their
           @azentio.com address.

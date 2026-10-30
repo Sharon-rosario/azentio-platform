@@ -1,0 +1,64 @@
+/*
+ * The theme. Every colour, shadow and radius in the product is defined here and only here; components use the
+ * tokens (bg-navy, text-primary, shadow-card...), never raw values. To rebrand, edit this file.
+ *
+ * Brand source: azentio.com. Navy #16303D, mint #55FFBE, green #2ED88E, pale mint #DDFFF2, Poppins.
+ * Typefaces are loaded in src/app/layout.tsx (next/font) and mapped to --font-sans / --font-mono in globals.css.
+ * One light theme by design: it is tuned and contrast-checked, rather than shipping a second, weaker one.
+ *
+ * Contrast rules: mint is a fill only, always with navy text. Text on white uses --primary (5.3:1) or
+ * --muted-foreground (5.9:1); text on navy uses white or --navy-muted (8.9:1).
+ */
+:root {
+  /* Azentio brand (azentio.com): navy #16303D, mint #55FFBE, green #2ED88E, pale mint #DDFFF2. */
+  --nav-h: 64px;
+  --radius: 12px;
+  --background: #f4f7f8;
+  --foreground: #16303d;
+  --card: #ffffff;
+  --card-foreground: #16303d;
+  --popover: #ffffff;
+  --popover-foreground: #16303d;
+  --primary: #0a7a53; /* accessible brand green for text, links, checks: 5.3:1 on white */
+  --primary-foreground: #ffffff;
+  --secondary: #e9f0f2;
+  --secondary-foreground: #16303d;
+  --muted: #eef3f4;
+  --muted-foreground: #556670; /* 5.9:1 on white */
+  --accent: #e9f0f2;
+  --accent-foreground: #16303d;
+  --destructive: oklch(0.53 0.19 27);
+  --border: #dde5e8;
+  --input: #cfd9dd;
+  --ring: color-mix(in oklch, #2ed88e, transparent 45%);
+
+  --brand: #55ffbe; /* mint: fills only, always with navy text */
+  --brand-foreground: #16303d;
+  --brand-strong: #2ed88e;
+  --brand-soft: #ddfff2;
+  --navy: #16303d;
+  --navy-2: #1d3d4d;
+  --navy-muted: #b7c9d1; /* text on navy: 8.9:1 */
+  --success: oklch(0.5 0.12 150);
+  --success-soft: oklch(0.95 0.04 150);
+  --warning: oklch(0.52 0.11 70);
+  --warning-soft: oklch(0.96 0.06 85);
+  --danger: oklch(0.53 0.19 27);
+  --danger-soft: oklch(0.955 0.03 25);
+  --info: oklch(0.5 0.13 255);
+  --info-soft: oklch(0.955 0.025 255);
+
+  /* Elevation: navy-tinted, never grey or coloured glows. */
+  --shadow-card: 0 1px 2px rgb(22 48 61 / 0.05), 0 6px 20px -8px rgb(22 48 61 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(22 48 61 / 0.06), 0 18px 40px -16px rgb(22 48 61 / 0.28);
+  --shadow-nav: 0 8px 24px -12px rgb(22 48 61 / 0.5);
+  --shadow-header: 0 4px 20px -12px rgb(22 48 61 / 0.18);
+  --shadow-deep: 0 24px 60px -24px rgb(0 0 0 / 0.5);
+  --shadow-button: 0 1px 0 rgb(22 48 61 / 0.08);
+
+  --chart-1: #0a7a53;
+  --chart-2: #2a78d6;
+  --chart-good: #0ca30c;
+  --chart-warn: #fab219;
+  --chart-bad: #d03b3b;
+}

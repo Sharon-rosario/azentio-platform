@@ -64,32 +64,40 @@ export default async function Home() {
   return (
     <>
       {/* S0 — the fold */}
-      <section aria-labelledby="hero-title" className="border-b">
-        <Wrap className="grid gap-12 pt-14 pb-16 md:pt-[72px] md:pb-24 lg:grid-cols-12 lg:gap-6">
+      <section aria-labelledby="hero-title" className="bg-navy relative overflow-hidden text-white">
+        {/* Azentio's mint as a quiet structural accent: two offset blocks at the right edge, as on azentio.com. */}
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 hidden w-[38%] lg:block">
+          <div className="bg-brand-strong/15 absolute top-0 right-0 h-1/2 w-2/3" />
+          <div className="bg-brand/10 absolute right-1/3 bottom-0 h-1/3 w-1/3" />
+        </div>
+        <Wrap className="relative grid gap-12 pt-14 pb-16 md:pt-[84px] md:pb-24 lg:grid-cols-12 lg:gap-6">
           <div className="lg:col-span-7 lg:pr-10">
+            <p className="text-brand inline-flex items-center gap-2 text-[14px] font-medium">
+              <span aria-hidden className="bg-brand size-1.5 rounded-full" /> Governed collective learning for BFSI
+            </p>
             <h1
               id="hero-title"
-              className="text-[44px] leading-[48px] font-normal tracking-[-0.025em] text-balance md:text-[60px] md:leading-[62px] md:tracking-[-0.03em]"
+              className="mt-5 text-[42px] leading-[48px] font-semibold tracking-[-0.03em] text-balance md:text-[58px] md:leading-[64px]"
             >
-              Banks learn from each other. Nobody sees who said what.
+              Banks learn from each other. <span className="text-brand">Nobody sees who said what.</span>
             </h1>
-            <p className="text-muted-foreground mt-6 max-w-[34rem] text-[20px] leading-[28px] tracking-[-0.01em]">
+            <p className="text-navy-muted mt-6 max-w-[34rem] text-[18px] leading-[29px]">
               azentio.ai brings Azentio&apos;s AI credit products together with a portal where client organisations share
               what they see in their markets, reviewed, de-identified and governed by their own consent.
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-7">
-              <Button size="lg" className="h-11 px-5 text-[15px]" render={<Link href="/connect" />}>
+              <Button size="lg" className="h-12 px-6 text-[15px]" render={<Link href="/connect" />}>
                 Request a demo <ArrowRight />
               </Button>
               <Link
                 href="#safe"
-                className="hover:text-primary inline-flex items-center gap-1.5 self-start rounded-sm text-[15px] font-medium underline decoration-1 underline-offset-[6px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring sm:self-auto"
+                className="hover:text-brand inline-flex items-center gap-1.5 self-start rounded-sm text-[15px] font-medium text-white underline decoration-white/40 decoration-1 underline-offset-[6px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-brand sm:self-auto"
               >
                 How sharing stays safe
               </Link>
             </div>
           </div>
-          <div className="lg:col-span-5 lg:self-center">
+          <div className="text-foreground lg:col-span-5 lg:self-center">
             <RedactionArtifact />
           </div>
         </Wrap>
@@ -100,7 +108,7 @@ export default async function Home() {
         <Wrap>
           <div className="flex items-end justify-between gap-6">
             <div>
-              <h2 id="products-title" className="text-[32px] leading-[38px] font-normal tracking-[-0.02em]">Products</h2>
+              <h2 id="products-title" className="text-[32px] leading-[38px] font-semibold tracking-[-0.02em]">Products</h2>
               <p className="text-muted-foreground mt-2 text-[16px] leading-6">Credit, risk and reporting software for banks and lenders.</p>
             </div>
             <Link href="/products" className="text-muted-foreground hover:text-foreground hidden shrink-0 rounded-sm text-[14px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring sm:inline">
@@ -114,11 +122,11 @@ export default async function Home() {
       </section>
 
       {/* S2 — the objection, answered with the actual lifecycle */}
-      <section id="safe" aria-labelledby="safe-title" className="bg-card scroll-mt-20 border-y py-16 md:py-24">
+      <section id="safe" aria-labelledby="safe-title" className="bg-brand-soft scroll-mt-20 py-16 md:py-24">
         <Wrap className="grid gap-10 lg:grid-cols-12 lg:gap-6">
           <div className="lg:col-span-4">
             <div className="lg:sticky lg:top-28">
-              <h2 id="safe-title" className="text-[32px] leading-[38px] font-normal tracking-[-0.02em] text-balance md:text-[44px] md:leading-[48px] md:tracking-[-0.025em]">
+              <h2 id="safe-title" className="text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-balance md:text-[44px] md:leading-[48px] md:tracking-[-0.025em]">
                 How sharing stays safe
               </h2>
               <p className="text-muted-foreground mt-4 max-w-sm text-[16px] leading-6">
@@ -127,12 +135,17 @@ export default async function Home() {
               </p>
             </div>
           </div>
-          <ol className="border-t lg:col-span-8">
-            {LIFECYCLE.map((s) => (
-              <li key={s.state} className="grid gap-2 border-b py-7 sm:grid-cols-8 sm:gap-6">
-                <span className="text-muted-foreground font-mono text-[13px] leading-[26px] sm:col-span-2">{s.state}</span>
+          <ol className="bg-card shadow-card divide-y overflow-hidden rounded-2xl border lg:col-span-8">
+            {LIFECYCLE.map((s, i) => (
+              <li key={s.state} className="grid gap-3 px-6 py-6 sm:grid-cols-8 sm:gap-6 sm:px-7">
+                <span className="sm:col-span-2">
+                  <span className="bg-navy text-brand inline-flex h-7 items-center gap-2 rounded-full pr-3 pl-1 font-mono text-[12px]">
+                    <span className="bg-brand text-brand-foreground grid size-5 place-items-center rounded-full text-[11px] font-semibold">{i + 1}</span>
+                    {s.state}
+                  </span>
+                </span>
                 <div className="sm:col-span-6">
-                  <h3 className="text-[20px] leading-[28px] tracking-[-0.01em]">{s.title}</h3>
+                  <h3 className="text-[19px] leading-[28px] tracking-[-0.015em]">{s.title}</h3>
                   <p className="text-muted-foreground mt-2 text-[15px] leading-6">{s.body}</p>
                 </div>
               </li>
@@ -145,30 +158,35 @@ export default async function Home() {
       <section aria-labelledby="proof-title" className="bg-foreground text-background py-16 md:py-24">
         <Wrap className="grid gap-10 lg:grid-cols-12 lg:gap-6">
           <div className="lg:col-span-5 lg:pr-8">
-            <h2 id="proof-title" className="text-[32px] leading-[38px] font-normal tracking-[-0.02em] text-balance md:text-[44px] md:leading-[48px] md:tracking-[-0.025em]">
+            <h2 id="proof-title" className="text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-balance md:text-[44px] md:leading-[48px] md:tracking-[-0.025em]">
               Tested the way an attacker would try.
             </h2>
-            <p className="mt-5 text-[16px] leading-6 text-[oklch(0.82_0.01_75)]">
+            <p className="text-navy-muted mt-5 text-[16px] leading-[26px]">
               Every pull request runs a suite that signs in as different people and calls the API directly, skipping the
               interface entirely. Another organisation&apos;s data answers <span className="font-mono text-[14px]">404</span>, even by id.
             </p>
             <Link
               href="/security"
-              className="mt-8 inline-flex items-center gap-1.5 rounded-sm text-[15px] font-medium underline decoration-1 underline-offset-[6px] outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.8_0.12_160)]"
+              className="bg-brand text-brand-foreground hover:bg-brand-strong mt-8 inline-flex h-11 items-center gap-1.5 rounded-full px-5 text-[15px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-white"
             >
               Read the security overview <ArrowRight className="size-4" />
             </Link>
           </div>
           <div className="lg:col-span-7">
-            <p className="font-mono text-[12px] leading-4 text-[oklch(0.75_0.01_75)]">tests/security.test.mjs · {TESTS.length} tests</p>
-            <ul className="mt-4 border-t border-[oklch(1_0_0/0.14)]">
-              {TESTS.map((t) => (
-                <li key={t} className="flex gap-3 border-b border-[oklch(1_0_0/0.14)] py-2.5 font-mono text-[13px] leading-[18px]">
-                  <Check className="mt-0.5 size-3.5 shrink-0 text-[oklch(0.78_0.14_160)]" strokeWidth={2.5} aria-hidden />
-                  <span>{t}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="bg-navy-2 overflow-hidden rounded-2xl border border-white/10 shadow-deep">
+              <p className="flex items-center justify-between border-b border-white/10 px-5 py-3 font-mono text-[12px] leading-4">
+                <span className="text-navy-muted">tests/security.test.mjs</span>
+                <span className="text-brand">{TESTS.length} passing</span>
+              </p>
+              <ul className="px-5 py-2">
+                {TESTS.map((t) => (
+                  <li key={t} className="flex gap-3 border-b border-white/[0.07] py-2.5 font-mono text-[13px] leading-[18px] last:border-0">
+                    <Check className="text-brand mt-0.5 size-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </Wrap>
       </section>
@@ -177,14 +195,14 @@ export default async function Home() {
       <section aria-labelledby="aira-title" className="py-16 md:py-24">
         <Wrap className="grid lg:grid-cols-12 lg:gap-6">
           <div className="lg:col-span-8 lg:col-start-3">
-            <h2 id="aira-title" className="text-[32px] leading-[38px] font-normal tracking-[-0.02em] text-balance md:text-[44px] md:leading-[48px] md:tracking-[-0.025em]">
+            <h2 id="aira-title" className="text-[32px] leading-[38px] font-semibold tracking-[-0.02em] text-balance md:text-[44px] md:leading-[48px] md:tracking-[-0.025em]">
               AI that can only say what the evidence shows.
             </h2>
             <p className="text-muted-foreground mt-5 max-w-2xl text-[17px] leading-[27px]">
               AIRA summarises a theme from approved, de-identified copies and nothing else. Every quote it relies on is
               checked against its source before the summary is saved, and a summary that can&apos;t be backed isn&apos;t kept.
             </p>
-            <blockquote className="mt-10 border-l-2 border-primary pl-6">
+            <blockquote className="bg-card shadow-card border-brand-strong mt-10 rounded-r-2xl border border-l-4 px-7 py-6">
               <p className="text-[24px] leading-[32px] tracking-[-0.015em] md:text-[28px] md:leading-[36px]">
                 “Debt-service ratios computed on trailing three months look alarming in August.”
               </p>
@@ -200,13 +218,15 @@ export default async function Home() {
       </section>
 
       {/* S5 — the action again, with what's next */}
-      <section aria-labelledby="close-title" className="border-t pt-16 pb-20 md:pt-24 md:pb-28">
-        <Wrap className="grid gap-12 lg:grid-cols-12 lg:gap-6">
-          <div className="lg:col-span-7">
-            <h2 id="close-title" className="text-[44px] leading-[48px] font-normal tracking-[-0.025em] text-balance md:text-[60px] md:leading-[62px] md:tracking-[-0.03em]">
+      <section aria-labelledby="close-title" className="pb-20 md:pb-28">
+        <Wrap>
+        <div className="bg-navy relative grid gap-12 overflow-hidden rounded-3xl px-6 py-12 text-white sm:px-10 md:py-16 lg:grid-cols-12 lg:gap-6 lg:px-14">
+          <div aria-hidden className="bg-brand-strong/15 pointer-events-none absolute -right-10 -bottom-10 size-64 rotate-12 rounded-3xl" />
+          <div className="relative lg:col-span-7">
+            <h2 id="close-title" className="text-[36px] leading-[42px] font-semibold tracking-[-0.03em] text-balance md:text-[48px] md:leading-[54px]">
               See it on synthetic data, end to end.
             </h2>
-            <p className="text-muted-foreground mt-5 max-w-xl text-[17px] leading-[27px]">
+            <p className="text-navy-muted mt-5 max-w-xl text-[17px] leading-[27px]">
               We&apos;ll walk you through the products and the portal: a contribution, its review, a theme and the
               improvement it leads to.
             </p>
@@ -214,26 +234,27 @@ export default async function Home() {
               Request a demo <ArrowRight />
             </Button>
           </div>
-          <div className="space-y-8 lg:col-span-4 lg:col-start-9 lg:pt-3">
-            <div className="border-t pt-5">
-              <p className="text-muted-foreground font-mono text-[12px] leading-4">next public broadcast</p>
+          <div className="relative space-y-8 lg:col-span-4 lg:col-start-9 lg:pt-3">
+            <div className="border-t border-white/15 pt-5">
+              <p className="text-navy-muted font-mono text-[12px] leading-4">next public broadcast</p>
               {next ? (
                 <>
                   <p className="mt-2 text-[16px] leading-6 font-medium">{next.title}</p>
-                  <p className="text-muted-foreground text-[14px] leading-5">{date(next.starts_at)} · {next.summary}</p>
+                  <p className="text-navy-muted text-[14px] leading-5">{date(next.starts_at)} · {next.summary}</p>
                 </>
               ) : (
-                <p className="text-muted-foreground mt-2 text-[14px] leading-5">None scheduled right now.</p>
+                <p className="text-navy-muted mt-2 text-[14px] leading-5">None scheduled right now.</p>
               )}
             </div>
-            <div className="border-t pt-5">
-              <p className="text-muted-foreground font-mono text-[12px] leading-4">build labs</p>
-              <Link href="/hackathon/register" className="group mt-2 inline-flex items-center gap-1.5 rounded-sm text-[16px] leading-6 font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <div className="border-t border-white/15 pt-5">
+              <p className="text-navy-muted font-mono text-[12px] leading-4">build labs</p>
+              <Link href="/hackathon/register" className="group hover:text-brand mt-2 inline-flex items-center gap-1.5 rounded-sm text-[16px] leading-6 font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand">
                 Register interest in the next hackathon
                 <ArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
               </Link>
             </div>
           </div>
+        </div>
         </Wrap>
       </section>
     </>

@@ -82,7 +82,7 @@ export function DataTable<T>({
 
   return (
     <div className="space-y-3">
-      <div className={cn(!bare && "border-t")}>
+      <div className={cn(!bare && "bg-card shadow-card overflow-hidden rounded-2xl border")}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (

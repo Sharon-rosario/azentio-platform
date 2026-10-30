@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils";
 
 type Tone = "info" | "success" | "warning" | "danger";
 
-// A toned rule on the left. Only warning and danger keep a soft fill: they must be noticed before acting.
+// A tinted note with a toned rule on the left.
 const STYLE: Record<Tone, { box: string; icon: LucideIcon; iconColor: string }> = {
-  info: { box: "border-info", icon: Info, iconColor: "text-info" },
-  success: { box: "border-success", icon: CircleCheck, iconColor: "text-success" },
+  info: { box: "border-info bg-info-soft", icon: Info, iconColor: "text-info" },
+  success: { box: "border-success bg-success-soft", icon: CircleCheck, iconColor: "text-success" },
   warning: { box: "border-warning bg-warning-soft", icon: TriangleAlert, iconColor: "text-warning" },
   danger: { box: "border-danger bg-danger-soft", icon: OctagonX, iconColor: "text-danger" },
 };
@@ -37,7 +37,7 @@ export function Banner({
   return (
     <div
       role={tone === "danger" ? "alert" : "status"}
-      className={cn("flex gap-3 border-l-2 py-2.5 pr-4 pl-4 text-[14px] leading-[21px]", s.box, className)}
+      className={cn("flex gap-3 rounded-r-xl border-l-[3px] py-3 pr-4 pl-4 text-[14px] leading-[21px]", s.box, className)}
     >
       <s.icon className={cn("mt-0.5 size-4 shrink-0", s.iconColor)} strokeWidth={2} />
       <div className="min-w-0 flex-1">

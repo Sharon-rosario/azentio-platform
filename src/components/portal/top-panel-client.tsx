@@ -29,8 +29,8 @@ export function NavLinks({ items }: { items: { href: string; label: string }[] }
               href={i.href}
               aria-current={on ? "page" : undefined}
               className={cn(
-                "inline-flex h-10 items-center border-b-2 px-3 text-[13px] whitespace-nowrap transition-colors duration-150 outline-none focus-visible:underline",
-                on ? "border-foreground text-foreground font-medium" : "text-muted-foreground hover:text-foreground border-transparent",
+                "inline-flex h-11 items-center border-b-[3px] px-3 text-[13px] whitespace-nowrap transition-colors duration-150 outline-none focus-visible:underline",
+                on ? "border-brand font-medium text-white" : "text-navy-muted border-transparent hover:text-white",
               )}
             >
               {i.label}
@@ -51,11 +51,11 @@ export function WorkspaceSwitcher({ active, options }: { active: number | null; 
     <DropdownMenu>
       <DropdownMenuTrigger
         disabled={options.length < 2}
-        className="hover:bg-muted focus-visible:ring-ring inline-flex h-9 min-w-0 items-center gap-2 rounded-full border px-3 text-[13px] outline-none focus-visible:ring-2 disabled:cursor-default disabled:hover:bg-transparent"
+        className="focus-visible:ring-brand inline-flex h-9 min-w-0 items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 text-[13px] text-white transition-colors outline-none hover:bg-white/10 focus-visible:ring-2 disabled:cursor-default disabled:hover:bg-white/5"
       >
-        <Building2 className="text-muted-foreground size-4 shrink-0" strokeWidth={1.75} />
+        <Building2 className="text-brand size-4 shrink-0" strokeWidth={1.75} />
         <span className="truncate font-medium">{current?.label ?? "Choose a workspace"}</span>
-        {options.length > 1 && <ChevronDown className="text-muted-foreground size-3.5" />}
+        {options.length > 1 && <ChevronDown className="size-3.5 text-white/70" />}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-56">
         <DropdownMenuGroup>
@@ -88,7 +88,7 @@ export function UserMenu({ name, email, role }: { name: string; email: string; r
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Account"
-        className="bg-brand-soft text-primary focus-visible:ring-ring grid size-9 place-items-center rounded-full text-[12px] font-medium outline-none focus-visible:ring-2"
+        className="bg-brand text-brand-foreground grid size-9 place-items-center rounded-full text-[12px] font-semibold outline-none focus-visible:ring-2 focus-visible:ring-white"
       >
         {initials}
       </DropdownMenuTrigger>
