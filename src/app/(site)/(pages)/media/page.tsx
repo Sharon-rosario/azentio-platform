@@ -25,13 +25,13 @@ export default async function MediaPage() {
 
   return (
     <div className="space-y-12">
-      <SiteTitle title="Media">
+      <SiteTitle title="Media, sessions and walkthroughs." highlight="walkthroughs.">
         Public sessions, recordings and product walkthroughs. Everything here is approved for a public audience.
       </SiteTitle>
 
       <div className="grid items-start gap-6 lg:grid-cols-12">
         <div className="space-y-6 lg:col-span-8">
-          <section aria-labelledby="sessions-title" className="bg-card shadow-card rounded-2xl border p-6 sm:p-7">
+          <section data-reveal aria-labelledby="sessions-title" className="bg-card shadow-card rounded-2xl border p-6 sm:p-7">
             <h2 id="sessions-title" className="text-[20px] leading-[28px] tracking-[-0.02em]">Sessions and recordings</h2>
             {broadcasts.length ? (
               <ul className="mt-4 divide-y">
@@ -58,7 +58,7 @@ export default async function MediaPage() {
             )}
           </section>
 
-          <section aria-labelledby="walk-title" className="bg-card shadow-card rounded-2xl border p-6 sm:p-7">
+          <section data-reveal aria-labelledby="walk-title" className="bg-card shadow-card rounded-2xl border p-6 sm:p-7">
             <h2 id="walk-title" className="text-[20px] leading-[28px] tracking-[-0.02em]">Product walkthroughs</h2>
             <p className="text-muted-foreground mt-1 text-[14px] leading-[22px]">
               Each product page explains what it does. Clients see guided demos on synthetic data after signing in.
@@ -80,7 +80,7 @@ export default async function MediaPage() {
         </div>
 
         <div className="space-y-6 lg:col-span-4">
-          <section aria-labelledby="assets-title" className="bg-card shadow-card rounded-2xl border p-6">
+          <section data-reveal aria-labelledby="assets-title" className="bg-card shadow-card rounded-2xl border p-6">
             <h2 id="assets-title" className="text-[17px] leading-6">Brand assets</h2>
             <ul className="mt-4 space-y-3">
               {ASSETS.map((a) => (

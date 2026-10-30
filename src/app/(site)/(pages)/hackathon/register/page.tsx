@@ -8,11 +8,11 @@ export const metadata: Metadata = { title: "Hackathons" };
 export default function HackathonRegisterPage() {
   return (
     <div className="space-y-12">
-      <SiteTitle title="Build with us">
+      <SiteTitle title="Build with us" highlight="with us">
         Hackathons with the azentio.ai Build Labs team, on real problems from lending, risk and reporting.
       </SiteTitle>
       <div className="grid gap-12 lg:grid-cols-12 lg:gap-6">
-        <section aria-labelledby="register-title" className="lg:col-span-7">
+        <section data-reveal aria-labelledby="register-title" className="lg:col-span-7">
           <h2 id="register-title" className="text-[24px] leading-[30px] tracking-[-0.015em]">Register your interest</h2>
           <p className="text-muted-foreground mt-2 mb-8 text-[15px] leading-6">We&apos;ll get in touch when the next event is announced.</p>
           <RequestForm kind="hackathon" />
