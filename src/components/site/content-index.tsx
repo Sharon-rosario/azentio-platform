@@ -32,14 +32,14 @@ export function SiteTitle({ title, children, action }: { title: string; children
 export function ProductIndex({ products, art = false }: { products: Content[]; art?: boolean }) {
   if (!products.length) return <Empty>No products are listed yet.</Empty>;
   return (
-    <ul className="grid gap-5 md:grid-cols-2">
+    <ul className={cn("grid gap-5", art ? "sm:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-2")}>
       {products.map((p) => {
         const Icon = PRODUCT_ICON[p.slug ?? ""] ?? Boxes;
         return (
           <li key={p.id}>
             <Link
               href={`/products/${p.slug}`}
-              className="group bg-card shadow-card hover:shadow-lift focus-visible:ring-ring flex h-full flex-col rounded-2xl border p-6 transition-[box-shadow,transform] duration-200 outline-none hover:-translate-y-0.5 focus-visible:ring-2 md:p-7"
+              className={cn("group bg-card shadow-card hover:shadow-lift focus-visible:ring-ring flex h-full flex-col rounded-2xl border transition-[box-shadow,transform] duration-200 outline-none hover:-translate-y-0.5 focus-visible:ring-2", art ? "p-4" : "p-6 md:p-7")}
             >
               {art ? (
                 <ProductArt slug={p.slug} />
@@ -48,9 +48,9 @@ export function ProductIndex({ products, art = false }: { products: Content[]; a
                   <Icon aria-hidden className="size-5" strokeWidth={1.75} />
                 </span>
               )}
-              <span className="mt-5 text-[20px] leading-[28px] font-semibold tracking-[-0.02em]">{p.title}</span>
-              <span className="text-muted-foreground mt-2 flex-1 text-[15px] leading-6">{p.summary}</span>
-              <span className="text-primary mt-5 inline-flex items-center gap-1.5 text-[14px] font-medium">
+              <span className={cn("mt-5 font-semibold tracking-[-0.02em]", art ? "px-1 text-[18px] leading-6" : "text-[20px] leading-[28px]")}>{p.title}</span>
+              <span className={cn("text-muted-foreground mt-2 flex-1", art ? "px-1 text-[14px] leading-[22px]" : "text-[15px] leading-6")}>{p.summary}</span>
+              <span className={cn("text-primary mt-5 inline-flex items-center gap-1.5 text-[14px] font-medium", art && "px-1 pb-1")}>
                 Explore the product
                 <ArrowRight aria-hidden className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
               </span>

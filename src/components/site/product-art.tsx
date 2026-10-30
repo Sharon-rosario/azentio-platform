@@ -60,7 +60,7 @@ function Portfolio() {
   const cluster = [[205, 48], [222, 56], [214, 38], [236, 44], [196, 60], [228, 66]];
   return (
     <Panel>
-      <svg viewBox="0 0 400 100" className="absolute inset-x-4 top-4 h-[100px] w-[calc(100%-32px)]">
+      <svg viewBox="0 0 400 100" preserveAspectRatio="xMidYMid slice" className="absolute inset-x-4 top-4 h-[100px] w-[calc(100%-32px)]">
         {dots.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="3.5" fill="rgb(255 255 255 / 0.3)" />)}
         <ellipse cx="216" cy="52" rx="38" ry="28" fill="rgb(85 255 190 / 0.12)" stroke="#55ffbe" strokeWidth="1.2" strokeDasharray="4 3" />
         {cluster.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="4.5" fill="#55ffbe" />)}
@@ -72,8 +72,8 @@ function Portfolio() {
 
 /** Report fields mapped to a regulator's template, validated before filing. */
 function Riva() {
-  const left = ["ledger.npa_amt", "ledger.prov_cov", "core.sector"];
-  const right = ["Field 14.2", "Field 21.1", "Field 14.3"];
+  const left = ["npa_amt", "prov_cov", "sector"];
+  const right = ["14.2", "21.1", "14.3"];
   return (
     <Panel className="flex items-center justify-between gap-2">
       <div className="shrink-0 space-y-2">
@@ -88,7 +88,7 @@ function Riva() {
       <div className="shrink-0 space-y-2">
         {right.map((r) => (
           <span key={r} className="flex items-center gap-1 rounded-md bg-white/10 px-2 py-1 text-[10px]">
-            <Check className="text-brand size-3" strokeWidth={3} /> {r}
+            <Check className="text-brand size-3" strokeWidth={3} /> Field {r}
           </span>
         ))}
       </div>
