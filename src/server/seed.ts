@@ -161,7 +161,9 @@ export async function seed(exec: Exec) {
     if (status === "published") {
       await ins(`insert into shared_versions (observation_id,version,title,body,category,offering,industry,region,period,evidence_type,
         confidence,attribution,theme_id,published_by,published_at) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        id, 1, title, body, category, offering, o[3], o[4], period, evidence, confidence, org === "kestrel" ? o[1] : null,
+        // De-identified copies carry a general industry, as publish() does; the attributed Kestrel copies keep theirs.
+        id, 1, title, body, category, offering, org === "kestrel" ? o[3] : "Financial services", o[4], period, evidence, confidence,
+        org === "kestrel" ? o[1] : null,
         theme, moderator, at(15 - i));
       await log(at(15 - i), "omar@azentio.com", "moderation.publish", "observation", id, { version: 1, attribution: org === "kestrel" });
     }

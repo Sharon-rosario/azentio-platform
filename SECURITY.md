@@ -95,7 +95,7 @@ server for every request, not by what the interface chooses to show.
 | **Spoofing** | Guessing a sign-in code; reusing a stolen code | CSPRNG codes, HMAC at rest, single use, short expiry, attempt and issuance limits; invitation bound to the verified address |
 | **Tampering** | Client sends another tenant's id or a forged `orgId` | Tenant derived from the server-side session only; user-supplied tenant ids are ignored or must match; 404 on mismatch |
 | **Repudiation** | "I never published that" | Hash-chained audit rows with actor, organisation, action and detail, written in the same transaction; tampering breaks the chain (detection, not prevention: record the head hash outside the database) |
-| **Information disclosure** | Shared feed leaking the contributing client; small cohorts identifying a client | Separate de-identified copies with safe columns only; opt-in attribution; suppression below 3 organisations; sensitive-content scan blocks publication |
+| **Information disclosure** | Shared feed leaking the contributing client; small cohorts identifying a client | Separate de-identified copies with safe columns only; opt-in attribution; suppression below 3 organisations; sensitive-content scan blocks publication; de-identified copies carry a general industry by default, and industry and region filters only offer values covering at least three organisations |
 | **Denial of service** | Flooding sign-in codes or the public forms | Per-address code limits and attempt caps; public requests limited per source and per address (source stored only as a keyed hash); an edge rate limiter is still advisable at scale |
 | **Elevation of privilege** | Client admin granting `moderator`; employee assuming admin | Client admins limited to client roles in their own organisation; every grant is separate; permissions come only from the active membership |
 
@@ -114,7 +114,7 @@ server for every request, not by what the interface chooses to show.
 
 ## Verification
 
-`tests/security.test.mjs` is a black-box suite of 27 tests that signs in as different personas and calls the API
+`tests/security.test.mjs` is a black-box suite of 29 tests that signs in as different personas and calls the API
 directly, the way an attacker would: cross-tenant reads and writes, private-draft access within an organisation, role
 escalation, moderator and administrator boundaries, feed payload contents, workspace switching, theme suppression, the
 full publish-and-withdraw flow, report and versioning edge cases (a withdrawn or superseded copy can't be restored,
@@ -123,7 +123,7 @@ on every write route.
 
 ```bash
 npm run dev            # in one terminal
-npm run test:security  # in another: 27 passing
+npm run test:security  # in another: 29 passing
 ```
 
 ## What is simulated in this build

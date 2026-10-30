@@ -65,6 +65,8 @@ const TESTS = [
   "the public request form is rate limited per source",
   "public request fields with the wrong types are refused, never a 500",
   "the audit log's hash chain verifies end to end after every write in this suite",
+  "a de-identified copy names no exact industry, and a filter can't single out one organisation",
+  "moderation and report fields with the wrong types are refused on real records, never a 500",
 ];
 
 export default async function Home() {
