@@ -64,6 +64,7 @@ const TESTS = [
   "AIRA's input is published shared copies only: theme evidence has no tenant or author data",
   "the public request form is rate limited per source",
   "public request fields with the wrong types are refused, never a 500",
+  "the audit log's hash chain verifies end to end after every write in this suite",
 ];
 
 export default async function Home() {
