@@ -360,6 +360,34 @@ test("public request fields with the wrong types are refused, never a 500", asyn
   }
 });
 
+test("a de-identified copy names no exact industry, and a filter can't single out one organisation", async () => {
+  const { sara, feed } = await publishedByChen(`Industry-general ${Date.now().toString(36)}`);
+  const [copy] = await feed();
+  assert.equal(copy.attribution, null);
+  assert.equal(copy.industry, "Financial services", "an exact industry can point at the contributor");
+  const all = (await call("/api/shared", { cookie: sara })).data.length;
+  const narrowed = (await call("/api/shared?industry=Non-bank%20lender", { cookie: sara })).data.length;
+  assert.equal(narrowed, all, "a filter value from a single organisation is not applied");
+});
+
+test("moderation and report fields with the wrong types are refused on real records, never a 500", async () => {
+  const chen = await login(CHEN);
+  const omar = await login(OMAR);
+  const created = await call("/api/observations", { cookie: chen, method: "POST", body: {
+    title: "Typing probe", body: "A short probe.", category: "Market observation", offering: "riva", period: "Q4 2026",
+    evidence_type: "Probe", confidence: "Low" } });
+  const id = created.data.id;
+  assert.equal((await call(`/api/observations/${id}/submit`, { cookie: chen, method: "POST", body: { publish: true } })).status, 200);
+  for (const body of [{ decision: "return", note: 123 }, { decision: "publish", title: 5 }, { decision: "publish", industry: ["x"] },
+    { decision: "publish", theme_id: "abc" }]) {
+    const r = await call(`/api/moderation/${id}`, { cookie: omar, method: "POST", body });
+    assert.ok(r.status >= 400 && r.status < 500, `${JSON.stringify(body)} -> ${r.status}`);
+  }
+  const shared = (await call("/api/shared", { cookie: await login(SARA) })).data[0];
+  const r = await call(`/api/shared/${shared.id}/report`, { cookie: await login(SARA), method: "POST", body: { reason: ["x"] } });
+  assert.ok(r.status >= 400 && r.status < 500, `report -> ${r.status}`);
+});
+
 // Runs last: after every test above has written audit rows, the whole chain must still verify end to end.
 test("the audit log's hash chain verifies end to end after every write in this suite", async () => {
   const html = (await call("/portal/admin", { cookie: await login(ADMIN) })).data;
