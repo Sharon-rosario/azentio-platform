@@ -16,7 +16,7 @@ bullet, in the brief's order, prefixed by section. The section number after each
 | **Gap** | Known defect or missing control, listed under [Open gaps](#open-gaps) |
 | **Out of scope** | Not built, with the reason (brief marks it optional, P1/P2, or outside the minimum scope) |
 
-**Tests.** `S1`-`S19` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
+**Tests.** `S1`-`S24` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
 as real personas and call the API directly. `U1`-`U4` are the unit tests in [`tests/unit.test.mjs`](../tests/unit.test.mjs).
 CI runs all of them against a production build on every push and pull request ([`ci.yml`](../.github/workflows/ci.yml)).
 
@@ -41,6 +41,11 @@ CI runs all of them against a production build on every push and pull request ([
 | S17 | a withdrawn copy can't be republished by restoring an open report on it |
 | S18 | publishing a new version retires a reported old one, so only one copy can ever be live |
 | S19 | visibility can't be changed around the review: community only via submit, and kept until withdrawal |
+| S20 | an employee without a publishing grant can't publish content |
+| S21 | the playground is for employees: a client gets the refusal, not the tool |
+| S22 | a sign-in code for a real mailbox is never shown, even in demo mode |
+| S23 | clients see an idea's status and public note, never its internal fields |
+| S24 | AIRA's input is published shared copies only: theme evidence has no tenant or author data |
 | U1 | scan flags identifiers that must not reach the shared feed |
 | U2 | scan leaves ordinary market observations alone |
 | U3 | locate finds exact and lightly garbled quotes, rejects invented or trivial ones |
@@ -60,17 +65,17 @@ call get the same decision.
 | 01 Reference: server-side enforcement | 2 | 1 | | 1 | | |
 | 03 Personas, IAM-01, IAM-02, access rule | 14 | 11 | 2 | 1 | | |
 | 04 Login and onboarding | 8 | 6 | 1 | 1 | | |
-| 05 Employee portal | 5 | 1 | 2 | 1 | | 1 |
-| 06 Client portal | 7 | 4 | 1 | 1 | | 1 |
+| 05 Employee portal | 5 | 2 | 1 | 1 | | 1 |
+| 06 Client portal | 7 | 5 | | 1 | | 1 |
 | 07 Observation capture | 5 | 4 | | | | 1 |
 | 08 Review, publication, withdrawal | 9 | 6 | 2 | 1 | | |
-| 09 Sharing, consent, aggregation | 11 | 5 | 4 | 1 | 1 | |
+| 09 Sharing, consent, aggregation | 11 | 6 | 3 | 1 | 1 | |
 | 10 Insights and improvement | 7 | 2 | 3 | 1 | | 1 |
 | 11 Federated model learning (P2) | 1 | | | | | 1 |
 | Platform controls (not numbered in the brief) | 6 | 4 | 1 | 1 | | |
-| **Total** | **75** | **44** | **16** | **9** | **1** | **5** |
+| **Total** | **75** | **47** | **13** | **9** | **1** | **5** |
 
-Five open gaps (G-04 to G-08) are listed at the end, with a suggested fix and the test that would prove each. G-01 to G-03 are fixed, each with a regression test (S17-S19).
+Four open gaps (G-04 to G-07) are listed at the end, with a suggested fix and the test that would prove each. G-01 to G-03 and G-08 are fixed, with tests S17-S24.
 
 ---
 
@@ -118,8 +123,8 @@ Five open gaps (G-04 to G-08) are listed at the end, with a suggested fix and th
 | ID | Requirement | Enforced in | Proven by | Status |
 |---|---|---|---|---|
 | EMP-01 | Employee dashboard; internal notes and sessions separate from public information | `src/app/portal/page.tsx`; `canSeeContent()` keeps `employee` content out of public and client lists | S9 | **Proven** |
-| EMP-02 | Guided playground on synthetic data, clearly labelled, never implying a real credit decision | `src/app/portal/playground/page.tsx` (`playground.use`, employees only); `components/insights/playground.tsx` banner "Sample data · simulated output · not a credit decision" | none | **Enforced**: no structured feedback capture after a run |
-| EMP-03 | Internal broadcasts restricted to employees; only publishers configure them | `src/app/portal/live/page.tsx` → `listContent(p, "broadcast")`; `createContent()` needs `content.publish` | S9 (no employee content for clients) | **Enforced**: no test that a plain employee's `POST /api/content` is refused |
+| EMP-02 | Guided playground on synthetic data, clearly labelled, never implying a real credit decision | `src/app/portal/playground/page.tsx` (`playground.use`, employees only); `components/insights/playground.tsx` banner "Sample data · simulated output · not a credit decision" | S21 (a client is refused) | **Enforced**: no structured feedback capture after a run |
+| EMP-03 | Internal broadcasts restricted to employees; only publishers configure them | `src/app/portal/live/page.tsx` → `listContent(p, "broadcast")`; `createContent()` needs `content.publish` | S9 (no employee content for clients), S20 (a plain employee's `POST /api/content` is refused) | **Proven** |
 | EMP-04 | Product owner reviews approved themes, creates an idea, links evidence, updates status; sees only evidence shared for that purpose | `insights.ts` `createIdea()`, `updateIdeaStatus()` (`ideas.write`); themes read published copies only | S6 (non-owner refused) | **Partial**: ideas link to a theme, not to individually chosen contributions |
 | EMP-05 | Experiment submissions, hackathon team spaces, release notes, knowledge library with owners and review dates | n/a | n/a | **Out of scope**: "Add..." items; employee-only content kinds exist (`experiment`, `broadcast`) |
 
@@ -132,7 +137,7 @@ Five open gaps (G-04 to G-08) are listed at the end, with a suggested fix and th
 | CLI-03 | My observations and our organisation's: drafts, submit, follow status, amend returned, withdraw; private vs shared feed distinct | `learning.ts` `listObservations()` (`mine` / `org`), `updateObservation()`, `submitObservation()`, `withdrawObservation()`; separate `/portal/observations` and `/portal/shared` | S5, S13 | **Proven** |
 | CLI-04 | Browse and search approved shared observations and safe themes; filters for offering, industry, region, period, topic; search, counts, suggestions and exports follow the same rules | `sharedFeed()` (published copies only, every filter in SQL), `feedFacets()` (published only), `listThemes()` | S10, S12, S13 (search finds the item, then not after withdrawal) | **Proven** (no exports exist; no period filter) |
 | CLI-05 | Client admins invite/revoke members within their org; membership and invitation states shown; no escalation | `members.ts` `invite()`, `revokeMember()`, `listMembers()` (states Pending/Accepted/Revoked/Expired) | S8, S14 | **Proven** |
-| CLI-06 | Improvement ideas with plain-language status, owner and last update; no private tickets or internal prioritisation | `insights.ts` `listIdeas()` strips `problem`, `proposed_outcome`, `priority` for non-employees | none | **Enforced** |
+| CLI-06 | Improvement ideas with plain-language status, owner and last update; no private tickets or internal prioritisation | `insights.ts` `listIdeas()` strips `problem`, `proposed_outcome`, `priority` for non-employees | S23 | **Proven** |
 | CLI-07 | Saved searches, bookmarks, comments, support tickets, client resources | `notifications` only | n/a | **Out of scope** ("Add..." items); in-app notifications built |
 
 ## 07 · Observation capture
@@ -169,7 +174,7 @@ Five open gaps (G-04 to G-08) are listed at the end, with a suggested fix and th
 | SHR-04 | De-identified wording by default; attribution opt-in and reviewed | `publish()`: attribution only when the author consented **and** the moderator ticks it | S10 (only the consenting org is attributed) | **Proven** |
 | SHR-05 | Reduce specific geography, dates or details that could identify a contributor | Moderator can rewrite `region` and `period`; `industry` is copied from the organisation unchanged | none | **Gap**: with three seeded organisations each industry maps to exactly one organisation (G-04) |
 | SHR-06 | No pricing, customer records, secrets | `scan()` + publish block; synthetic seed data only | U1, S13 | **Enforced** (pattern-based) |
-| SHR-07 | Raw private records stay out of analytics, indexes, logs and AI payloads | `synthesize()` builds its prompt from published shared copies only; the audit `detail` stores ids, not bodies | none | **Enforced**: no test asserts the prompt contents |
+| SHR-07 | Raw private records stay out of analytics, indexes, logs and AI payloads | `synthesize()` builds its prompt from published shared copies only; the audit `detail` stores ids, not bodies | S24 (AIRA's evidence is exactly the published copies, with no tenant or author fields) | **Proven** for AI payloads; logs store ids only (code) |
 | SHR-08 | Show the contributor who can see each version and how it may be used | "Who can see it" column and observation detail page (consents, shared versions) | none | **Enforced** |
 | SHR-09 | Accessible withdrawal; retain consent history, approved version and moderation decisions | `withdrawObservation()` keeps rows, marks them withdrawn; `consents` append-only | S13 | **Partial**: retention period isn't written down as a policy |
 | SHR-10 | Never claim withdrawal can undo a trained model | No model is trained; the `train` consent is recorded only | n/a | **Enforced** |
@@ -216,7 +221,6 @@ Found while building this table. Each is small; fixes belong in shared server co
 | G-05 | **Audit log is append-only by convention.** The app's database role can update or delete `audit` rows | `audit.ts` `audit()` | ROLE-ADM asks for audited privileged actions; tamper evidence makes that credible | Hash chain (`prev_hash`, `hash` per row) plus a verify function on the admin page; or revoke update/delete on `audit` |
 | G-06 | **No idle timeout.** Sessions last 8 hours from sign-in regardless of activity | `auth.ts` `SESSION_HOURS`, `getPrincipal()` | Shared or unattended devices | Track `last_seen_at`; expire after 30 minutes idle |
 | G-07 | **Public forms aren't rate limited.** Only sign-in code requests are (5 per address per 15 minutes) | `content.ts` `createRequest()` | Spam, storage growth | Per-IP limit on `/api/requests`, as already planned in SECURITY.md "Known limitations" |
-| G-08 | **Missing negative tests** for rules that are enforced but unproven: employee `POST /api/content` → 403; client reads `/portal/playground` → forbidden; new `@azentio.com` address gets no membership; `listIdeas()` hides internal fields from clients; AIRA prompt built only from shared copies | `tests/security.test.mjs` | Each would move a row from **Enforced** to **Proven** | One `test()` each, same style as S6 |
 
 ## Fixed gaps
 
@@ -224,6 +228,7 @@ Found while building this table. Each is small; fixes belong in shared server co
 |---|---|---|---|
 | G-01 | Restoring an open report on a copy the author had withdrawn republished it | `decideReport()` restores only a copy still `under_review` (409 otherwise); `withdrawObservation()` closes open reports on its copies | S17 |
 | G-02 | A reported old version could be restored next to a newer one | `publish()` supersedes `published` **and** `under_review` copies, closes their reports and clears AIRA summaries that cited them | S18 |
+| G-08 | Rules enforced in code had no negative test | Tests added: plain employee can't publish (S20), client refused the playground (S21), clients never see idea internals (S23), AIRA's evidence is published copies only (S24). A new `@azentio.com` address can't be signed in from the demo outbox (S22: real-mailbox codes are never shown), so "the domain grants nothing" stays proven by S3 and `verifyCode()` | S20-S24 |
 | G-03 | `PATCH /api/observations/:id` could change visibility around the review | `visibilityFor()`: create and edit accept only `private` or `organisation`; community is set only by submit and kept until withdrawal | S19 |
 
 ## How to re-check this table
@@ -231,7 +236,7 @@ Found while building this table. Each is small; fixes belong in shared server co
 ```bash
 npm run dev               # terminal 1
 npm test                  # unit tests (U1-U4)
-npm run test:security     # terminal 2: API tests (S1-S19)
+npm run test:security     # terminal 2: API tests (S1-S24)
 ```
 
 When a gap is fixed, update its row's status and the summary counts, and add the new test to the legend above.

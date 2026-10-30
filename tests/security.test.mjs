@@ -292,3 +292,48 @@ test("visibility can't be changed around the review: community only via submit, 
     evidence_type: "Internal note", confidence: "Low", visibility: "community" } });
   assert.equal(draft.status, 422, "community visibility can't be set without submit and consent");
 });
+
+test("an employee without a publishing grant can't publish content", async () => {
+  const dev = await login(DEV);
+  const r = await call("/api/content", { cookie: dev, method: "POST", body: {
+    kind: "insight", title: "Unapproved post", summary: "Should be refused.", audience: "public" } });
+  assert.equal(r.status, 403);
+});
+
+test("the playground is for employees: a client gets the refusal, not the tool", async () => {
+  const sara = await login(SARA);
+  const html = (await call("/portal/playground", { cookie: sara })).data;
+  assert.match(html, /The playground is for Azentio employees/);
+  assert.doesNotMatch(html, /Simulated output|Run<\/button>/);
+});
+
+test("a sign-in code for a real mailbox is never shown, even in demo mode", async () => {
+  // Demo mode displays codes only for the seeded personas and the reserved .example domain; anything else, such as a
+  // new @azentio.com address, gets a code by (simulated) email that no screen or API reveals.
+  const email = `new.hire.${Date.now().toString(36)}@azentio.com`;
+  assert.equal((await call("/api/auth/code", { method: "POST", body: { email } })).status, 200);
+  const outbox = (await call("/api/dev/outbox")).data;
+  assert.equal(outbox.some((m) => m.to_email === email), false);
+});
+
+test("clients see an idea's status and public note, never its internal fields", async () => {
+  const ideas = (await call("/api/ideas", { cookie: await login(SARA) })).data;
+  assert.ok(ideas.length > 0);
+  for (const i of ideas) {
+    for (const k of ["problem", "proposed_outcome", "priority", "created_by"]) assert.equal(k in i, false, `${k} leaked`);
+  }
+  const internal = (await call("/api/ideas", { cookie: await login(PRIYA) })).data;
+  assert.ok("problem" in internal[0], "employees still see the internal fields");
+});
+
+test("AIRA's input is published shared copies only: theme evidence has no tenant or author data", async () => {
+  const omar = await login(OMAR);
+  const published = new Set((await call("/api/shared", { cookie: await login(SARA) })).data.map((s) => s.id));
+  const themes = (await call("/api/themes", { cookie: omar })).data;
+  const evidence = themes.flatMap((t) => t.evidence ?? []);
+  assert.ok(evidence.length > 0);
+  for (const e of evidence) {
+    assert.ok(published.has(e.id), `evidence ${e.id} is a published shared copy`);
+    for (const k of ["org_id", "author_id", "author", "moderator_note", "observation_id", "email"]) assert.equal(k in e, false, `${k} in evidence`);
+  }
+});
