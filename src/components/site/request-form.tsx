@@ -2,7 +2,7 @@
 
 import { CircleCheck, Send } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +42,11 @@ export function RequestForm({ kind, defaultProduct }: { kind: Kind; defaultProdu
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const doneRef = useRef<HTMLHeadingElement>(null);
+  // Screen-reader and keyboard users land on the confirmation instead of a form that has gone.
+  useEffect(() => {
+    if (done) doneRef.current?.focus();
+  }, [done]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,17 +64,18 @@ export function RequestForm({ kind, defaultProduct }: { kind: Kind; defaultProdu
   };
 
   if (done) {
+    const back = kind === "demo" ? { href: "/products", label: "Back to products" } : { href: "/", label: "Back to the home page" };
     return (
       <div className="flex flex-col items-center py-10 text-center" role="status">
         <span className="bg-success-soft grid size-12 place-items-center rounded-full">
           <CircleCheck className="text-success size-5" strokeWidth={1.75} />
         </span>
-        <h2 className="mt-4 text-[20px] leading-7 font-medium tracking-[-0.01em]">{copy.done}</h2>
+        <h2 ref={doneRef} tabIndex={-1} className="mt-4 text-[20px] leading-7 font-medium tracking-[-0.01em] outline-none">{copy.done}</h2>
         <p className="text-muted-foreground mt-2 max-w-sm text-[14px] leading-[22px]">
           We don&apos;t send a confirmation email from this demo.
         </p>
-        <Button variant="outline" className="mt-6" render={<Link href="/products" />}>
-          Back to products
+        <Button variant="outline" className="mt-6" render={<Link href={back.href} />}>
+          {back.label}
         </Button>
       </div>
     );

@@ -8,14 +8,16 @@ import { ProductHeroArt } from "@/components/site/page-art";
 import { Button } from "@/components/ui/button";
 import { PRODUCT_DETAIL } from "@/lib/catalog";
 import { getContent, type Content } from "@/server/content";
+import { HttpError } from "@/server/policy";
 
 /** The product, or null when it doesn't exist or isn't public (both answer 404). */
 async function find(slug: string): Promise<Content | null> {
   try {
     const c = await getContent(null, slug);
     return c.kind === "product" ? c : null;
-  } catch {
-    return null;
+  } catch (e) {
+    if (e instanceof HttpError && e.status === 404) return null;
+    throw e;
   }
 }
 

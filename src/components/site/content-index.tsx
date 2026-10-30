@@ -8,11 +8,10 @@ import { cn } from "@/lib/utils";
 import type { Content } from "@/server/content";
 
 /*
- * Public-site primitives. One visual language for every public page: flush-left display type, hairline rules as
- * structure, mono only for identifiers and dates. No cards: lists are ruled indexes, asides are ruled notes.
+ * Public-site primitives shared by the inner pages: the navy title band, entries as cards, dated broadcast rows and
+ * pale-mint notes. Mono only for identifiers, dates and labels.
  */
 
-/** A public page's opening: display title, standfirst, and at most one action. */
 type Vars = CSSProperties & Record<`--${string}`, string>;
 
 /**
@@ -54,7 +53,7 @@ export function SiteTitle({
             </Link>
           )}
           <h1
-            className="hero-rise text-[40px] leading-[46px] font-semibold tracking-[-0.025em] text-balance md:text-[56px] md:leading-[62px] md:tracking-[-0.03em]"
+            className="hero-rise text-[34px] leading-[40px] font-semibold tracking-[-0.025em] text-balance sm:text-[40px] sm:leading-[46px] md:text-[56px] md:leading-[62px] md:tracking-[-0.03em]"
             style={{ "--d": "60ms" } as Vars}
           >
             {at >= 0 ? (

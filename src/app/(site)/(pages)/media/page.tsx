@@ -64,7 +64,7 @@ export default async function MediaPage() {
               Each product page explains what it does. Clients see guided demos on synthetic data after signing in.
             </p>
             <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-              {[...products].sort((x, y) => x.title.localeCompare(y.title)).map((p) => (
+              {[...products].filter((p) => p.slug).sort((x, y) => x.title.localeCompare(y.title)).map((p) => (
                 <li key={p.id}>
                   <Link
                     href={`/products/${p.slug}`}

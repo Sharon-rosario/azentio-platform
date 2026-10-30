@@ -72,7 +72,9 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
               { href: "/solutions", label: "Solutions" },
               { href: "/insights", label: "Insights" },
               { href: "/security", label: "Security" },
+              { href: "/media", label: "Media" },
               { href: "/hackathon/register", label: "Hackathons" },
+              { href: "/about", label: "About" },
               { href: "/connect", label: "Request a demo" },
             ]}
           />

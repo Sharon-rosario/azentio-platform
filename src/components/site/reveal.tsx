@@ -13,6 +13,9 @@ export function RevealOnScroll() {
   useEffect(() => {
     if (!("IntersectionObserver" in window)) return;
     const root = document.documentElement;
+    for (const el of document.querySelectorAll("[data-reveal]:not([data-revealed])")) {
+      if (el.getBoundingClientRect().top < window.innerHeight) el.setAttribute("data-revealed", "");
+    }
     root.classList.add("reveal-ready");
     const io = new IntersectionObserver(
       (entries) => {
