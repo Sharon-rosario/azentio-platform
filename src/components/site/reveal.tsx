@@ -1,12 +1,15 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 /**
  * Scroll reveal for elements marked `data-reveal` (stagger with `--reveal-delay`). Progressive enhancement: without
  * JavaScript, or with reduced motion, everything is simply visible; the hidden state only applies once this runs.
+ * It re-runs on every navigation, so a shared layout can host it.
  */
 export function RevealOnScroll() {
+  const pathname = usePathname();
   useEffect(() => {
     if (!("IntersectionObserver" in window)) return;
     const root = document.documentElement;
@@ -21,11 +24,11 @@ export function RevealOnScroll() {
       },
       { rootMargin: "0px 0px -8% 0px", threshold: 0.1 },
     );
-    document.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
+    document.querySelectorAll("[data-reveal]:not([data-revealed])").forEach((el) => io.observe(el));
     return () => {
       io.disconnect();
       root.classList.remove("reveal-ready");
     };
-  }, []);
+  }, [pathname]);
   return null;
 }

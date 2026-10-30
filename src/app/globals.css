@@ -294,3 +294,8 @@
     box-shadow: var(--shadow-lift);
   }
 }
+
+/* The inner pages' title band bleeds to the viewport edges (100vw includes the scrollbar), so clip, never scroll. */
+body {
+  overflow-x: clip;
+}
