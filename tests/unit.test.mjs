@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { safePath } from "../src/lib/safe-path.ts";
+import { isIdle, needsTouch } from "../src/server/session-policy.ts";
 import { locate } from "../src/server/evidence.ts";
 import { scan } from "../src/server/scan.ts";
 
@@ -34,4 +35,13 @@ test("safePath allows same-origin paths only (no open redirect)", () => {
     "/portal\nSet-Cookie: x", "", null, undefined, 42, ["/portal"]]) {
     assert.equal(safePath(bad), null, String(bad));
   }
+});
+
+test("sessions end after the idle limit, and activity is recorded at most once a minute", () => {
+  const now = Date.parse("2026-10-30T12:00:00Z");
+  const ago = (min) => new Date(now - min * 60_000).toISOString();
+  assert.equal(isIdle(ago(29), now, 30), false, "29 minutes idle: still signed in");
+  assert.equal(isIdle(ago(31), now, 30), true, "31 minutes idle: signed out");
+  assert.equal(needsTouch(ago(0.5), now), false, "no write for activity within the last minute");
+  assert.equal(needsTouch(ago(2), now), true);
 });
