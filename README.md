@@ -7,12 +7,12 @@
 **An enterprise AI website and a secure collaboration portal, where clients' market observations become governed,
 shared learning that improves Azentio's products.**
 
-[![Live demo](https://img.shields.io/badge/live_demo-azentio--platform.vercel.app-0f9d63?style=flat-square)](https://azentio-platform.vercel.app)
+[![Live demo](https://img.shields.io/badge/live_demo-azentio--platform.vercel.app-16303d?style=flat-square)](https://azentio-platform.vercel.app)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs)](https://nextjs.org)
 [![React 19](https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white)](https://react.dev)
 [![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript&logoColor=white)](tsconfig.json)
 [![Postgres](https://img.shields.io/badge/Postgres-Supabase_·_PGlite-336791?style=flat-square&logo=postgresql&logoColor=white)](docs/adr/0002-postgres-everywhere-with-rls-lockdown.md)
-[![API security tests](https://img.shields.io/badge/API_security_tests-16-0f9d63?style=flat-square)](tests/security.test.mjs)
+[![API security tests](https://img.shields.io/badge/API_security_tests-16_passing-2ed88e?style=flat-square)](tests/security.test.mjs)
 
 [**Live demo**](https://azentio-platform.vercel.app) · [Security model](SECURITY.md) ·
 [Requirements traceability](docs/requirements-traceability.md) · [Architecture](docs/architecture.md) ·
@@ -183,6 +183,7 @@ docs/                architecture, demo script, decision records, requirements t
 |---|---|
 | Application | Next.js 16 (App Router, Server Components, Route Handlers), React 19, TypeScript (strict) |
 | UI | Tailwind CSS 4, shadcn/ui on Base UI, lucide icons |
+| Design | Azentio's brand (navy, mint, Poppins) from one token file, [`src/app/theme.css`](src/app/theme.css); one contrast-checked light theme |
 | Data | Postgres: Supabase in production, PGlite (embedded Postgres) locally |
 | AI | Anthropic Claude via the API in production, Claude Code CLI locally; zod-validated structured output |
 | Hosting | Vercel |
