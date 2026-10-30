@@ -5,6 +5,10 @@ import { all, insert, now, one, run, tx } from "./db";
 import { authorize, HttpError, type Principal, sameTenant } from "./policy";
 import { MIN_ORGS } from "./insights";
 import { type Flag, scan } from "./scan";
+import { PRODUCT_NAME } from "@/lib/products";
+
+// An offering is named by its slug or its display name (both appear in stored data); anything else is refused.
+const OFFERING_VALUES = [...Object.keys(PRODUCT_NAME), ...Object.values(PRODUCT_NAME)];
 
 export const CATEGORIES = ["Market observation", "Emerging trend", "Product gap", "Operational challenge", "Successful practice",
   "Improvement suggestion"] as const;
@@ -71,7 +75,7 @@ function clean(input: ObsInput) {
   };
   return {
     title: t(input.title, "Title", 140), body: t(input.body, "Observation", 4000),
-    category: pick(input.category, "Category", CATEGORIES), offering: t(input.offering, "Offering", 80),
+    category: pick(input.category, "Category", CATEGORIES), offering: pick(input.offering, "Offering", OFFERING_VALUES),
     period: t(input.period, "Observation period", 60), evidence_type: t(input.evidence_type, "Evidence type", 80),
     confidence: pick(input.confidence, "Confidence", CONFIDENCE),
   };
@@ -125,11 +129,11 @@ export async function submitObservation(p: Principal | null, id: number, consent
   const o = await getObservation(p, id);
   if (!o.mine) throw new HttpError(403, "Only the author can submit this");
   if (!["draft", "returned"].includes(o.status)) throw new HttpError(409, `Already ${o.status}`);
-  if (!consents.publish) throw new HttpError(422, "Sharing with the community needs your permission to publish a reviewed copy");
+  if (consents.publish !== true) throw new HttpError(422, "Sharing with the community needs your permission to publish a reviewed copy");
   await tx(async () => {
     for (const purpose of ["publish", "attribute", "train"] as const) {
       await run("insert into consents (observation_id,purpose,granted,actor_id,at) values (?,?,?,?,?)", id, purpose,
-        consents[purpose] ? 1 : 0, p!.userId, now());
+        consents[purpose] === true ? 1 : 0, p!.userId, now());
     }
     await run("update observations set visibility='community', status='submitted', updated_at=? where id = ?", now(), id);
     await audit(p!, "observation.submit", "observation", id, { consents });
@@ -146,6 +150,7 @@ export async function withdrawObservation(p: Principal | null, id: number) {
   if (!o.mine) throw new HttpError(403, "Only the author can withdraw this");
   if (o.status === "withdrawn") return;
   await tx(async () => {
+    await one("select id from observations where id = ? for update", id);
     await run("update observations set status='withdrawn', updated_at=? where id = ?", now(), id);
     const ids = (await all<{ id: number }>("select id from shared_versions where observation_id = ? and status != 'withdrawn'", id)).map((r) => r.id);
     await run("update shared_versions set status='withdrawn', withdrawn_at=? where observation_id = ? and status != 'withdrawn'", now(), id);
@@ -207,16 +212,20 @@ export async function publish(p: Principal | null, id: number, input: PublishInp
   if (!o.consents.publish) throw new HttpError(409, "The author hasn't given permission to publish");
   const title = reviewed(input.title, o.title, "Title", 140);
   const bodyText = reviewed(input.body, o.body, "Text", 4000);
-  const flags: Flag[] = scan(title, bodyText);
-  if (flags.length) throw new HttpError(422, `Redact before publishing: ${flags.map((f) => `${f.kind} "${f.match}"`).join(", ")}`);
-  if (input.theme_id != null && (!Number.isInteger(input.theme_id) || !await one("select id from themes where id = ?", input.theme_id as number))) {
-    throw new HttpError(422, "Unknown theme");
-  }
   const attribution = input.attribute === true && o.consents.attribute ? o.org : null; // opt-in by the author AND the moderator
   const region = reviewed(input.region, o.region, "Region", 80);
   const period = reviewed(input.period, o.period, "Period", 60);
   const industry = reviewed(input.industry, attribution ? o.industry : GENERAL_INDUSTRY, "Industry", 80);
+  // Every free-text field that is published is scanned, not just the title and text.
+  const flags: Flag[] = scan(title, bodyText, region, period, industry, o.evidence_type);
+  if (flags.length) throw new HttpError(422, `Redact before publishing: ${flags.map((f) => `${f.kind} "${f.match}"`).join(", ")}`);
+  if (input.theme_id != null && (!Number.isInteger(input.theme_id) || !await one("select id from themes where id = ?", input.theme_id as number))) {
+    throw new HttpError(422, "Unknown theme");
+  }
   await tx(async () => {
+    // Re-checked under the row lock: an author's withdrawal that lands after the read above wins, not this publish.
+    const current = await one<{ status: string }>("select status from observations where id = ? for update", id);
+    if (current?.status !== "submitted") throw new HttpError(409, "This contribution changed; reload it");
     const version = ((await one<{ v: number }>("select coalesce(max(version),0)::int as v from shared_versions where observation_id = ?", id))?.v ?? 0) + 1;
     // Every earlier live or reported copy is replaced, so a reported old version can't later be restored beside this one.
     const replaced = (await all<{ id: number }>("select id from shared_versions where observation_id = ? and status in ('published','under_review')", id)).map((r) => r.id);
@@ -328,12 +337,17 @@ async function closeReports(sharedIds: number[], decision: string) {
   for (const sid of sharedIds) await run("update reports set status='closed', decision=? where shared_id = ? and status = 'open'", decision, sid);
 }
 
-/** Any AIRA summary that cited these copies is cleared, so withdrawn or reported material can't live on in it. */
+/**
+ * Clear every AIRA summary built from these copies: the summaries of their themes (AIRA read all of a theme's evidence,
+ * quoted or not) and any that cited them. Locks the themes, so a summary being saved can't slip in around this.
+ */
 export async function invalidateSummaries(sharedIds: number[]) {
   if (!sharedIds.length) return;
-  for (const t of await all<{ id: number; summary_citations: string | null }>("select id, summary_citations from themes where summary is not null")) {
+  const own = (await all<{ theme_id: number | null }>(`select distinct theme_id from shared_versions where id in (${sharedIds.map(() => "?").join(",")})`,
+    ...sharedIds)).map((r) => r.theme_id).filter((t): t is number => t !== null);
+  for (const t of await all<{ id: number; summary_citations: string | null }>("select id, summary_citations from themes where summary is not null for update")) {
     const cited: number[] = JSON.parse(t.summary_citations ?? "[]").map((c: { shared_id: number }) => c.shared_id);
-    if (cited.some((id) => sharedIds.includes(id))) {
+    if (own.includes(t.id) || cited.some((id) => sharedIds.includes(id))) {
       await run("update themes set summary=null, summary_citations=null, summary_at=null where id = ?", t.id);
     }
   }

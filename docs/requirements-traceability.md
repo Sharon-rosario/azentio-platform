@@ -17,7 +17,7 @@ bullet, in the brief's order, prefixed by section. The section number after each
 | **Gap** | Known defect or missing control, listed under [Open gaps](#open-gaps) |
 | **Out of scope** | Not built, with the reason (brief marks it optional, P1/P2, or outside the minimum scope) |
 
-**Tests.** `S1`-`S30` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
+**Tests.** `S1`-`S34` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
 as real personas and call the API directly. `U1`-`U6` are the unit tests in [`tests/unit.test.mjs`](../tests/unit.test.mjs).
 CI runs all of them against a production build on every push and pull request ([`ci.yml`](../.github/workflows/ci.yml)).
 
@@ -49,13 +49,17 @@ CI runs all of them against a production build on every push and pull request ([
 | S24 | AIRA's input is published shared copies only: theme evidence has no tenant or author data |
 | S25 | the public request form is rate limited per source |
 | S26 | public request fields with the wrong types are refused, never a 500 |
-| S27 | the audit log's hash chain verifies end to end after every write in this suite |
-| S28 | a de-identified copy names no exact industry, and a filter can't single out one organisation |
-| S29 | moderation and report fields with the wrong types are refused on real records, never a 500 |
-| S30 | pages get a nonce-based script policy, fresh per request, and the API allows nothing to run |
+| S27 | a de-identified copy names no exact industry, and a filter can't single out one organisation |
+| S28 | moderation and report fields with the wrong types are refused on real records, never a 500 |
+| S29 | pages get a nonce-based script policy, fresh per request, and the API allows nothing to run |
+| S30 | an identifier in any published field blocks publication, not just in the title and text |
+| S31 | consent to publish must be an explicit yes: a string like "false" is refused |
+| S32 | parallel wrong guesses can't get past the five-attempt limit on a sign-in code |
+| S33 | a null origin, wrong-typed idea and content fields and a malformed portal id answer 4xx, never a 500 |
+| S34 | the audit log's hash chain verifies end to end after every write in this suite (runs last) |
 | U1 | scan flags identifiers that must not reach the shared feed |
 | U2 | scan leaves ordinary market observations alone |
-| U3 | locate finds exact and lightly garbled quotes, rejects invented or trivial ones |
+| U3 | verbatim keeps a quote only when its words are in the source, and returns the source's own words |
 | U4 | safePath allows same-origin paths only (no open redirect) |
 | U5 | sessions end after the idle limit, and activity is recorded at most once a minute |
 | U6 | the audit hash chain detects an edited, removed or inserted entry |
@@ -84,7 +88,7 @@ call get the same decision.
 | Platform controls (not numbered in the brief) | 6 | 5 | 1 | | | |
 | **Total** | **75** | **51** | **13** | **6** | **0** | **5** |
 
-No gaps remain open, with a suggested fix and the test that would prove each. All eight found while building it (G-01 to G-08) are fixed, with tests S17-S29, U5 and U6, and listed at the end.
+No gaps remain open. Every gap found while building and reviewing it (G-01 to G-14) is fixed, with a test where one can show it, and listed at the end.
 
 ---
 
@@ -110,7 +114,7 @@ No gaps remain open, with a suggested fix and the test that would prove each. Al
 | ROLE-CLI | Client member: tenant and entitlement checks on every protected resource; no employee-only experiments | `GRANTS.client_member` (no `content.employee`, no `playground.use`); `sameTenant()` | S4, S9 | **Proven** |
 | ROLE-CADM | Client admin can't grant platform roles, change another tenant or self-enable products | `members.ts` `invite()` limits roles to `CLIENT_ASSIGNABLE`, own org only; no API writes entitlements | S8 | **Proven** |
 | ROLE-PUBL | Content publisher: no identity administration or implicit access to private learning | `GRANTS.publisher` = `content.publish` only | none | **Enforced** |
-| ROLE-ADM | Portal admin: privileged actions audited; client-private content needs explicit moderation authorisation, not a broad role | `GRANTS.portal_admin` has no `observations.*`; every privileged service writes `audit()` in the same transaction | S6 (admin gets 403 on observations and moderation) | **Proven**, except: the audit trail is append-only by convention, not tamper-evident (see G-05) |
+| ROLE-ADM | Portal admin: privileged actions audited; client-private content needs explicit moderation authorisation, not a broad role | `GRANTS.portal_admin` has no `observations.*`; every privileged service writes `audit()` in the same transaction | S6 (admin gets 403 on observations and moderation) | **Proven**; the audit trail is hash-chained, so an edited, removed or inserted entry is detected (G-05, S34) |
 | ROLE-MOD | Moderator: no access to unsubmitted drafts | `learning.ts` `moderationQueue()`, `reviewItem()` only return `visibility='community'` and `status in ('submitted','published')` | S7 | **Proven** |
 | ROLE-EMP | Employee: verified work identity plus approved membership; no automatic access to every client's private data | Employee grants carry no `observations.*`; membership is provisioned, never inferred from `@azentio.com` | S3, S6 | **Enforced**: no test signs in a *new* `@azentio.com` address to prove it gets nothing |
 
@@ -181,7 +185,7 @@ No gaps remain open, with a suggested fix and the test that would prove each. Al
 | SHR-02 | Separate consent for store, publish, attribute, train; append-only history | `consents` table, one row per purpose per change (`createObservation()`, `submitObservation()`, `withdrawObservation()`); history in `getObservation()` | S13 (submit without publish consent → 422) | **Proven** for publish; attribute and train are **Enforced** |
 | SHR-03 | No tenant ids, author profiles, attachments or reviewer notes in shared payloads | `sharedFeed()` column list; `listThemes()` strips `org_id` | S10 | **Proven** |
 | SHR-04 | De-identified wording by default; attribution opt-in and reviewed | `publish()`: attribution only when the author consented **and** the moderator ticks it | S10 (only the consenting org is attributed) | **Proven** |
-| SHR-05 | Reduce specific geography, dates or details that could identify a contributor | Moderator rewrites `region`, `period` and `industry`; a de-identified copy's industry defaults to a general value (`GENERAL_INDUSTRY`); industry and region filters only offer and apply values covering at least `MIN_ORGS` organisations (`broadValues()`) | S28 | **Proven** |
+| SHR-05 | Reduce specific geography, dates or details that could identify a contributor | Moderator rewrites `region`, `period` and `industry`; a de-identified copy's industry defaults to a general value (`GENERAL_INDUSTRY`); industry and region filters only offer and apply values covering at least `MIN_ORGS` organisations (`broadValues()`) | S27 | **Proven** |
 | SHR-06 | No pricing, customer records, secrets | `scan()` + publish block; synthetic seed data only | U1, S13 | **Enforced** (pattern-based) |
 | SHR-07 | Raw private records stay out of analytics, indexes, logs and AI payloads | `synthesize()` builds its prompt from published shared copies only; the audit `detail` stores ids, not bodies | S24 (AIRA's evidence is exactly the published copies, with no tenant or author fields) | **Proven** for AI payloads; logs store ids only (code) |
 | SHR-08 | Show the contributor who can see each version and how it may be used | "Who can see it" column and observation detail page (consents, shared versions) | none | **Enforced** |
@@ -197,7 +201,7 @@ No gaps remain open, with a suggested fix and the test that would prove each. Al
 | INS-02 | Ideas: title, problem, offering, evidence, proposed outcome, owner, priority, status, last update; the six statuses | `insights.ts` `IDEA_STATUSES`, `createIdea()` | none | **Partial**: evidence linked by theme, not per contribution (see EMP-04) |
 | INS-03 | Status changes audited | `updateIdeaStatus()` → `audit("idea.status")` | none | **Enforced** |
 | INS-04 | Close the loop with contributors without exposing private source or roadmaps | `updateIdeaStatus()` notifies authors of published evidence with the status only; `listIdeas()` strips internal fields | none | **Enforced** |
-| INS-05 | AI synthesis cites approved contributions; uncertainty preserved; popularity isn't prevalence | `synthesize()`: zod schema with `limitations`, every quote checked by `evidence.ts` `locate()`, unverified quotes dropped, nothing saved if none survive; LLM fails closed (`llm.ts`) | U3, S12 (refused below threshold) | **Proven** |
+| INS-05 | AI synthesis cites approved contributions; uncertainty preserved; popularity isn't prevalence | `synthesize()`: zod schema with `limitations`, every quote checked by `evidence.ts` `verbatim()` and saved in the source's own words, unverified quotes dropped, nothing saved if none survive or if the evidence changed during the call; LLM fails closed (`llm.ts`) | U3, S12 (refused below threshold) | **Proven** |
 | INS-06 | Product changes never automatic | Ideas are records only; nothing deploys | n/a | **Enforced** |
 | INS-07 | Clustering, duplicate detection, digests, assisted prioritisation, quality feedback | n/a | n/a | **Out of scope** ("Add..." items) |
 
@@ -215,7 +219,7 @@ No gaps remain open, with a suggested fix and the test that would prove each. Al
 | PLAT-02 | Session cookie: `__Host-` prefix, HttpOnly, Secure, hashed id at rest, revocation on next request | `auth.ts` `COOKIE`, `verifyCode()`, `getPrincipal()` | S14 | **Proven** |
 | PLAT-03 | No 500s or stack traces from malformed input | `http.ts` `body()`, `id()`, `text()`, `oneOf()`; generic 500 body | S16 | **Proven** |
 | PLAT-04 | No open redirect after sign-in or from notification links | `src/lib/safe-path.ts` `safePath()` | U4 | **Proven** |
-| PLAT-05 | Security headers (CSP, HSTS, frame-ancestors, nosniff) | `src/proxy.ts` (nonce-based page CSP, no inline scripts); `next.config.ts` `headers()` (HSTS, nosniff, frame and referrer policies; `default-src 'none'` for API and files) | S30 | **Proven** |
+| PLAT-05 | Security headers (CSP, HSTS, frame-ancestors, nosniff) | `src/proxy.ts` (nonce-based page CSP, no inline scripts); `next.config.ts` `headers()` (HSTS, nosniff, frame and referrer policies; `default-src 'none'` for API and files) | S29 | **Proven** |
 | PLAT-06 | Hosted database's public REST API exposes nothing | `db.ts` `LOCKDOWN` (RLS on every table, `anon`/`authenticated` grants revoked) | none (needs a hosted Supabase) | **Enforced** |
 
 ---
@@ -230,19 +234,25 @@ None. Every gap found while building this table is fixed and tested; see below.
 |---|---|---|---|
 | G-01 | Restoring an open report on a copy the author had withdrawn republished it | `decideReport()` restores only a copy still `under_review` (409 otherwise); `withdrawObservation()` closes open reports on its copies | S17 |
 | G-02 | A reported old version could be restored next to a newer one | `publish()` supersedes `published` **and** `under_review` copies, closes their reports and clears AIRA summaries that cited them | S18 |
-| G-04 | A de-identified copy carried the organisation's exact industry, and with few contributors the industry filter singled one out | `publish()` defaults a de-identified copy's industry to a general value the moderator can change; `broadValues()` offers and applies industry and region filters only for values covering at least `MIN_ORGS` organisations. Field types on moderation and report input are checked before use | S28, S29 |
-| G-05 | The audit log was append-only by convention only | Hash chain: each row stores `prev_hash` and `hash` = SHA-256 of the previous hash and its own fields; appends take a transaction advisory lock so the chain never forks; earlier rows are chained once at start (`sealAudit()`); `verifyAudit()` recomputes it and the admin page shows the result. Tamper evidence, not prevention: someone with database write access could rebuild the whole chain, so the head hash shown on the admin page should also be recorded outside the database | U6, S27 |
+| G-04 | A de-identified copy carried the organisation's exact industry, and with few contributors the industry filter singled one out | `publish()` defaults a de-identified copy's industry to a general value the moderator can change; `broadValues()` offers and applies industry and region filters only for values covering at least `MIN_ORGS` organisations. Field types on moderation and report input are checked before use | S27, S28 |
+| G-05 | The audit log was append-only by convention only | Hash chain: each row stores `prev_hash` and `hash` = SHA-256 of the previous hash and its own fields; appends take a transaction advisory lock so the chain never forks; earlier rows are chained once at start (`sealAudit()`); `verifyAudit()` recomputes it and the admin page shows the result. Tamper evidence, not prevention: someone with database write access could rebuild the whole chain, so the head hash shown on the admin page should also be recorded outside the database | U6, S34 |
 | G-06 | Sessions lasted 8 hours regardless of activity | `getPrincipal()` ends a session unused for 30 minutes (`SESSION_IDLE_MINUTES`) on the server and deletes it; `last_seen_at` is refreshed at most once a minute. Existing databases gain the column through an idempotent `add column if not exists` | U5 |
 | G-07 | Public forms weren't rate limited | `createRequest()`: at most 5 stored requests per source and 3 per address in 15 minutes (429 after). The source is a keyed hash of the client IP Vercel sets (`x-real-ip`, which clients can't spoof there); the raw IP is never stored. Field types are checked before use | S25, S26 |
 | G-08 | Rules enforced in code had no negative test | Tests added: plain employee can't publish (S20), client refused the playground (S21), clients never see idea internals (S23), AIRA's evidence is published copies only (S24). A new `@azentio.com` address can't be signed in from the demo outbox (S22: real-mailbox codes are never shown), so "the domain grants nothing" stays proven by S3 and `verifyCode()` | S20-S24 |
 | G-03 | `PATCH /api/observations/:id` could change visibility around the review | `visibilityFor()`: create and edit accept only `private` or `organisation`; community is set only by submit and kept until withdrawal | S19 |
+| G-09 | The identifier check covered only the title and text: an email in the evidence type, period or region was published, and the offering was free text | `publish()` scans every published free-text field; `offering` must be one of the products | S30 |
+| G-10 | AIRA's quote check was fuzzy (85% similar), so a quote with "not" removed passed, and the model's wording was saved | `verbatim()`: a quote's words must appear in the source in order (case and punctuation aside), at least five of them, and the source's own words are saved | U3 |
+| G-11 | A summary could be saved citing a copy withdrawn or reported during the model call, and withdrawal cleared only summaries that quoted the copy | `synthesize()` locks the theme and saves only if the evidence it read is still exactly what's published (409 otherwise); `invalidateSummaries()` clears every summary of the copy's theme and locks it too | none: needs a model call mid-test |
+| G-12 | Races: parallel wrong codes could each pass the attempt check, one code could start two sessions, and a publish in flight could undo a withdrawal | Attempts are counted in one conditional `update … returning` before comparing; a code is marked used only `where used_at is null`; `publish()` and `withdrawObservation()` take a row lock and re-check the status | S32 (a guard: the local database serialises queries, so the race only shows on Postgres) |
+| G-13 | Wrong input types could still reach a 500: an `Origin: null` header, numeric idea and content fields, a non-numeric portal id; and any truthy value counted as consent | The origin is parsed safely (unparsable means cross-site); idea and content fields are type-checked; portal pages parse ids with `id()`; consent must be `true` | S31, S33 |
+| G-14 | Revoking a member left their pending invitations valid, so they could rejoin; three audited writes ran outside their change's transaction | `revokeMember()` revokes pending invitations to that organisation; `createContent()`, `createRequest()` and `switchWorkspace()` write their audit row in the same transaction | none |
 
 ## How to re-check this table
 
 ```bash
 npm run dev               # terminal 1
 npm test                  # unit tests (U1-U6)
-npm run test:security     # terminal 2: API tests (S1-S30)
+npm run test:security     # terminal 2: API tests (S1-S34)
 ```
 
 When a gap is fixed, update its row's status and the summary counts, and add the new test to the legend above.

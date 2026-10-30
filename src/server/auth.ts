@@ -62,16 +62,19 @@ export async function verifyCode(rawEmail: string, code: string) {
     "select id, code_hash, attempts from login_codes where email = ? and used_at is null and expires_at > ? order by id desc limit 1",
     email, now());
   if (!row) throw new HttpError(400, "That code has expired. Ask for a new one");
-  if (row.attempts >= MAX_ATTEMPTS) throw new HttpError(429, "Too many wrong attempts. Ask for a new code");
+  // Every try is counted before the comparison, in one conditional update, so parallel guesses can't all see 0 attempts.
+  const slot = await one<{ attempts: number }>("update login_codes set attempts = attempts + 1 where id = ? and attempts < ? returning attempts",
+    row.id, MAX_ATTEMPTS);
+  if (!slot) throw new HttpError(429, "Too many wrong attempts. Ask for a new code");
   const expected = Buffer.from(row.code_hash, "hex");
   const given = Buffer.from(hash(`${email}:${code.trim()}`), "hex");
-  if (expected.length !== given.length || !timingSafeEqual(expected, given)) {
-    await run("update login_codes set attempts = attempts + 1 where id = ?", row.id);
-    throw new HttpError(400, "That code isn't right");
-  }
+  if (expected.length !== given.length || !timingSafeEqual(expected, given)) throw new HttpError(400, "That code isn't right");
   const sid = randomBytes(32).toString("base64url");
   const userId = await tx(async () => {
-    await run("update login_codes set used_at = ? where id = ?", now(), row.id);
+    // Single use even under concurrency: only one request can mark the code used.
+    if (!await one("update login_codes set used_at = ? where id = ? and used_at is null returning id", now(), row.id)) {
+      throw new HttpError(400, "That code has already been used. Ask for a new one");
+    }
     let user = await one<{ id: number }>("select id from users where email = ?", email);
     if (!user) {
       const id = await insert("insert into users (email,name,created_at) values (?,?,?)", email, email.split("@")[0], now());
@@ -135,6 +138,8 @@ export async function switchWorkspace(p: Principal, membershipId: number) {
   if (!m) throw new HttpError(404, "Not found");
   const sid = (await cookies()).get(COOKIE)?.value;
   if (!sid) throw new HttpError(401, "Sign in first");
-  await run("update sessions set membership_id = ? where id = ?", m.id, createHash("sha256").update(sid).digest("hex"));
-  await audit(p, "auth.switch_workspace", "membership", m.id, { org: m.orgName });
+  await tx(async () => {
+    await run("update sessions set membership_id = ? where id = ?", m.id, createHash("sha256").update(sid).digest("hex"));
+    await audit(p, "auth.switch_workspace", "membership", m.id, { org: m.orgName });
+  });
 }

@@ -17,7 +17,7 @@ export function route<C = Record<string, string>>(handler: Handler<C>) {
       if (req.method !== "GET") {
         const origin = req.headers.get("origin");
         const host = req.headers.get("host");
-        if (origin && host && new URL(origin).host !== host) throw new HttpError(403, "Cross-site request refused");
+        if (origin && host && hostOf(origin) !== host) throw new HttpError(403, "Cross-site request refused");
       }
       const p = await getPrincipal();
       const out = await handler({ req, p, params: (await ctx.params) ?? ({} as C) });
@@ -28,6 +28,15 @@ export function route<C = Record<string, string>>(handler: Handler<C>) {
       return NextResponse.json({ detail: "Something went wrong on our side" }, { status: 500 });
     }
   };
+}
+
+/** An Origin header's host; an unparsable one (such as the literal "null") matches nothing. */
+function hostOf(origin: string): string | null {
+  try {
+    return new URL(origin).host;
+  } catch {
+    return null;
+  }
 }
 
 /** The request's JSON body. Anything other than a JSON object (null, an array, a bare string) is refused with 400. */

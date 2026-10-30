@@ -95,6 +95,9 @@ export async function revokeMember(p: Principal | null, membershipId: number) {
   if (m.user_id === p!.userId) throw new HttpError(409, "You can't remove yourself");
   await tx(async () => {
     await run("update memberships set status = 'revoked' where id = ?", membershipId);
+    // A pending invitation to the same organisation would otherwise let them straight back in.
+    await run(`update invitations set revoked_at = ? where org_id = ? and accepted_at is null and revoked_at is null
+      and email = (select email from users where id = ?)`, now(), m.org_id, m.user_id);
     await audit(p!, "member.revoke", "membership", membershipId, { org: m.org_id });
     await notify(m.user_id, "Your access to an organisation on azentio.ai was removed");
   });

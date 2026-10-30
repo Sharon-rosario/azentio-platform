@@ -13,6 +13,7 @@ import { dateTime } from "@/lib/format";
 import { PRODUCT_NAME } from "@/lib/products";
 import { listThemes } from "@/server/insights";
 import { reviewItem } from "@/server/learning";
+import { id as parseId } from "@/server/http";
 import { isForbidden, load } from "@/server/page";
 import { can } from "@/server/policy";
 
@@ -21,7 +22,7 @@ export const metadata: Metadata = { title: "Review contribution" };
 export default async function ReviewPage({ params }: PageProps<"/portal/moderation/[id]">) {
   const { id } = await params;
   const data = await load(async (p) => {
-    const item = await reviewItem(p, Number(id));
+    const item = await reviewItem(p, parseId(id));
     const themes = can(p, "themes.read") ? await listThemes(p) : [];
     return { item, themes: themes.map((t) => ({ id: t.id, name: t.name })) };
   }, `/portal/moderation/${id}`);

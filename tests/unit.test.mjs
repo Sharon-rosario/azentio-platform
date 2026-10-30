@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { safePath } from "../src/lib/safe-path.ts";
 import { GENESIS, rowHash, verifyChain } from "../src/server/audit-chain.ts";
 import { isIdle, needsTouch } from "../src/server/session-policy.ts";
-import { locate } from "../src/server/evidence.ts";
+import { verbatim } from "../src/server/evidence.ts";
 import { scan } from "../src/server/scan.ts";
 
 test("scan flags identifiers that must not reach the shared feed", () => {
@@ -16,18 +16,20 @@ test("scan flags identifiers that must not reach the shared feed", () => {
   assert.deepEqual(kinds("Borrower PAN ABCDE1234F"), ["PAN (India tax id)"]);
   assert.deepEqual(kinds("IBAN AE070331234567890123456"), ["IBAN"]);
   assert.ok(kinds("Call +91 98765 43210 today").includes("phone number"));
+  assert.deepEqual(kinds("Account 4455 6677 8899 was affected"), ["account or card number"], "grouped digits are an account, not a phone");
 });
 
 test("scan leaves ordinary market observations alone", () => {
   assert.deepEqual(scan("Seasonal SMEs show 30-40% revenue dips in Q2 2026 across 400 accounts."), []);
 });
 
-test("locate finds exact and lightly garbled quotes, rejects invented or trivial ones", () => {
-  const source = "Our scorecards treat a single low quarter as deterioration, so seasonal businesses get declined.";
-  assert.equal(locate("treat a single low quarter as deterioration", source), 1);
-  assert.ok(locate("treat a singel low quarter as deterioration", source) >= 0.85);
-  assert.equal(locate("the bank lost money on every seasonal loan", source), 0);
-  assert.equal(locate("scorecards treat", source), 0, "quotes under three words prove nothing");
+test("verbatim keeps a quote only when its words are in the source, and returns the source's own words", () => {
+  const source = "Our scorecards do not treat a single low quarter as deterioration, so seasonal businesses get declined.";
+  assert.equal(verbatim("DO NOT treat a single low-quarter as deterioration", source), "do not treat a single low quarter as deterioration");
+  assert.equal(verbatim("do now treat a single low quarter as deterioration", source), null, "one changed word can reverse the meaning");
+  assert.equal(verbatim("scorecards do treat a single low quarter", source), null, "a dropped 'not' is a different claim");
+  assert.equal(verbatim("the bank lost money on every seasonal loan", source), null);
+  assert.equal(verbatim("seasonal businesses get declined", source), null, "quotes under five words prove nothing");
 });
 
 test("safePath allows same-origin paths only (no open redirect)", () => {

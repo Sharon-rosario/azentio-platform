@@ -1,7 +1,9 @@
 import "server-only";
 
+import { PRODUCT_NAME } from "@/lib/products";
+
 import { audit } from "./audit";
-import { all, insert, now, one } from "./db";
+import { all, insert, now, one, tx } from "./db";
 import { authorize, canSeeContent, HttpError, type Principal } from "./policy";
 
 export type Content = {
@@ -35,11 +37,19 @@ export async function createContent(p: Principal | null, input: { kind: string; 
   authorize(p, "content.publish");
   if (!["broadcast", "insight", "experiment", "demo"].includes(input.kind)) throw new HttpError(422, "Unknown content type");
   if (!["public", "employee", "client"].includes(input.audience)) throw new HttpError(422, "Choose who can see it");
-  if (!input.title?.trim() || !input.summary?.trim()) throw new HttpError(422, "Title and summary are required");
-  const id = await insert("insert into content (kind,title,summary,audience,product,starts_at,created_at) values (?,?,?,?,?,?,?)",
-    input.kind, input.title.trim(), input.summary.trim(), input.audience, input.product || null, input.starts_at || null, now());
-  await audit(p, "content.create", "content", id, { audience: input.audience, kind: input.kind });
-  return id;
+  if (typeof input.title !== "string" || typeof input.summary !== "string" || !input.title.trim() || !input.summary.trim()) {
+    throw new HttpError(422, "Title and summary are required");
+  }
+  if (input.product != null && (typeof input.product !== "string" || !(input.product in PRODUCT_NAME))) throw new HttpError(422, "Unknown product");
+  if (input.starts_at != null && (typeof input.starts_at !== "string" || Number.isNaN(Date.parse(input.starts_at)))) {
+    throw new HttpError(422, "Start time must be a date");
+  }
+  return await tx(async () => {
+    const id = await insert("insert into content (kind,title,summary,audience,product,starts_at,created_at) values (?,?,?,?,?,?,?)",
+      input.kind, input.title.trim(), input.summary.trim(), input.audience, input.product || null, input.starts_at || null, now());
+    await audit(p, "content.create", "content", id, { audience: input.audience, kind: input.kind });
+    return id;
+  });
 }
 
 /** Public forms: demo requests and hackathon registration. Stored, never auto-confirmed by email. */
@@ -65,8 +75,10 @@ export async function createRequest(kind: "demo" | "hackathon", input: { name?: 
   if ((recent?.bySource ?? 0) >= REQUESTS_PER_SOURCE || (recent?.byEmail ?? 0) >= REQUESTS_PER_EMAIL) {
     throw new HttpError(429, `Too many requests. Try again in ${REQUEST_WINDOW_MINUTES} minutes`);
   }
-  const id = await insert("insert into requests (kind,name,email,company,message,created_at,source_hash) values (?,?,?,?,?,?,?)",
-    kind, name, email, str(input.company) || null, message || null, now(), sourceHash);
-  await audit({ actor: email }, `request.${kind}`, "request", id);
-  return id;
+  return await tx(async () => {
+    const id = await insert("insert into requests (kind,name,email,company,message,created_at,source_hash) values (?,?,?,?,?,?,?)",
+      kind, name, email, str(input.company) || null, message || null, now(), sourceHash);
+    await audit({ actor: email }, `request.${kind}`, "request", id);
+    return id;
+  });
 }

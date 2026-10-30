@@ -7,6 +7,8 @@ const DETECTORS: [string, RegExp][] = [
   // the total is phone-length (PHONE_DIGITS), so years, percentages and amounts aren't flagged.
   ["phone number", /(?:\+\d{1,3}[\s-]?)?\b\d{2,5}(?:[\s-]\d{2,5}){1,4}\b/g],
   ["account or card number", /\b\d{9,19}\b/g],
+  // Account and card numbers written in groups of four ("4455 6677 8899", "4111-1111-1111-1111").
+  ["account or card number", /\b\d{4}(?:[\s-]\d{4}){2,4}\b/g],
   ["PAN (India tax id)", /\b[A-Z]{5}\d{4}[A-Z]\b/g],
   ["IBAN", /\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b/g],
 ];
