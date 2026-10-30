@@ -16,7 +16,7 @@ bullet, in the brief's order, prefixed by section. The section number after each
 | **Gap** | Known defect or missing control, listed under [Open gaps](#open-gaps) |
 | **Out of scope** | Not built, with the reason (brief marks it optional, P1/P2, or outside the minimum scope) |
 
-**Tests.** `S1`-`S27` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
+**Tests.** `S1`-`S29` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
 as real personas and call the API directly. `U1`-`U6` are the unit tests in [`tests/unit.test.mjs`](../tests/unit.test.mjs).
 CI runs all of them against a production build on every push and pull request ([`ci.yml`](../.github/workflows/ci.yml)).
 
@@ -49,6 +49,8 @@ CI runs all of them against a production build on every push and pull request ([
 | S25 | the public request form is rate limited per source |
 | S26 | public request fields with the wrong types are refused, never a 500 |
 | S27 | the audit log's hash chain verifies end to end after every write in this suite |
+| S28 | a de-identified copy names no exact industry, and a filter can't single out one organisation |
+| S29 | moderation and report fields with the wrong types are refused on real records, never a 500 |
 | U1 | scan flags identifiers that must not reach the shared feed |
 | U2 | scan leaves ordinary market observations alone |
 | U3 | locate finds exact and lightly garbled quotes, rejects invented or trivial ones |
@@ -74,13 +76,13 @@ call get the same decision.
 | 06 Client portal | 7 | 5 | | 1 | | 1 |
 | 07 Observation capture | 5 | 4 | | | | 1 |
 | 08 Review, publication, withdrawal | 9 | 6 | 2 | 1 | | |
-| 09 Sharing, consent, aggregation | 11 | 6 | 3 | 1 | 1 | |
+| 09 Sharing, consent, aggregation | 11 | 7 | 3 | 1 | | |
 | 10 Insights and improvement | 7 | 2 | 3 | 1 | | 1 |
 | 11 Federated model learning (P2) | 1 | | | | | 1 |
 | Platform controls (not numbered in the brief) | 6 | 4 | 1 | 1 | | |
-| **Total** | **75** | **47** | **13** | **9** | **1** | **5** |
+| **Total** | **75** | **48** | **13** | **9** | **0** | **5** |
 
-One open gap (G-04) is listed at the end, with a suggested fix and the test that would prove each. G-01 to G-03 and G-05 to G-08 are fixed, with tests S17-S27, U5 and U6.
+No gaps remain open, with a suggested fix and the test that would prove each. All eight found while building it (G-01 to G-08) are fixed, with tests S17-S29, U5 and U6, and listed at the end.
 
 ---
 
@@ -177,7 +179,7 @@ One open gap (G-04) is listed at the end, with a suggested fix and the test that
 | SHR-02 | Separate consent for store, publish, attribute, train; append-only history | `consents` table, one row per purpose per change (`createObservation()`, `submitObservation()`, `withdrawObservation()`); history in `getObservation()` | S13 (submit without publish consent → 422) | **Proven** for publish; attribute and train are **Enforced** |
 | SHR-03 | No tenant ids, author profiles, attachments or reviewer notes in shared payloads | `sharedFeed()` column list; `listThemes()` strips `org_id` | S10 | **Proven** |
 | SHR-04 | De-identified wording by default; attribution opt-in and reviewed | `publish()`: attribution only when the author consented **and** the moderator ticks it | S10 (only the consenting org is attributed) | **Proven** |
-| SHR-05 | Reduce specific geography, dates or details that could identify a contributor | Moderator can rewrite `region` and `period`; `industry` is copied from the organisation unchanged | none | **Gap**: with three seeded organisations each industry maps to exactly one organisation (G-04) |
+| SHR-05 | Reduce specific geography, dates or details that could identify a contributor | Moderator rewrites `region`, `period` and `industry`; a de-identified copy's industry defaults to a general value (`GENERAL_INDUSTRY`); industry and region filters only offer and apply values covering at least `MIN_ORGS` organisations (`broadValues()`) | S28 | **Proven** |
 | SHR-06 | No pricing, customer records, secrets | `scan()` + publish block; synthetic seed data only | U1, S13 | **Enforced** (pattern-based) |
 | SHR-07 | Raw private records stay out of analytics, indexes, logs and AI payloads | `synthesize()` builds its prompt from published shared copies only; the audit `detail` stores ids, not bodies | S24 (AIRA's evidence is exactly the published copies, with no tenant or author fields) | **Proven** for AI payloads; logs store ids only (code) |
 | SHR-08 | Show the contributor who can see each version and how it may be used | "Who can see it" column and observation detail page (consents, shared versions) | none | **Enforced** |
@@ -218,11 +220,7 @@ One open gap (G-04) is listed at the end, with a suggested fix and the test that
 
 ## Open gaps
 
-Found while building this table. Each is small; fixes belong in shared server code.
-
-| # | Gap | Where | Why it matters | Suggested fix and test |
-|---|---|---|---|---|
-| G-04 | **Industry re-identifies the organisation.** Shared copies and theme evidence carry the contributing org's `industry` verbatim; the three seeded organisations each have a unique industry, so the industry filter is an organisation filter | `learning.ts` `publish()`, `sharedFeed()`; `insights.ts` `listThemes()` | The brief: "Removing a name alone does not make a rare observation anonymous" | Let the moderator generalise `industry` (as with region and period) and drop industry from the feed filters until a cohort is large enough. Test: feed items carry only generalised values |
+None. Every gap found while building this table is fixed and tested; see below.
 
 ## Fixed gaps
 
@@ -230,6 +228,7 @@ Found while building this table. Each is small; fixes belong in shared server co
 |---|---|---|---|
 | G-01 | Restoring an open report on a copy the author had withdrawn republished it | `decideReport()` restores only a copy still `under_review` (409 otherwise); `withdrawObservation()` closes open reports on its copies | S17 |
 | G-02 | A reported old version could be restored next to a newer one | `publish()` supersedes `published` **and** `under_review` copies, closes their reports and clears AIRA summaries that cited them | S18 |
+| G-04 | A de-identified copy carried the organisation's exact industry, and with few contributors the industry filter singled one out | `publish()` defaults a de-identified copy's industry to a general value the moderator can change; `broadValues()` offers and applies industry and region filters only for values covering at least `MIN_ORGS` organisations. Field types on moderation and report input are checked before use | S28, S29 |
 | G-05 | The audit log was append-only by convention only | Hash chain: each row stores `prev_hash` and `hash` = SHA-256 of the previous hash and its own fields; appends take a transaction advisory lock so the chain never forks; earlier rows are chained once at start (`sealAudit()`); `verifyAudit()` recomputes it and the admin page shows the result. Tamper evidence, not prevention: someone with database write access could rebuild the whole chain, so the head hash shown on the admin page should also be recorded outside the database | U6, S27 |
 | G-06 | Sessions lasted 8 hours regardless of activity | `getPrincipal()` ends a session unused for 30 minutes (`SESSION_IDLE_MINUTES`) on the server and deletes it; `last_seen_at` is refreshed at most once a minute. Existing databases gain the column through an idempotent `add column if not exists` | U5 |
 | G-07 | Public forms weren't rate limited | `createRequest()`: at most 5 stored requests per source and 3 per address in 15 minutes (429 after). The source is a keyed hash of the client IP Vercel sets (`x-real-ip`, which clients can't spoof there); the raw IP is never stored. Field types are checked before use | S25, S26 |
@@ -241,7 +240,7 @@ Found while building this table. Each is small; fixes belong in shared server co
 ```bash
 npm run dev               # terminal 1
 npm test                  # unit tests (U1-U6)
-npm run test:security     # terminal 2: API tests (S1-S27)
+npm run test:security     # terminal 2: API tests (S1-S29)
 ```
 
 When a gap is fixed, update its row's status and the summary counts, and add the new test to the legend above.
