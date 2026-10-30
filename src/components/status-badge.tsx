@@ -74,38 +74,3 @@ export function StatusBadge({ value, className }: { value: string; className?: s
     </span>
   );
 }
-
-/** Risk thresholds used across the UI. Keep in sync with the scoring engine. */
-export const RISK = { refer: 0.35, decline: 0.7 };
-
-export function riskTone(value: number): Tone {
-  return value >= RISK.decline ? "danger" : value >= RISK.refer ? "warning" : "success";
-}
-
-/** Risk 0..1 as a number, tinted by the band it falls in. */
-export function RiskScore({ value, className }: { value: number; className?: string }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex h-6 items-center rounded-full px-2 text-xs font-medium tabular-nums",
-        TONES[riskTone(value)],
-        className,
-      )}
-    >
-      {value.toFixed(2)}
-    </span>
-  );
-}
-
-/** Horizontal meter with the refer/decline thresholds marked. */
-export function RiskMeter({ value, className }: { value: number; className?: string }) {
-  const tone = riskTone(value);
-  return (
-    <div className={cn("relative h-1.5 w-full rounded-full bg-muted", className)} role="meter" aria-valuemin={0} aria-valuemax={1} aria-valuenow={value} aria-label="Risk">
-      <div className={cn("h-full rounded-full", DOT[tone])} style={{ width: `${Math.max(4, value * 100)}%` }} />
-      {[RISK.refer, RISK.decline].map((t) => (
-        <span key={t} aria-hidden className="bg-card absolute top-0 h-full w-0.5" style={{ left: `${t * 100}%` }} />
-      ))}
-    </div>
-  );
-}

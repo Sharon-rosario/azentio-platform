@@ -24,11 +24,6 @@ export function pct(n: number | null | undefined, digits = 0) {
   return n == null ? "—" : `${(n * 100).toFixed(digits)}%`;
 }
 
-/** Risk is 0..1; show it the way the anomaly engine reports it (0.985). */
-export function risk(n: number | null | undefined) {
-  return n == null ? "—" : n.toFixed(3);
-}
-
 export function date(iso: string | null | undefined) {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone });
