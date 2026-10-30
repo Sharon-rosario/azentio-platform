@@ -1,4 +1,4 @@
-import { Building2, ScrollText } from "lucide-react";
+import { Building2, ScrollText, ShieldAlert, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { dateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { auditPage, organisations } from "@/server/members";
+import { auditPage, organisations, verifyAudit } from "@/server/members";
 import { isForbidden, load } from "@/server/page";
 
 export const metadata: Metadata = { title: "Admin" };
@@ -35,10 +35,11 @@ export default async function AdminPage({ searchParams }: PageProps<"/portal/adm
   const sp = await searchParams;
   const data = await load(async (p) => ({
     audit: await auditPage(p, { area: one(sp.area), page: Number(one(sp.page) ?? 1) }),
+    chain: await verifyAudit(p),
     orgs: await organisations(p),
   }), "/portal/admin");
   if (isForbidden(data)) return <Forbidden message={data.forbidden} />;
-  const { audit, orgs } = data;
+  const { audit, orgs, chain } = data;
   const log = audit.rows;
   const areaCount = (a: string) => audit.byArea.find((x) => x.area === a)?.n ?? 0;
   const href = (q: { area?: string | null; page?: number }) => {
@@ -102,7 +103,21 @@ export default async function AdminPage({ searchParams }: PageProps<"/portal/adm
         title={<span id="audit" className="scroll-mt-28">Audit log</span>}
         description={`${audit.total} ${audit.area ? `"${audit.area}" ` : ""}entries, newest first · page ${audit.page} of ${audit.pages}`}
       >
-        <nav aria-label="Filter by area" className="-mt-1 mb-4 flex flex-wrap gap-1.5">
+        <p
+          role="status"
+          className={cn("-mt-1 mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border px-4 py-3 text-[13px]",
+            chain.ok ? "border-success/30 bg-success-soft" : "border-danger/30 bg-danger-soft")}
+        >
+          {chain.ok ? <ShieldCheck aria-hidden className="text-success size-4" /> : <ShieldAlert aria-hidden className="text-danger size-4" />}
+          <span className="font-medium">
+            {chain.ok ? `Hash chain intact: all ${chain.checked} entries verified` : `Hash chain broken at entry #${chain.brokenAt}`}
+          </span>
+          <span className="text-muted-foreground">
+            Each entry&apos;s SHA-256 covers the one before it, so an edited, removed or inserted entry is detected. Head{" "}
+            <code className="font-mono text-[12px]">{chain.head.slice(0, 12)}…</code>
+          </span>
+        </p>
+        <nav aria-label="Filter by area" className="mb-4 flex flex-wrap gap-1.5">
           {[{ area: null as string | null, n: audit.byArea.reduce((n, a) => n + a.n, 0) }, ...audit.byArea].map((a) => {
             const on = a.area === audit.area;
             return (

@@ -3,6 +3,7 @@ import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 
 import { audit, notify } from "./audit";
+import { verifyChain, type ChainRow } from "./audit-chain";
 import { all, insert, now, one, run, tx } from "./db";
 import { authorize, can, CLIENT_ASSIGNABLE, HttpError, type Principal, type Role, ROLES } from "./policy";
 import { DEMO_PERSONAS } from "./seed";
@@ -106,6 +107,14 @@ export async function auditLog(p: Principal | null, limit = 200) {
 }
 
 const AUDIT_PAGE = 25;
+
+/** Recompute the audit hash chain end to end; reports the first entry whose link or hash doesn't match. */
+export async function verifyAudit(p: Principal | null) {
+  authorize(p, "admin.audit");
+  const rows = await all<ChainRow>(
+    "select id, at, actor_id, actor, org_id, action, entity, entity_id, detail, prev_hash, hash from audit order by id");
+  return verifyChain(rows);
+}
 
 /**
  * One page of the audit log, optionally narrowed to an area (the action's prefix: `auth`, `moderation`, ...), plus
