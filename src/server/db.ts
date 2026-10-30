@@ -136,8 +136,11 @@ end $$;
 async function connect(): Promise<Driver> {
   if (process.env.DATABASE_URL) {
     const { default: postgres } = await import("postgres");
-    // prepare: false works with Supabase's transaction pooler (port 6543) on serverless.
-    const sql = postgres(process.env.DATABASE_URL, { prepare: false, max: 5 });
+    // prepare: false works with Supabase's transaction pooler (port 6543) on serverless. Serverless instances are frozen
+    // between requests and the pooler drops idle clients, so a pooled connection can be dead when an instance thaws and
+    // the next query hangs on it. Idle connections close after 20 s, none lives past 30 min, and connecting gives up
+    // after 10 s, so a request reconnects instead of waiting on a dead socket.
+    const sql = postgres(process.env.DATABASE_URL, { prepare: false, max: 5, idle_timeout: 20, max_lifetime: 60 * 30, connect_timeout: 10 });
     const exec = (s: typeof sql): Exec => async (q, p) => [...(await s.unsafe(q, p as never[]))] as Record<string, unknown>[];
     return {
       exec: exec(sql),
