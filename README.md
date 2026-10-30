@@ -67,13 +67,15 @@ everyone can check that the server enforces every rule. Even Azentio's portal ad
   organisation's name and future model training are separate consents with history. Joining a workspace is never
   consent.
 - **The shared copy is a different record.** Moderators publish a reviewed copy that has no tenant, author or notes in
-  it. Publication is blocked while it still contains an email, phone, account number, PAN or IBAN.
-- **Withdrawal means gone.** Withdrawing removes the contribution from the feed, search and every AI summary that
-  cited it, in one transaction.
+  it, and the region and industry start general. Publication is blocked while any published field still contains an
+  email, phone, account number, PAN or IBAN.
+- **Withdrawal means gone.** Withdrawing removes the contribution from the feed, search, filters and every AIRA summary
+  of its theme, in one transaction. The retention policy and withdrawal SLA are in [SECURITY.md](SECURITY.md#data-retention-and-withdrawal).
 - **Small numbers stay hidden.** A theme needs contributions from at least three distinct organisations before any
-  count, evidence or summary is shown.
+  count, evidence or summary is shown, and a filter value is only offered once it covers that many.
 - **AI that can only say what the evidence shows.** AIRA reads approved copies only, answers in a validated schema, and
-  every quote is checked against its source. A summary that can't be backed is thrown away.
+  every quote must appear word for word in its source (no fuzzy matching). A summary that can't be backed, or whose
+  evidence changed while AIRA was reading, is thrown away.
 
 ## See it
 
@@ -151,10 +153,10 @@ still open.
 | 03 Personas and access (IAM-01, IAM-02) | Seven roles with separate grants; tenant, audience and entitlement checks on every protected resource; explicit active workspace |
 | 04 Login and onboarding | Email one-time codes; single-use, expiring invitations bound to the invited address; no trusted tenant from an arbitrary email |
 | 05 Employee portal | Dashboard, internal experiments, employee-only broadcasts, synthetic-data playground, improvement ideas, employee suggestions (internal until a product owner shows them to clients) |
-| 06 Client portal | Active organisation, entitled demos and sessions, my and my organisation's observations, filtered shared feed, member administration, improvement status |
+| 06 Client portal | Active organisation, entitled demos and sessions, my and my organisation's observations, shared feed filtered by offering, industry, region, category and observation period, member administration, improvement status |
 | 07 Observation capture | Structured form, private drafts, server-side validation, sensitive-content prompts and scanning |
-| 08 Review and withdrawal | Audited state machine, separate shared versions, re-review on material edits, reports, withdrawal in one transaction, in-app notifications |
-| 09 Sharing and consent | Three visibility levels, four consent purposes with history, opt-in attribution, safe payloads, minimum-organisation suppression |
+| 08 Review and withdrawal | Audited state machine, separate shared versions, re-review on material edits, reports, withdrawal in one transaction with a stated SLA, in-app notifications |
+| 09 Sharing and consent | Three visibility levels, four consent purposes with history, opt-in attribution, safe payloads, minimum-organisation suppression, a written retention policy |
 | 10 Insights and improvement | Themes counted by distinct organisation, AIRA synthesis with verified citations, improvement ideas with audited statuses |
 | 11 Federated learning (optional P2) | Out of scope; stated, not simulated |
 
@@ -170,6 +172,8 @@ still open.
 | Same-origin check on every write; nonce-based CSP (no inline scripts) and strict security headers | `src/server/http.ts`, `src/proxy.ts`, `next.config.ts` |
 | Supabase's public API locked: RLS on every table, `anon` grants revoked | `LOCKDOWN` in `src/server/db.ts` |
 | Every state change audited in the same transaction, hash-chained for tamper evidence | `src/server/audit.ts`, `audit-chain.ts`, `tx()` |
+| Retention policy and withdrawal SLA; expired codes and sessions purged | [SECURITY.md](SECURITY.md#data-retention-and-withdrawal), `purgeExpired()` |
+| Locked installs, actions pinned to SHAs, CI fails on high advisories, Dependabot security updates | [SECURITY.md](SECURITY.md#supply-chain), `.github/workflows/ci.yml` |
 
 38 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
 escalation, private drafts, payload contents, withdrawal, revocation, CSRF, malformed input on every write route).
@@ -186,7 +190,7 @@ npm run dev    # http://localhost:3000: creates and seeds an embedded Postgres i
 
 | Command | What it does |
 |---|---|
-| `npm test` | Unit tests: sensitive-content scanner, quote verification, redirect checks |
+| `npm test` | Unit tests: sensitive-content scanner, verbatim quote check, redirect checks, session idle timeout, audit hash chain |
 | `npm run test:security` | With the dev server running: the 38 API security tests |
 | `npm run typecheck && npm run lint` | Type and lint checks, as in CI |
 | `npm run reset` | Wipe local data; it's re-seeded on the next request |
