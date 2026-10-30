@@ -182,11 +182,12 @@ function driver(): Promise<Driver> {
  * are used, demo outbox messages after 30 days. Runs once per server start; none of these rows is audited content.
  */
 async function purgeExpired(d: Driver) {
+  // The raw driver takes $n placeholders (the query helpers below translate ?).
   const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
   const monthAgo = new Date(Date.now() - 30 * 86_400_000).toISOString();
-  await d.exec("delete from login_codes where expires_at < ? or used_at < ?", [dayAgo, dayAgo]);
-  await d.exec("delete from sessions where expires_at < ?", [dayAgo]);
-  await d.exec("delete from outbox where created_at < ?", [monthAgo]);
+  await d.exec("delete from login_codes where expires_at < $1 or used_at < $1", [dayAgo]);
+  await d.exec("delete from sessions where expires_at < $1", [dayAgo]);
+  await d.exec("delete from outbox where created_at < $1", [monthAgo]);
 }
 
 async function sealAudit(d: Driver) {
