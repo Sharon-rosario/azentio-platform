@@ -105,6 +105,28 @@ export async function auditLog(p: Principal | null, limit = 200) {
     "select id, at, actor, action, entity, entity_id, detail from audit order by id desc limit ?", limit);
 }
 
+const AUDIT_PAGE = 25;
+
+/**
+ * One page of the audit log, optionally narrowed to an area (the action's prefix: `auth`, `moderation`, ...), plus
+ * entry counts per area. The area is accepted only if it exists in the log, and is passed as a parameter.
+ */
+export async function auditPage(p: Principal | null, opts: { area?: string; page?: number } = {}) {
+  authorize(p, "admin.audit");
+  const byArea = await all<{ area: string; n: number }>(
+    "select split_part(action, '.', 1) as area, count(*)::int as n from audit group by 1 order by 2 desc, 1");
+  const area = byArea.some((a) => a.area === opts.area) ? opts.area! : null;
+  const where = area ? "where action like ?" : "";
+  const args = area ? [`${area}.%`] : [];
+  const total = (await one<{ n: number }>(`select count(*)::int as n from audit ${where}`, ...args))?.n ?? 0;
+  const pages = Math.max(1, Math.ceil(total / AUDIT_PAGE));
+  const page = Math.min(Math.max(Math.trunc(opts.page ?? 1) || 1, 1), pages);
+  const rows = await all<{ id: number; at: string; actor: string; action: string; entity: string; entity_id: string | null; detail: string }>(
+    `select id, at, actor, action, entity, entity_id, detail from audit ${where} order by at desc, id desc limit ? offset ?`,
+    ...args, AUDIT_PAGE, (page - 1) * AUDIT_PAGE);
+  return { rows, total, page, pages, area, byArea };
+}
+
 export async function organisations(p: Principal | null) {
   authorize(p, "admin.orgs");
   return all<{ id: number; name: string; kind: string; industry: string; region: string; members: number }>(
@@ -115,7 +137,7 @@ export async function organisations(p: Principal | null) {
 export async function myNotifications(p: Principal | null) {
   if (!p) throw new HttpError(401, "Sign in first");
   return all<{ id: number; text: string; link: string | null; created_at: string; read_at: string | null }>(
-    "select id, text, link, created_at, read_at from notifications where user_id = ? order by id desc limit 50", p.userId);
+    "select id, text, link, created_at, read_at from notifications where user_id = ? order by created_at desc, id desc limit 50", p.userId);
 }
 
 /**

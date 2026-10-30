@@ -110,6 +110,18 @@ export default async function ObservationPage({ params, searchParams }: PageProp
               ["Last updated", dateTime(o.updated_at)],
             ]}
           />
+          <h3 className="mt-6 border-t pt-5 text-[14px] font-semibold">Journey</h3>
+          <ol className="relative mt-4 space-y-4 before:absolute before:top-1.5 before:bottom-1.5 before:left-[7px] before:w-px before:bg-border">
+            {journey(o).map((e, i) => (
+              <li key={i} className="relative flex gap-3.5">
+                <span aria-hidden className={`relative mt-1 size-[15px] shrink-0 rounded-full border-[3px] border-card ${e.done ? "bg-brand-strong" : "bg-muted-foreground/40"}`} />
+                <div className="min-w-0">
+                  <p className="text-[14px] leading-5 font-medium">{e.label}</p>
+                  {e.at && <p className="text-muted-foreground text-[12px] tabular-nums">{dateTime(e.at)}</p>}
+                </div>
+              </li>
+            ))}
+          </ol>
         </Panel>
 
         <div className="grid content-start gap-3">
@@ -169,4 +181,28 @@ export default async function ObservationPage({ params, searchParams }: PageProp
       </div>
     </div>
   );
+}
+
+type JourneyInput = {
+  status: string; created_at: string; updated_at: string;
+  consentHistory: { purpose: string; granted: number; at: string }[];
+  shared: { version: number; status: string; published_at: string }[];
+};
+
+/** The contribution's path so far, from data this page already has: creation, consent, publications, outcome. */
+function journey(o: JourneyInput): { label: string; at?: string; done: boolean }[] {
+  const events: { label: string; at?: string; done: boolean }[] = [{ label: "Saved", at: o.created_at, done: true }];
+  const proposed = o.consentHistory.find((c) => c.purpose === "publish" && c.granted);
+  if (proposed) events.push({ label: "Proposed for the learning community, with permission to publish", at: proposed.at, done: true });
+  for (const v of o.shared) events.push({ label: `Version ${v.version} published by a learning moderator`, at: v.published_at, done: true });
+  const outcome: Record<string, string> = {
+    returned: "Returned with a note from a moderator",
+    rejected: "Not published",
+    withdrawn: "Withdrawn by the author; removed from shared learning and AIRA",
+  };
+  if (outcome[o.status]) events.push({ label: outcome[o.status], at: o.updated_at, done: true });
+  events.sort((a, b) => (a.at ?? "").localeCompare(b.at ?? ""));
+  if (o.status === "submitted") events.push({ label: "Waiting for a learning moderator", done: false });
+  if (o.status === "draft") events.push({ label: "Not shared yet: submit it to propose a reviewed copy", done: false });
+  return events;
 }

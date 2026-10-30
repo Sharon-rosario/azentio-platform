@@ -50,15 +50,16 @@ export default async function ObservationsPage({ searchParams }: PageProps<"/por
         />
       )}
 
-      <Panel bodyClassName="-mx-2">
+      <div className="grid items-start gap-6 lg:grid-cols-12">
+      <Panel bodyClassName="-mx-2" className="min-w-0 lg:col-span-8">
         {rows.length ? (
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="text-muted-foreground text-[12px] font-normal">Title</TableHead>
                 {scope === "org" && <TableHead className="hidden md:table-cell text-muted-foreground text-[12px] font-normal">Author</TableHead>}
-                <TableHead className="hidden lg:table-cell text-muted-foreground text-[12px] font-normal">Category</TableHead>
-                <TableHead className="hidden lg:table-cell text-muted-foreground text-[12px] font-normal">Offering</TableHead>
+                <TableHead className="hidden 2xl:table-cell text-muted-foreground text-[12px] font-normal">Category</TableHead>
+                <TableHead className="hidden xl:table-cell text-muted-foreground text-[12px] font-normal">Offering</TableHead>
                 <TableHead className="hidden sm:table-cell text-muted-foreground text-[12px] font-normal">Who can see it</TableHead>
                 <TableHead className="hidden sm:table-cell text-muted-foreground text-[12px] font-normal">Status</TableHead>
                 <TableHead className="hidden text-right sm:table-cell text-muted-foreground text-[12px] font-normal">Updated</TableHead>
@@ -81,8 +82,8 @@ export default async function ObservationsPage({ searchParams }: PageProps<"/por
                     </div>
                   </TableCell>
                   {scope === "org" && <TableCell className="hidden text-[13px] md:table-cell">{o.author}</TableCell>}
-                  <TableCell className="hidden text-[13px] lg:table-cell">{o.category}</TableCell>
-                  <TableCell className="hidden text-[13px] lg:table-cell">{PRODUCT_NAME[o.offering] ?? o.offering}</TableCell>
+                  <TableCell className="hidden text-[13px] 2xl:table-cell">{o.category}</TableCell>
+                  <TableCell className="hidden text-[13px] xl:table-cell">{PRODUCT_NAME[o.offering] ?? o.offering}</TableCell>
                   <TableCell className="hidden sm:table-cell"><StatusBadge value={o.visibility} /></TableCell>
                   <TableCell className="hidden sm:table-cell"><StatusBadge value={o.status} /></TableCell>
                   <TableCell className="text-muted-foreground hidden text-right text-[13px] tabular-nums sm:table-cell">{date(o.updated_at)}</TableCell>
@@ -109,6 +110,57 @@ export default async function ObservationsPage({ searchParams }: PageProps<"/por
           />
         )}
       </Panel>
+
+      <aside className="space-y-6 lg:col-span-4">
+        {rows.length > 0 && (
+          <Panel title="At a glance" description={scope === "org" ? "Your organisation's contributions" : "Your contributions"}>
+            <ul className="-my-1 divide-y">
+              {GLANCE.map(([status, label]) => (
+                <li key={status} className="flex items-center justify-between gap-3 py-2.5">
+                  <span className="flex items-center gap-2.5 text-[14px]"><StatusBadge value={status} /> <span className="text-muted-foreground text-[13px]">{label}</span></span>
+                  <span className="text-[18px] font-semibold tabular-nums">{rows.filter((o) => o.status === status).length}</span>
+                </li>
+              ))}
+            </ul>
+          </Panel>
+        )}
+        <Panel title="How a contribution travels" description="Nothing leaves your organisation without your say">
+          <ol className="relative space-y-4 before:absolute before:top-2 before:bottom-2 before:left-[11px] before:w-px before:bg-border">
+            {JOURNEY.map(([title, body], i) => (
+              <li key={title} className="relative flex gap-3">
+                <span className="bg-navy text-brand relative grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-semibold">{i + 1}</span>
+                <div>
+                  <p className="text-[14px] leading-6 font-medium">{title}</p>
+                  <p className="text-muted-foreground text-[13px] leading-5">{body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </Panel>
+        <Panel title="Your rights">
+          <ul className="text-muted-foreground space-y-2 text-[13px] leading-5">
+            <li><span className="text-foreground font-medium">Withdraw at any time.</span> The shared copy leaves the feed, search and AIRA at once.</li>
+            <li><span className="text-foreground font-medium">Consent per purpose.</span> Publishing, naming your organisation and model training are separate choices.</li>
+            <li><span className="text-foreground font-medium">Edits are re-reviewed.</span> Changing a published contribution sends it back to a moderator.</li>
+          </ul>
+        </Panel>
+      </aside>
+      </div>
     </div>
   );
 }
+
+const GLANCE: [string, string][] = [
+  ["draft", "Private drafts"],
+  ["returned", "Need a change"],
+  ["submitted", "With a moderator"],
+  ["published", "In shared learning"],
+  ["withdrawn", "Withdrawn"],
+];
+
+const JOURNEY: [string, string][] = [
+  ["Draft", "Saved privately, or for colleagues in your organisation."],
+  ["Submit", "You choose what you allow: publish, name your organisation, training."],
+  ["Review", "A learning moderator removes identifying detail, or returns it with a note."],
+  ["Shared", "A separate, de-identified copy joins shared learning and themes."],
+];
