@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
-import { BroadcastList, ContentCard, upcoming } from "@/components/site/content-cards";
-import { EmptyState, PageHeader, Panel } from "@/components/states";
+import { BroadcastList, EntryIndex, SiteTitle, upcoming } from "@/components/site/content-index";
 import { listContent } from "@/server/content";
 
 export const metadata: Metadata = { title: "Insights" };
@@ -12,26 +11,22 @@ export default async function InsightsPage() {
   const past = broadcasts.filter((b) => !next.includes(b));
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Insights" description="Notes from our teams and public broadcasts on credit, risk and governed AI." />
-      <div className="grid items-start gap-3 lg:grid-cols-[1.6fr_1fr]">
-        <section aria-label="Articles" className="space-y-3">
-          {insights.length ? (
-            insights.map((i) => <ContentCard key={i.id} item={i} />)
-          ) : (
-            <div className="bg-card rounded-2xl">
-              <EmptyState title="No insights published yet" />
-            </div>
-          )}
+    <div className="space-y-12">
+      <SiteTitle title="Insights">Notes from our teams, and public broadcasts on credit, risk and governed AI.</SiteTitle>
+      <div className="grid gap-12 lg:grid-cols-12 lg:gap-6">
+        <section aria-label="Articles" className="lg:col-span-8">
+          <EntryIndex items={insights} empty="No insights are published yet." />
         </section>
-        <div className="space-y-3">
-          <Panel title="Upcoming broadcasts" description="Public sessions anyone can join">
-            <BroadcastList items={next} empty="No public broadcasts coming up" />
-          </Panel>
+        <div className="space-y-10 lg:col-span-3 lg:col-start-10">
+          <section aria-labelledby="upcoming-title">
+            <h2 id="upcoming-title" className="text-muted-foreground mb-3 font-mono text-[12px] leading-4">upcoming broadcasts</h2>
+            <BroadcastList items={next} empty="None scheduled right now." />
+          </section>
           {past.length > 0 && (
-            <Panel title="Past broadcasts">
-              <BroadcastList items={past} />
-            </Panel>
+            <section aria-labelledby="past-title">
+              <h2 id="past-title" className="text-muted-foreground mb-3 font-mono text-[12px] leading-4">past broadcasts</h2>
+              <BroadcastList items={past} empty="" />
+            </section>
           )}
         </div>
       </div>
