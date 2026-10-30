@@ -12,15 +12,19 @@ shared learning that improves Azentio's products.**
 [![React 19](https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white)](https://react.dev)
 [![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript&logoColor=white)](tsconfig.json)
 [![Postgres](https://img.shields.io/badge/Postgres-Supabase_·_PGlite-336791?style=flat-square&logo=postgresql&logoColor=white)](docs/adr/0002-postgres-everywhere-with-rls-lockdown.md)
-[![API security tests](https://img.shields.io/badge/API_security_tests-30_passing-2ed88e?style=flat-square)](tests/security.test.mjs)
+[![API security tests](https://img.shields.io/badge/API_security_tests-38_passing-2ed88e?style=flat-square)](tests/security.test.mjs)
 
-[**Live demo**](https://azentio-platform.vercel.app) · [Security model](SECURITY.md) ·
+[**Live demo**](https://azentio-platform.vercel.app) · [How it works](https://azentio-platform.vercel.app/how-it-works) · [Security model](SECURITY.md) ·
 [Requirements traceability](docs/requirements-traceability.md) · [Architecture](docs/architecture.md) ·
 [Decision records](docs/adr/README.md)
 
 <br>
 
 <img src="docs/screenshots/home.jpg" alt="The azentio.ai public site" width="860">
+
+<br><br>
+
+<a href="https://azentio-platform.vercel.app/how-it-works"><img src="docs/screenshots/how-it-works-flow.jpg" alt="How it works: one note, from a private thought to a better product, in eight steps" width="860"></a>
 
 </div>
 
@@ -88,7 +92,18 @@ is in [docs/demo-script.md](docs/demo-script.md).
 ## Personas
 
 All accounts and data are synthetic. In demo mode the one-time sign-in code appears on screen, because no email
-provider is connected.
+provider is connected. The [How it works](https://azentio-platform.vercel.app/how-it-works) page shows each role and
+exactly what the server lets it do:
+
+<p align="center">
+  <img src="docs/screenshots/how-it-works-roles.jpg" alt="The two sides: four bank personas and five Azentio roles, with what each can and can't do" width="860">
+</p>
+
+<details>
+<summary><b>Who can do what</b>: 16 features against the nine personas, as enforced by <code>server/policy.ts</code></summary>
+<br>
+<img src="docs/screenshots/how-it-works-matrix.jpg" alt="Access matrix: features against personas" width="860">
+</details>
 
 | Persona | Email | Can |
 |---|---|---|
