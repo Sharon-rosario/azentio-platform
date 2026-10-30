@@ -1,9 +1,10 @@
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Note, SiteTitle } from "@/components/site/content-index";
+import { ProductHeroArt } from "@/components/site/page-art";
 import { Button } from "@/components/ui/button";
 import { PRODUCT_DETAIL } from "@/lib/catalog";
 import { getContent, type Content } from "@/server/content";
@@ -31,23 +32,18 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
 
   return (
     <div className="space-y-12">
-      <div className="space-y-8">
-        <Link
-          href="/products"
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 rounded-sm text-[14px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <ArrowLeft className="size-4" /> All products
-        </Link>
-        <SiteTitle
+      <SiteTitle
           title={product.title}
+          back={{ href: "/products", label: "All products" }}
+          art={<ProductHeroArt slug={product.slug ?? slug} />}
           action={
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-7 lg:flex-row-reverse">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-7">
               <Button size="lg" className="h-11 px-5 text-[15px]" render={<Link href={`/connect?product=${encodeURIComponent(product.slug ?? slug)}`} />}>
                 Request a demo <ArrowRight />
               </Button>
               <Link
                 href="/login"
-                className="hover:text-primary self-start rounded-sm text-[15px] font-medium underline decoration-1 underline-offset-[6px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring sm:self-auto"
+                className="hover:text-brand self-start rounded-sm text-[15px] font-medium text-white underline decoration-white/40 decoration-1 underline-offset-[6px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-brand sm:self-auto"
               >
                 Client sign in
               </Link>
@@ -56,11 +52,10 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
         >
           {product.summary}
         </SiteTitle>
-      </div>
 
       <div className="grid items-start gap-6 lg:grid-cols-12">
         {detail && (
-          <section aria-labelledby="does-title" className="bg-card shadow-card rounded-2xl border p-6 sm:p-8 lg:col-span-7">
+          <section data-reveal aria-labelledby="does-title" className="bg-card shadow-card rounded-2xl border p-6 sm:p-8 lg:col-span-7">
             <h2 id="does-title" className="text-[22px] leading-[30px] tracking-[-0.02em]">What it does</h2>
             <ul className="mt-6 space-y-4">
               {detail.capabilities.map((c) => (
@@ -77,7 +72,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
         )}
         <div className={detail ? "space-y-6 lg:col-span-5" : "grid gap-6 md:grid-cols-2 lg:col-span-12"}>
           {detail && (
-            <section aria-labelledby="for-title" className="bg-navy rounded-2xl p-6 text-white sm:p-7">
+            <section data-reveal aria-labelledby="for-title" className="bg-navy rounded-2xl p-6 text-white sm:p-7">
               <h2 id="for-title" className="text-brand text-[13px] font-semibold">Who it&apos;s for</h2>
               <p className="mt-2 text-[17px] leading-[26px]">{detail.audience}</p>
             </section>

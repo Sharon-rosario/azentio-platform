@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { EntryIndex, SiteTitle } from "@/components/site/content-index";
+import { OfferingArt } from "@/components/site/product-art";
 import { SOLUTION_DETAIL } from "@/lib/catalog";
 import { PRODUCT_NAME } from "@/lib/products";
 import { listContent } from "@/server/content";
@@ -18,6 +19,9 @@ const ICON: Record<string, LucideIcon> = {
   "configurable-ai-platforms": Settings2,
 };
 
+// Solutions with their own drawing (the rest keep their icon).
+const ART_SLUGS = new Set(["intelligent-decisioning", "document-intelligence", "ai-agents-automation", "trusted-enterprise-ai"]);
+
 export default async function SolutionsPage() {
   const solutions = await listContent(null, "solution");
   // Published content first, then catalogue capabilities that have no content row yet (same card, code-defined copy).
@@ -31,9 +35,10 @@ export default async function SolutionsPage() {
   return (
     <div className="space-y-12">
       <SiteTitle
-        title="Solutions"
+        title="Solutions for lending, documents and governed AI."
+        highlight="governed AI."
         action={
-          <Link href="/products" className="hover:text-primary rounded-sm text-[15px] font-medium underline decoration-1 underline-offset-[6px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring">
+          <Link href="/products" className="hover:text-brand rounded-sm text-[15px] font-medium text-white underline decoration-white/40 decoration-1 underline-offset-[6px] outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-brand">
             See the products
           </Link>
         }
@@ -47,12 +52,18 @@ export default async function SolutionsPage() {
             const d = SOLUTION_DETAIL[s.key];
             const Icon = ICON[s.key] ?? Workflow;
             return (
-              <li key={s.key} id={s.key} className="scroll-mt-24">
+              <li key={s.key} id={s.key} data-reveal className="scroll-mt-24">
                 <article className="bg-card shadow-card grid gap-8 rounded-2xl border p-6 sm:p-8 lg:grid-cols-12 lg:gap-6">
                   <div className="lg:col-span-5">
-                    <span className="bg-navy text-brand grid size-12 place-items-center rounded-xl">
-                      <Icon aria-hidden className="size-6" strokeWidth={1.75} />
-                    </span>
+                    {ART_SLUGS.has(s.key) ? (
+                      <div className="max-w-[360px]">
+                        <OfferingArt slug={s.key} />
+                      </div>
+                    ) : (
+                      <span className="bg-navy text-brand grid size-12 place-items-center rounded-xl">
+                        <Icon aria-hidden className="size-6" strokeWidth={1.75} />
+                      </span>
+                    )}
                     <h2 className="mt-5 text-[24px] leading-[32px] tracking-[-0.02em]">{s.title}</h2>
                     <p className="text-muted-foreground mt-2 text-[16px] leading-[25px]">{s.summary}</p>
                     <p className="mt-6 text-[13px] font-semibold">Built from</p>

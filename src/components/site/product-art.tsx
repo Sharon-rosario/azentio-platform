@@ -75,7 +75,7 @@ function Portfolio() {
       </p>
       {segments.map(([l, m], i) => (
         <div key={l} className="flex items-center gap-2.5 rounded-lg bg-white/5 px-2.5 py-1 leading-4">
-          <span className="w-[62px] shrink-0 text-[11px]">{l}</span>
+          <span className="w-[62px] shrink-0 text-[11px] whitespace-nowrap">{l}</span>
           <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
             <span className={cn("block h-full rounded-full", i === 0 ? "bg-brand" : "bg-brand/50")} style={{ width: m }} />
           </span>
@@ -209,6 +209,12 @@ const ART: Record<string, () => ReactElement> = {
   "ai-agents-automation": Agents,
   "trusted-enterprise-ai": TrustedAi,
 };
+
+/** One offering's drawing by slug (nothing when it has none). */
+export function OfferingArt({ slug }: { slug: string }) {
+  const Art = ART[slug];
+  return Art ? <Art /> : null;
+}
 
 export type Offering = { slug: string; href: string; kind: "Product" | "Solution"; title: string; summary: string };
 
