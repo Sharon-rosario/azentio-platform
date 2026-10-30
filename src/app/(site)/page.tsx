@@ -86,6 +86,10 @@ const TESTS = [
   "the shared feed filters by observation period, and a withdrawn copy's period leaves the filter options",
   "an employee can suggest an improvement; it stays internal until a product owner shows it to clients",
   "an ended session is sent to sign-in with the reason; a visitor who never signed in isn't told one",
+  "SQL injection payloads in search, filters, ids and sign-in are treated as plain text",
+  "stored XSS: markup in a contribution is kept as text and rendered escaped",
+  "the session cookie is HttpOnly and SameSite, a forged one is refused, and pages carry the browser security headers",
+  "signing in doesn't reveal whether an address has an account",
 ];
 
 export default async function Home() {

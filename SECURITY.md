@@ -166,16 +166,23 @@ server for every request, not by what the interface chooses to show.
 
 ## Verification
 
-`tests/security.test.mjs` is a black-box suite of 39 tests that signs in as different personas and calls the API
+`tests/security.test.mjs` is a black-box suite of 43 tests that signs in as different personas and calls the API
 directly, the way an attacker would: cross-tenant reads and writes, private-draft access within an organisation, role
 escalation, moderator and administrator boundaries, feed payload contents, workspace switching, theme suppression, the
 full publish-and-withdraw flow, report and versioning edge cases (a withdrawn or superseded copy can't be restored,
-and visibility can't be changed around review), invitation reuse, revocation, cross-site writes, and malformed input
-on every write route.
+and visibility can't be changed around review), invitation reuse, revocation, cross-site writes, malformed input on every write route, SQL injection, stored XSS,
+session-cookie flags and forged sessions, browser security headers, and account enumeration.
+
+`npm run attack` runs fifteen of these attacks against the live site in plain words (every one is a read or a write
+the server refuses, so it's safe to run there): signed-out data grab, IDOR across banks, a colleague's private
+draft, privilege escalation, admin overreach, a client in moderation, CSRF, SQL injection, code brute force,
+account enumeration, payload leakage, small-group disclosure, script injection and clickjacking, malformed input
+and a forged session.
 
 ```bash
 npm run dev            # in one terminal
-npm run test:security  # in another: 39 passing
+npm run test:security  # in another: 43 passing
+npm run attack         # the live site: 15 of 15 attacks blocked
 ```
 
 ## What is simulated in this build
