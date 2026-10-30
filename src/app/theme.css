@@ -56,6 +56,10 @@
   --shadow-deep: 0 24px 60px -24px rgb(0 0 0 / 0.5);
   --shadow-button: 0 1px 0 rgb(22 48 61 / 0.08);
 
+  /* Motion: strong curves for marketing entrances and on-screen movement (only transform and opacity animate). */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+
   --chart-1: #0a7a53;
   --chart-2: #2a78d6;
   --chart-good: #0ca30c;

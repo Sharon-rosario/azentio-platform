@@ -47,7 +47,7 @@ export default async function SolutionsPage() {
             const d = SOLUTION_DETAIL[s.key];
             const Icon = ICON[s.key] ?? Workflow;
             return (
-              <li key={s.key}>
+              <li key={s.key} id={s.key} className="scroll-mt-24">
                 <article className="bg-card shadow-card grid gap-8 rounded-2xl border p-6 sm:p-8 lg:grid-cols-12 lg:gap-6">
                   <div className="lg:col-span-5">
                     <span className="bg-navy text-brand grid size-12 place-items-center rounded-xl">
