@@ -43,7 +43,7 @@ export function ObservationActions({
       description: (
         <>
           {inReview && "It leaves the moderation queue. "}Any shared copy is removed from the shared learning feed, search and AIRA
-          summaries within seconds, and your permission to publish is recorded as withdrawn. It can&apos;t recall copies people have
+          summaries immediately, and your permission to publish is recorded as withdrawn. It can&apos;t recall copies people have
           already read. This can&apos;t be undone: to share again, write a new observation.
         </>
       ),

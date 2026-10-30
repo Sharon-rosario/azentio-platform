@@ -27,6 +27,8 @@ export function LoginForm({ next, demo, defaultEmail = "" }: { next: string; dem
           .find((m) => m.to_email === email.trim().toLowerCase());
         setDemoCode(mail?.body.match(/\b(\d{6})\b/)?.[1] ?? null);
       }
+    } catch {
+      // api() already showed the server's message as a toast
     } finally {
       setBusy(false);
     }

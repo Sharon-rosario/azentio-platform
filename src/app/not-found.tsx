@@ -17,7 +17,7 @@ export default function NotFound() {
         </p>
         <div className="mt-8 flex flex-col justify-center gap-2 sm:flex-row">
           <Button render={<Link href="/portal" />}>
-            <LayoutDashboard /> Open the console
+            <LayoutDashboard /> Open the portal
           </Button>
           <Button variant="outline" render={<Link href="/products" />}>
             <Rows3 /> Products

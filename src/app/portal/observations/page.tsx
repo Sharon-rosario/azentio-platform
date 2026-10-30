@@ -58,8 +58,6 @@ export default async function ObservationsPage({ searchParams }: PageProps<"/por
               <TableRow className="hover:bg-transparent">
                 <TableHead className="text-muted-foreground text-[12px] font-normal">Title</TableHead>
                 {scope === "org" && <TableHead className="hidden md:table-cell text-muted-foreground text-[12px] font-normal">Author</TableHead>}
-                <TableHead className="hidden 2xl:table-cell text-muted-foreground text-[12px] font-normal">Category</TableHead>
-                <TableHead className="hidden xl:table-cell text-muted-foreground text-[12px] font-normal">Offering</TableHead>
                 <TableHead className="hidden sm:table-cell text-muted-foreground text-[12px] font-normal">Who can see it</TableHead>
                 <TableHead className="hidden sm:table-cell text-muted-foreground text-[12px] font-normal">Status</TableHead>
                 <TableHead className="hidden text-right sm:table-cell text-muted-foreground text-[12px] font-normal">Updated</TableHead>
@@ -75,6 +73,7 @@ export default async function ObservationsPage({ searchParams }: PageProps<"/por
                     >
                       {o.title}
                     </Link>
+                    <p className="text-muted-foreground mt-0.5 truncate text-[12px]">{o.category} · {PRODUCT_NAME[o.offering] ?? o.offering}</p>
                     {/* Phones: the columns below are hidden, so status and audience sit under the title. */}
                     <div className="mt-1.5 flex flex-wrap gap-1.5 sm:hidden">
                       <StatusBadge value={o.status} />
@@ -82,8 +81,6 @@ export default async function ObservationsPage({ searchParams }: PageProps<"/por
                     </div>
                   </TableCell>
                   {scope === "org" && <TableCell className="hidden text-[13px] md:table-cell">{o.author}</TableCell>}
-                  <TableCell className="hidden text-[13px] 2xl:table-cell">{o.category}</TableCell>
-                  <TableCell className="hidden text-[13px] xl:table-cell">{PRODUCT_NAME[o.offering] ?? o.offering}</TableCell>
                   <TableCell className="hidden sm:table-cell"><StatusBadge value={o.visibility} /></TableCell>
                   <TableCell className="hidden sm:table-cell"><StatusBadge value={o.status} /></TableCell>
                   <TableCell className="text-muted-foreground hidden text-right text-[13px] tabular-nums sm:table-cell">{date(o.updated_at)}</TableCell>

@@ -29,11 +29,13 @@ export default async function PortalHome() {
     );
   }
   const client = p.orgKind === "client";
-  const content = await listContent(p);
-  const ideas = can(p, "ideas.read") ? await listIdeas(p) : [];
-  const themes = can(p, "themes.read") ? await listThemes(p) : [];
-  const mine = can(p, "observations.write") ? await listObservations(p, "mine") : [];
-  const queue = can(p, "moderation.review") ? await moderationQueue(p) : null;
+  const [content, ideas, themes, mine, queue] = await Promise.all([
+    listContent(p),
+    can(p, "ideas.read") ? listIdeas(p) : [],
+    can(p, "themes.read") ? listThemes(p) : [],
+    can(p, "observations.write") ? listObservations(p, "mine") : [],
+    can(p, "moderation.review") ? moderationQueue(p) : null,
+  ]);
   const demos = content.filter((c) => c.kind === "demo");
   const sessions = content.filter((c) => c.kind === "broadcast" && c.audience !== "public");
   const experiments = content.filter((c) => c.kind === "experiment");
@@ -84,6 +86,7 @@ export default async function PortalHome() {
           </Panel>
         ) : (
           <Panel title="Internal experiments" description="Prototypes and notes. Not product commitments">
+            {!experiments.length && <p className="text-muted-foreground text-[14px] leading-5">No experiments are posted yet.</p>}
             <ul className="-my-3.5 divide-y">
               {experiments.map((d) => (
                 <li key={d.id} className="py-3.5">
