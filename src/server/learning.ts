@@ -262,7 +262,7 @@ export async function sendBack(p: Principal | null, id: number, decision: "retur
 
 // ---------------------------------------------------------------- shared learning
 
-export type Filters = { q?: string; offering?: string; industry?: string; region?: string; category?: string };
+export type Filters = { q?: string; offering?: string; industry?: string; region?: string; category?: string; period?: string };
 
 /** The cross-client feed: published copies only, safe columns only. No tenant id, author or notes in the payload. */
 export async function sharedFeed(p: Principal | null, f: Filters = {}): Promise<SharedItem[]> {
@@ -274,7 +274,7 @@ export async function sharedFeed(p: Principal | null, f: Filters = {}): Promise<
   const where = ["s.status = 'published'"];
   const args: string[] = [];
   if (f.q) { where.push("(s.title like ? or s.body like ?)"); args.push(`%${f.q}%`, `%${f.q}%`); }
-  for (const k of ["offering", "industry", "region", "category"] as const) {
+  for (const k of ["offering", "industry", "region", "category", "period"] as const) {
     if (f[k]) { where.push(`s.${k} = ?`); args.push(f[k]!); }
   }
   return (await all<SharedItem & { author_id: number }>(`select s.id, s.title, s.body, s.category, s.offering, s.industry, s.region, s.period,
@@ -287,7 +287,9 @@ export async function sharedFeed(p: Principal | null, f: Filters = {}): Promise<
 export async function feedFacets(p: Principal | null) {
   authorize(p, "shared.read");
   const col = async (c: string) => (await all<{ v: string }>(`select distinct ${c} as v from shared_versions where status='published' order by 1`)).map((r) => r.v);
-  return { offering: await broadValues("offering"), industry: await broadValues("industry"), region: await broadValues("region"), category: await col("category") };
+  // Periods are generalised by the moderator ("Q3 2026", "Jun-Sep 2026"), so exact published values are offered as they are.
+  return { offering: await broadValues("offering"), industry: await broadValues("industry"), region: await broadValues("region"),
+    category: await col("category"), period: await col("period") };
 }
 
 /**

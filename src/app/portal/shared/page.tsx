@@ -21,7 +21,8 @@ const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?
 
 export default async function SharedPage({ searchParams }: PageProps<"/portal/shared">) {
   const sp = await searchParams;
-  const filters = { q: one(sp.q), offering: one(sp.offering), industry: one(sp.industry), region: one(sp.region), category: one(sp.category) };
+  const filters = { q: one(sp.q), offering: one(sp.offering), industry: one(sp.industry), region: one(sp.region), category: one(sp.category),
+    period: one(sp.period) };
   const data = await load(async (p) => ({ items: await sharedFeed(p, filters), facets: await feedFacets(p) }), "/portal/shared");
   if (isForbidden(data)) return <Forbidden message={data.forbidden} />;
   const p = (await getPrincipal())!;
@@ -51,6 +52,7 @@ export default async function SharedPage({ searchParams }: PageProps<"/portal/sh
           <FilterSelect name="industry" label="Industry" allLabel="All industries" value={filters.industry} options={opts(facets.industry)} />
           <FilterSelect name="region" label="Region" allLabel="All regions" value={filters.region} options={opts(facets.region)} />
           <FilterSelect name="category" label="Category" allLabel="All categories" value={filters.category} options={opts(facets.category)} />
+          <FilterSelect name="period" label="Observation period" allLabel="All periods" value={filters.period} options={opts(facets.period)} />
           <div className="col-span-2 flex gap-2 lg:col-span-1">
             <Button type="submit" variant="dark">Filter</Button>
             {filtered && (
