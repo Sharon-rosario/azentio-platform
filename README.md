@@ -32,6 +32,28 @@ recurring themes into improvement ideas. Every step is governed by consent, enfo
 
 Built for the **Azentio.ai Build Labs Special Challenge**.
 
+## How it works, in one story
+
+Banks notice market problems first, and if they shared what they see, Azentio could build better products for all of
+them. But banks compete, so they share only when it's safe: nobody can tell who said what, and they can take it back.
+azentio.ai is that safe place, a suggestion box for competing banks with a careful editor in the middle. All the
+people and banks below are fictional demo personas.
+
+1. **Sara** at Meridian Bank notices that seasonal shops get flagged as risky in their off-season. She writes it down:
+   a private draft only she can see.
+2. She proposes it for sharing and allows a reviewed copy to be published, without her bank's name.
+3. **Omar**, Azentio's moderator, removes a phone number she left in and publishes a separate, clean copy. Her
+   original stays private.
+4. **Chen** at Kestrel Finance, another bank, reads the copy and recognises the same problem, with no idea who wrote it.
+5. Once three different banks have said something similar, it becomes a theme. Below three, it stays hidden, so no
+   single bank can be singled out.
+6. **AIRA**, the AI assistant, summarises the theme, quoting the contributions word for word, or it saves nothing.
+7. **Priya**, a product owner, turns the theme into an improvement idea, and the banks get a plain status update.
+8. Sara can withdraw her note at any time, and it disappears from the feed, search and AI summaries at once.
+
+Banks get better products and early warning without exposing themselves; Azentio gets real market insight; and
+everyone can check that the server enforces every rule. Even Azentio's portal administrator can't read a bank's notes.
+
 ## Why it's different
 
 - **Access is decided on the server, for every request.** One deny-by-default `authorize()` decides every action from
