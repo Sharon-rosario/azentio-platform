@@ -54,6 +54,9 @@ const TESTS = [
   "revoking a membership takes effect on the next request",
   "cross-site writes are refused",
   "malformed input is refused with 4xx on every write route, never a 500",
+  "a withdrawn copy can't be republished by restoring an open report on it",
+  "publishing a new version retires a reported old one, so only one copy can ever be live",
+  "visibility can't be changed around the review: community only via submit, and kept until withdrawal",
 ];
 
 export default async function Home() {

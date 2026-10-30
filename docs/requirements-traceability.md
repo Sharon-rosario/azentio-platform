@@ -16,7 +16,7 @@ bullet, in the brief's order, prefixed by section. The section number after each
 | **Gap** | Known defect or missing control, listed under [Open gaps](#open-gaps) |
 | **Out of scope** | Not built, with the reason (brief marks it optional, P1/P2, or outside the minimum scope) |
 
-**Tests.** `S1`-`S16` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
+**Tests.** `S1`-`S19` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
 as real personas and call the API directly. `U1`-`U4` are the unit tests in [`tests/unit.test.mjs`](../tests/unit.test.mjs).
 CI runs all of them against a production build on every push and pull request ([`ci.yml`](../.github/workflows/ci.yml)).
 
@@ -38,6 +38,9 @@ CI runs all of them against a production build on every push and pull request ([
 | S14 | revoking a membership takes effect on the next request |
 | S15 | cross-site writes are refused |
 | S16 | malformed input is refused with 4xx on every write route, never a 500 |
+| S17 | a withdrawn copy can't be republished by restoring an open report on it |
+| S18 | publishing a new version retires a reported old one, so only one copy can ever be live |
+| S19 | visibility can't be changed around the review: community only via submit, and kept until withdrawal |
 | U1 | scan flags identifiers that must not reach the shared feed |
 | U2 | scan leaves ordinary market observations alone |
 | U3 | locate finds exact and lightly garbled quotes, rejects invented or trivial ones |
@@ -60,14 +63,14 @@ call get the same decision.
 | 05 Employee portal | 5 | 1 | 2 | 1 | | 1 |
 | 06 Client portal | 7 | 4 | 1 | 1 | | 1 |
 | 07 Observation capture | 5 | 4 | | | | 1 |
-| 08 Review, publication, withdrawal | 9 | 4 | 2 | 1 | 2 | |
+| 08 Review, publication, withdrawal | 9 | 6 | 2 | 1 | | |
 | 09 Sharing, consent, aggregation | 11 | 5 | 4 | 1 | 1 | |
 | 10 Insights and improvement | 7 | 2 | 3 | 1 | | 1 |
 | 11 Federated model learning (P2) | 1 | | | | | 1 |
 | Platform controls (not numbered in the brief) | 6 | 4 | 1 | 1 | | |
-| **Total** | **75** | **42** | **16** | **9** | **3** | **5** |
+| **Total** | **75** | **44** | **16** | **9** | **1** | **5** |
 
-Eight open gaps (G-01 to G-08) are listed at the end, with a suggested fix and the test that would prove each.
+Five open gaps (G-04 to G-08) are listed at the end, with a suggested fix and the test that would prove each. G-01 to G-03 are fixed, each with a regression test (S17-S19).
 
 ---
 
@@ -146,12 +149,12 @@ Eight open gaps (G-01 to G-08) are listed at the end, with a suggested fix and t
 
 | ID | Requirement | Enforced in | Proven by | Status |
 |---|---|---|---|---|
-| WF-01 | Explicit allowed transitions with audit events | Status guards in each service function (`updateObservation`, `submitObservation`, `publish`, `sendBack`, `withdrawObservation`), `audit()` in the same transaction | S13 | **Proven** for the main path; see G-01, G-02 for report edge cases |
+| WF-01 | Explicit allowed transitions with audit events | Status guards in each service function (`updateObservation`, `submitObservation`, `publish`, `sendBack`, `withdrawObservation`), `audit()` in the same transaction | S13, S17, S18 | **Proven**, including the report edge cases (G-01, G-02 fixed) |
 | WF-02 | Private source kept separate from the shared copy; copy holds reviewed fields only | `shared_versions` table; `publish()` writes only reviewed fields | S10 (payload has no `org_id`, `author_id`, `author`, `moderator_note`, `observation_id`, `email`) | **Proven** |
 | WF-03 | Moderators redact, request clarification, reject duplicates or unsafe material, publish | `publish()` (moderator-edited title, body, region, period), `sendBack()` (`return` / `reject` with a reason) | S13 (redacted copy published) | **Proven** |
 | WF-04 | Notify the author in-app on each state change | `audit.ts` `notify()` from `publish()`, `sendBack()`, `decideReport()`, `updateIdeaStatus()` | none | **Enforced**: no notification when a report temporarily unpublishes the author's item |
-| WF-05 | Material edits create a new version and need renewed review; never silently widen an audience | `updateObservation()` sends published → submitted; `publish()` increments `version` and supersedes the old copy | none | **Gap**: the API accepts a `visibility` change on edit (G-03) |
-| WF-06 | Report action; moderator can unpublish during review, decide, inform the contributor; reporter not exposed | `report()` (copy → `under_review`, summaries invalidated), `decideReport()`; `moderationQueue()` returns no reporter id | none | **Gap**: restore can republish a withdrawn copy (G-01, G-02) |
+| WF-05 | Material edits create a new version and need renewed review; never silently widen an audience | `updateObservation()` sends published → submitted and keeps community visibility (`visibilityFor()`); `publish()` increments `version` and supersedes every earlier live or reported copy | S18, S19 | **Proven** |
+| WF-06 | Report action; moderator can unpublish during review, decide, inform the contributor; reporter not exposed | `report()` (copy → `under_review`, summaries invalidated); `decideReport()` restores only a copy still `under_review`; withdrawal and republication close open reports; `moderationQueue()` returns no reporter id | S17, S18 | **Proven** |
 | WF-07 | Withdrawal invalidates search, index, cache and future AIRA retrieval within 60 s | `withdrawObservation()`: copy withdrawn and `invalidateSummaries()` in one transaction; AIRA reads published copies only | S13 (feed search drops it on the next request) | **Proven** |
 | WF-08 | State the production propagation SLA; explain already-viewed copies can't be recalled | SECURITY.md "Withdrawal" row (same transaction); `observation-actions.tsx` withdraw dialog text | n/a | **Enforced** (documentation) |
 | NOT-01 | Persisted notification and outbox records; never label anything "email delivered" | `notifications`, `outbox` tables; outbox shown only in demo mode and only for synthetic addresses (`members.ts` `outbox()`) | S2, S14 (read codes from the outbox) | **Partial**: no idempotency key, since no provider sends anything |
@@ -209,21 +212,26 @@ Found while building this table. Each is small; fixes belong in shared server co
 
 | # | Gap | Where | Why it matters | Suggested fix and test |
 |---|---|---|---|---|
-| G-01 | **Restore after withdrawal republishes.** If a shared copy is reported (`under_review`) and the author then withdraws, the copy becomes `withdrawn`; a moderator choosing *restore* on the still-open report sets it back to `published`. | `learning.ts` `decideReport()` updates status without checking the current one | Withdrawn material reappears in the feed, against WF-07 and SHR-09 | Only restore when the copy is still `under_review` (`... where id = ? and status = 'under_review'`); close open reports in `withdrawObservation()`. Test: report → withdraw → restore → feed search returns 0 |
-| G-02 | **Two live versions.** `publish()` supersedes only `published` rows; a reported older version stays `under_review` and *restore* later makes it published next to the new version | `learning.ts` `publish()` | An outdated, un-reviewed wording returns | Supersede `published` **and** `under_review` rows in `publish()`; same guard as G-01 |
-| G-03 | **Visibility can change on edit via the API.** The form never sends `visibility` for community items, but `PATCH /api/observations/:id` accepts it. Setting a published item to `private` moves it to `submitted`, where the moderation queue (community only) never shows it, while the old shared copy stays live | `learning.ts` `updateObservation()` → `clean({ ...o, ...input })` | Direct-API behaviour differs from the UI; audience changes should go through submit or withdraw | Ignore `input.visibility` when `o.visibility === 'community'`; reject widening to `community` outside `submitObservation()`. Test: PATCH a published item with `visibility: "private"` → visibility unchanged |
 | G-04 | **Industry re-identifies the organisation.** Shared copies and theme evidence carry the contributing org's `industry` verbatim; the three seeded organisations each have a unique industry, so the industry filter is an organisation filter | `learning.ts` `publish()`, `sharedFeed()`; `insights.ts` `listThemes()` | The brief: "Removing a name alone does not make a rare observation anonymous" | Let the moderator generalise `industry` (as with region and period) and drop industry from the feed filters until a cohort is large enough. Test: feed items carry only generalised values |
 | G-05 | **Audit log is append-only by convention.** The app's database role can update or delete `audit` rows | `audit.ts` `audit()` | ROLE-ADM asks for audited privileged actions; tamper evidence makes that credible | Hash chain (`prev_hash`, `hash` per row) plus a verify function on the admin page; or revoke update/delete on `audit` |
 | G-06 | **No idle timeout.** Sessions last 8 hours from sign-in regardless of activity | `auth.ts` `SESSION_HOURS`, `getPrincipal()` | Shared or unattended devices | Track `last_seen_at`; expire after 30 minutes idle |
 | G-07 | **Public forms aren't rate limited.** Only sign-in code requests are (5 per address per 15 minutes) | `content.ts` `createRequest()` | Spam, storage growth | Per-IP limit on `/api/requests`, as already planned in SECURITY.md "Known limitations" |
 | G-08 | **Missing negative tests** for rules that are enforced but unproven: employee `POST /api/content` → 403; client reads `/portal/playground` → forbidden; new `@azentio.com` address gets no membership; `listIdeas()` hides internal fields from clients; AIRA prompt built only from shared copies | `tests/security.test.mjs` | Each would move a row from **Enforced** to **Proven** | One `test()` each, same style as S6 |
 
+## Fixed gaps
+
+| # | Gap | Fix | Test |
+|---|---|---|---|
+| G-01 | Restoring an open report on a copy the author had withdrawn republished it | `decideReport()` restores only a copy still `under_review` (409 otherwise); `withdrawObservation()` closes open reports on its copies | S17 |
+| G-02 | A reported old version could be restored next to a newer one | `publish()` supersedes `published` **and** `under_review` copies, closes their reports and clears AIRA summaries that cited them | S18 |
+| G-03 | `PATCH /api/observations/:id` could change visibility around the review | `visibilityFor()`: create and edit accept only `private` or `organisation`; community is set only by submit and kept until withdrawal | S19 |
+
 ## How to re-check this table
 
 ```bash
 npm run dev               # terminal 1
 npm test                  # unit tests (U1-U4)
-npm run test:security     # terminal 2: API tests (S1-S16)
+npm run test:security     # terminal 2: API tests (S1-S19)
 ```
 
 When a gap is fixed, update its row's status and the summary counts, and add the new test to the legend above.
