@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Wordmark } from "@/components/brand";
 import { safePath } from "@/lib/safe-path";
 import { DEMO_MODE } from "@/server/auth";
+import { IDLE_MINUTES } from "@/server/session-policy";
 
 import { LoginForm } from "./login-form";
 
@@ -35,6 +36,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           We email you a 6-digit code. Clients join through an invitation from their organisation; employees use their
           @azentio.com address.
         </p>
+        {sp.ended === "1" && (
+          <p role="status" className="bg-brand-soft mt-6 max-w-md rounded-2xl border border-[color-mix(in_oklch,var(--brand-strong),transparent_70%)] px-4 py-3 text-[14px] leading-[22px]">
+            {`Your session ended after ${IDLE_MINUTES} minutes without activity, or your access changed. Sign in again to pick up where you left off.`}
+          </p>
+        )}
         <div className="max-w-md">
           <LoginForm key={as ?? ""} next={next} demo={DEMO_MODE} defaultEmail={as} />
         </div>
