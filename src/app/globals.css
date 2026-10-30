@@ -1,0 +1,233 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Streamdown (assistant answers) styles its own tables and code blocks with Tailwind classes. */
+@source "../../node_modules/streamdown/dist/*.js";
+@source "../../node_modules/@streamdown/code/dist/*.js";
+
+/* Tokens are locked in /design/system.md. Add a token there first, then here. */
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  /* Charts: validated pairs (dataviz validator, light + dark). */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-good: var(--chart-good);
+  --color-chart-warn: var(--chart-warn);
+  --color-chart-bad: var(--chart-bad);
+
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 28px;
+  --radius-4xl: 999px;
+
+  --ease-out-soft: cubic-bezier(0.2, 0, 0, 1);
+}
+
+:root {
+  --nav-h: 64px;
+  --radius: 12px;
+  --background: oklch(0.968 0.004 75);
+  --foreground: oklch(0.22 0.008 60);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.008 60);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.008 60);
+  --primary: oklch(0.5 0.12 160);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.955 0.004 75);
+  --secondary-foreground: oklch(0.22 0.008 60);
+  --muted: oklch(0.975 0.003 75);
+  --muted-foreground: oklch(0.5 0.01 60);
+  --accent: oklch(0.955 0.004 75);
+  --accent-foreground: oklch(0.22 0.008 60);
+  --destructive: oklch(0.53 0.19 27);
+  --border: oklch(0.918 0.005 75);
+  --input: oklch(0.9 0.005 75);
+  --ring: oklch(0.5 0.12 160 / 0.45);
+
+  --brand: #0f9d63;
+  --brand-soft: oklch(0.955 0.035 160);
+  --success: oklch(0.5 0.12 150);
+  --success-soft: oklch(0.95 0.04 150);
+  --warning: oklch(0.52 0.11 70);
+  --warning-soft: oklch(0.96 0.06 85);
+  --danger: oklch(0.53 0.19 27);
+  --danger-soft: oklch(0.955 0.03 25);
+  --info: oklch(0.5 0.13 255);
+  --info-soft: oklch(0.955 0.025 255);
+
+  --chart-1: #0f9d63;
+  --chart-2: #2a78d6;
+  --chart-good: #0ca30c;
+  --chart-warn: #fab219;
+  --chart-bad: #d03b3b;
+}
+
+.dark {
+  --background: oklch(0.17 0.004 60);
+  --foreground: oklch(0.95 0.004 75);
+  --card: oklch(0.215 0.005 60);
+  --card-foreground: oklch(0.95 0.004 75);
+  --popover: oklch(0.235 0.005 60);
+  --popover-foreground: oklch(0.95 0.004 75);
+  --primary: oklch(0.7 0.14 160);
+  --primary-foreground: oklch(0.17 0.004 60);
+  --secondary: oklch(0.26 0.005 60);
+  --secondary-foreground: oklch(0.95 0.004 75);
+  --muted: oklch(0.245 0.005 60);
+  --muted-foreground: oklch(0.72 0.008 70);
+  --accent: oklch(0.26 0.005 60);
+  --accent-foreground: oklch(0.95 0.004 75);
+  --destructive: oklch(0.68 0.17 25);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.7 0.14 160 / 0.5);
+
+  --brand: #22b47a;
+  --brand-soft: oklch(0.3 0.05 160);
+  --success: oklch(0.75 0.14 150);
+  --success-soft: oklch(0.3 0.05 150);
+  --warning: oklch(0.8 0.12 80);
+  --warning-soft: oklch(0.32 0.05 80);
+  --danger: oklch(0.72 0.15 25);
+  --danger-soft: oklch(0.3 0.06 25);
+  --info: oklch(0.74 0.11 255);
+  --info-soft: oklch(0.3 0.05 255);
+
+  --chart-1: #22b47a;
+  --chart-2: #3987e5;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    font-feature-settings: "ss01", "cv11";
+  }
+  body {
+    @apply bg-background text-foreground text-sm;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Number inputs: no browser spinners (amounts use CurrencyField; tenure is typed). */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    appearance: textfield;
+  }
+  ::selection {
+    background: var(--brand-soft);
+    color: var(--foreground);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Assistant answers (components/assistant/markdown.tsx): Streamdown's tables and code blocks on
+   the system's surfaces. Unlayered, so these win over the library's utility classes. */
+.chat-md [data-streamdown="table-wrapper"],
+.chat-md [data-streamdown="code-block"] {
+  border: 0;
+  background: var(--card);
+  border-radius: 20px;
+  padding: 6px;
+}
+.chat-md [data-streamdown="table-wrapper"] > div:has(> table) {
+  border: 0;
+  border-radius: 12px;
+  background: var(--card);
+}
+.chat-md [data-streamdown="table-header"] {
+  background: var(--muted);
+}
+.chat-md [data-streamdown="table-header-cell"] {
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+}
+.chat-md [data-streamdown="table-cell"] {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.chat-md [data-streamdown="code-block-body"] {
+  border: 0;
+  border-radius: 12px;
+  background: var(--muted);
+  font-size: 13px;
+}
+.chat-md [data-streamdown="code-block-actions"] {
+  border: 0;
+  background: transparent;
+}
+
+/* The cited passage in the PDF viewer (components/assistant/pdf-preview.tsx). The text layer is
+   transparent over the rendered page, so the mark shows as a tint behind the printed words. */
+.react-pdf__Page__textContent mark.pdf-hl {
+  background: oklch(0.86 0.15 85 / 0.5);
+  color: transparent;
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px oklch(0.86 0.15 85 / 0.5);
+}
+
+/* The one entrance on the entry page (design/landing-plan.md § Motion). */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@utility animate-rise {
+  animation: rise 480ms var(--ease-out-soft) both;
+}
