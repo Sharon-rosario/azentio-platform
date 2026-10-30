@@ -56,6 +56,8 @@ create table if not exists requests (
   id serial primary key, kind text not null, name text not null, email text not null, company text,
   message text, created_at text not null
 );
+-- Rate limiting for the public forms (added after first deploy): a keyed hash of the source, never the raw IP.
+alter table requests add column if not exists source_hash text;
 -- The private source. Never returned to anyone outside its author/organisation scope.
 create table if not exists observations (
   id serial primary key, org_id int not null references organisations(id), author_id int not null references users(id),

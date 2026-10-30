@@ -43,14 +43,30 @@ export async function createContent(p: Principal | null, input: { kind: string; 
 }
 
 /** Public forms: demo requests and hackathon registration. Stored, never auto-confirmed by email. */
-export async function createRequest(kind: "demo" | "hackathon", input: { name?: string; email?: string; company?: string; message?: string }) {
-  const name = input.name?.trim() ?? "";
-  const email = input.email?.trim().toLowerCase() ?? "";
+const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+// Public forms: per source and per address, over a rolling window. Only stored requests count.
+const REQUEST_WINDOW_MINUTES = 15;
+const REQUESTS_PER_SOURCE = 5;
+const REQUESTS_PER_EMAIL = 3;
+
+export async function createRequest(kind: "demo" | "hackathon", input: { name?: unknown; email?: unknown; company?: unknown; message?: unknown },
+  sourceHash: string) {
+  const name = str(input.name);
+  const email = str(input.email).toLowerCase();
+  const message = str(input.message);
   if (name.length < 2 || name.length > 120) throw new HttpError(422, "Enter your name");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new HttpError(422, "Enter a valid email address");
-  if ((input.message ?? "").length > 2000) throw new HttpError(422, "Message must be under 2000 characters");
-  const id = await insert("insert into requests (kind,name,email,company,message,created_at) values (?,?,?,?,?,?)",
-    kind, name, email, input.company?.trim() || null, input.message?.trim() || null, now());
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) throw new HttpError(422, "Enter a valid email address");
+  if (message.length > 2000) throw new HttpError(422, "Message must be under 2000 characters");
+  if (str(input.company).length > 200) throw new HttpError(422, "Company must be under 200 characters");
+  const since = new Date(Date.now() - REQUEST_WINDOW_MINUTES * 60_000).toISOString();
+  const recent = await one<{ bySource: number; byEmail: number }>(
+    `select count(*) filter (where source_hash = ?)::int as "bySource", count(*) filter (where email = ?)::int as "byEmail"
+     from requests where created_at > ?`, sourceHash, email, since);
+  if ((recent?.bySource ?? 0) >= REQUESTS_PER_SOURCE || (recent?.byEmail ?? 0) >= REQUESTS_PER_EMAIL) {
+    throw new HttpError(429, `Too many requests. Try again in ${REQUEST_WINDOW_MINUTES} minutes`);
+  }
+  const id = await insert("insert into requests (kind,name,email,company,message,created_at,source_hash) values (?,?,?,?,?,?,?)",
+    kind, name, email, str(input.company) || null, message || null, now(), sourceHash);
   await audit({ actor: email }, `request.${kind}`, "request", id);
   return id;
 }
