@@ -16,7 +16,7 @@ bullet, in the brief's order, prefixed by section. The section number after each
 | **Gap** | Known defect or missing control, listed under [Open gaps](#open-gaps) |
 | **Out of scope** | Not built, with the reason (brief marks it optional, P1/P2, or outside the minimum scope) |
 
-**Tests.** `S1`-`S29` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
+**Tests.** `S1`-`S30` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
 as real personas and call the API directly. `U1`-`U6` are the unit tests in [`tests/unit.test.mjs`](../tests/unit.test.mjs).
 CI runs all of them against a production build on every push and pull request ([`ci.yml`](../.github/workflows/ci.yml)).
 
@@ -51,6 +51,7 @@ CI runs all of them against a production build on every push and pull request ([
 | S27 | the audit log's hash chain verifies end to end after every write in this suite |
 | S28 | a de-identified copy names no exact industry, and a filter can't single out one organisation |
 | S29 | moderation and report fields with the wrong types are refused on real records, never a 500 |
+| S30 | pages get a nonce-based script policy, fresh per request, and the API allows nothing to run |
 | U1 | scan flags identifiers that must not reach the shared feed |
 | U2 | scan leaves ordinary market observations alone |
 | U3 | locate finds exact and lightly garbled quotes, rejects invented or trivial ones |
@@ -79,8 +80,8 @@ call get the same decision.
 | 09 Sharing, consent, aggregation | 11 | 7 | 3 | 1 | | |
 | 10 Insights and improvement | 7 | 2 | 3 | 1 | | 1 |
 | 11 Federated model learning (P2) | 1 | | | | | 1 |
-| Platform controls (not numbered in the brief) | 6 | 4 | 1 | 1 | | |
-| **Total** | **75** | **48** | **13** | **9** | **0** | **5** |
+| Platform controls (not numbered in the brief) | 6 | 5 | 1 | | | |
+| **Total** | **75** | **49** | **13** | **8** | **0** | **5** |
 
 No gaps remain open, with a suggested fix and the test that would prove each. All eight found while building it (G-01 to G-08) are fixed, with tests S17-S29, U5 and U6, and listed at the end.
 
@@ -213,7 +214,7 @@ No gaps remain open, with a suggested fix and the test that would prove each. Al
 | PLAT-02 | Session cookie: `__Host-` prefix, HttpOnly, Secure, hashed id at rest, revocation on next request | `auth.ts` `COOKIE`, `verifyCode()`, `getPrincipal()` | S14 | **Proven** |
 | PLAT-03 | No 500s or stack traces from malformed input | `http.ts` `body()`, `id()`, `text()`, `oneOf()`; generic 500 body | S16 | **Proven** |
 | PLAT-04 | No open redirect after sign-in or from notification links | `src/lib/safe-path.ts` `safePath()` | U4 | **Proven** |
-| PLAT-05 | Security headers (CSP, HSTS, frame-ancestors, nosniff) | `next.config.ts` `headers()` | none | **Partial**: `script-src` still allows `'unsafe-inline'` |
+| PLAT-05 | Security headers (CSP, HSTS, frame-ancestors, nosniff) | `src/proxy.ts` (nonce-based page CSP, no inline scripts); `next.config.ts` `headers()` (HSTS, nosniff, frame and referrer policies; `default-src 'none'` for API and files) | S30 | **Proven** |
 | PLAT-06 | Hosted database's public REST API exposes nothing | `db.ts` `LOCKDOWN` (RLS on every table, `anon`/`authenticated` grants revoked) | none (needs a hosted Supabase) | **Enforced** |
 
 ---
@@ -240,7 +241,7 @@ None. Every gap found while building this table is fixed and tested; see below.
 ```bash
 npm run dev               # terminal 1
 npm test                  # unit tests (U1-U6)
-npm run test:security     # terminal 2: API tests (S1-S29)
+npm run test:security     # terminal 2: API tests (S1-S30)
 ```
 
 When a gap is fixed, update its row's status and the summary counts, and add the new test to the legend above.
