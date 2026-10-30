@@ -95,6 +95,8 @@ create table if not exists ideas (
   proposed_outcome text not null, owner text not null, priority text not null, status text not null,
   public_note text, created_by int not null, created_at text not null, updated_at text not null
 );
+-- An employee's suggestion is internal until a product owner publishes it (existing ideas were all client-visible).
+alter table ideas add column if not exists internal int not null default 0;
 create table if not exists notifications (
   id serial primary key, user_id int not null references users(id), text text not null, link text,
   created_at text not null, read_at text
