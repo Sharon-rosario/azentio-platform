@@ -4,6 +4,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 
+import { AUDIT_LOCK, GENESIS, rowHash, type AuditFields } from "./audit-chain";
 import { seed } from "./seed";
 
 // Postgres everywhere. Locally: PGlite (Postgres compiled to WASM, in-process, a folder in data/, no install).
@@ -102,6 +103,9 @@ create table if not exists audit (
   id serial primary key, at text not null, actor_id int, actor text not null, org_id int,
   action text not null, entity text not null, entity_id text, detail text not null default '{}'
 );
+-- Tamper evidence (added after first deploy): each row's hash covers the previous row's hash and its own fields.
+alter table audit add column if not exists prev_hash text;
+alter table audit add column if not exists hash text;
 `;
 
 const TABLES = ["organisations", "users", "memberships", "entitlements", "sessions", "login_codes", "invitations", "outbox",
@@ -162,9 +166,28 @@ function driver(): Promise<Driver> {
     await d.script(LOCKDOWN);
     const [{ n }] = await d.exec("select count(*)::int as n from organisations", []);
     if (n === 0) await d.transaction((exec) => seed(exec));
+    await sealAudit(d);
     return d;
   })();
   return g.__azpDb;
+}
+
+/**
+ * Chain any audit rows that don't have a hash yet: rows written before the chain existed, and the seed's history.
+ * Runs once per start under the same advisory lock as audit(), so concurrent cold starts can't interleave.
+ */
+async function sealAudit(d: Driver) {
+  await d.transaction(async (e) => {
+    await e(`select pg_advisory_xact_lock(${AUDIT_LOCK})`, []);
+    const open = (await e("select id, at, actor_id, actor, org_id, action, entity, entity_id, detail from audit where hash is null order by id", [])) as unknown as (AuditFields & { id: number })[];
+    if (!open.length) return;
+    let prev = ((await e("select hash from audit where hash is not null and id < $1 order by id desc limit 1", [open[0].id])) as unknown as { hash: string }[])[0]?.hash ?? GENESIS;
+    for (const r of open) {
+      const h = rowHash(prev, r);
+      await e("update audit set prev_hash = $1, hash = $2 where id = $3", [prev, h, r.id]);
+      prev = h;
+    }
+  });
 }
 
 const inTx = new AsyncLocalStorage<Exec>();

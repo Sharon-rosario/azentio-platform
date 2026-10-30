@@ -16,8 +16,8 @@ bullet, in the brief's order, prefixed by section. The section number after each
 | **Gap** | Known defect or missing control, listed under [Open gaps](#open-gaps) |
 | **Out of scope** | Not built, with the reason (brief marks it optional, P1/P2, or outside the minimum scope) |
 
-**Tests.** `S1`-`S26` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
-as real personas and call the API directly. `U1`-`U5` are the unit tests in [`tests/unit.test.mjs`](../tests/unit.test.mjs).
+**Tests.** `S1`-`S27` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
+as real personas and call the API directly. `U1`-`U6` are the unit tests in [`tests/unit.test.mjs`](../tests/unit.test.mjs).
 CI runs all of them against a production build on every push and pull request ([`ci.yml`](../.github/workflows/ci.yml)).
 
 | Test | Name in the file |
@@ -48,11 +48,13 @@ CI runs all of them against a production build on every push and pull request ([
 | S24 | AIRA's input is published shared copies only: theme evidence has no tenant or author data |
 | S25 | the public request form is rate limited per source |
 | S26 | public request fields with the wrong types are refused, never a 500 |
+| S27 | the audit log's hash chain verifies end to end after every write in this suite |
 | U1 | scan flags identifiers that must not reach the shared feed |
 | U2 | scan leaves ordinary market observations alone |
 | U3 | locate finds exact and lightly garbled quotes, rejects invented or trivial ones |
 | U4 | safePath allows same-origin paths only (no open redirect) |
 | U5 | sessions end after the idle limit, and activity is recorded at most once a minute |
+| U6 | the audit hash chain detects an edited, removed or inserted entry |
 
 **Where the rules live.** One policy module decides everything: [`src/server/policy.ts`](../src/server/policy.ts)
 (`GRANTS`, `authorize`, `sameTenant`, `canSeeContent`). API routes ([`http.ts`](../src/server/http.ts) `route()`) and
@@ -78,7 +80,7 @@ call get the same decision.
 | Platform controls (not numbered in the brief) | 6 | 4 | 1 | 1 | | |
 | **Total** | **75** | **47** | **13** | **9** | **1** | **5** |
 
-Two open gaps (G-04, G-05) are listed at the end, with a suggested fix and the test that would prove each. G-01 to G-03 and G-06 to G-08 are fixed, with tests S17-S26 and U5.
+One open gap (G-04) is listed at the end, with a suggested fix and the test that would prove each. G-01 to G-03 and G-05 to G-08 are fixed, with tests S17-S27, U5 and U6.
 
 ---
 
@@ -221,7 +223,6 @@ Found while building this table. Each is small; fixes belong in shared server co
 | # | Gap | Where | Why it matters | Suggested fix and test |
 |---|---|---|---|---|
 | G-04 | **Industry re-identifies the organisation.** Shared copies and theme evidence carry the contributing org's `industry` verbatim; the three seeded organisations each have a unique industry, so the industry filter is an organisation filter | `learning.ts` `publish()`, `sharedFeed()`; `insights.ts` `listThemes()` | The brief: "Removing a name alone does not make a rare observation anonymous" | Let the moderator generalise `industry` (as with region and period) and drop industry from the feed filters until a cohort is large enough. Test: feed items carry only generalised values |
-| G-05 | **Audit log is append-only by convention.** The app's database role can update or delete `audit` rows | `audit.ts` `audit()` | ROLE-ADM asks for audited privileged actions; tamper evidence makes that credible | Hash chain (`prev_hash`, `hash` per row) plus a verify function on the admin page; or revoke update/delete on `audit` |
 
 ## Fixed gaps
 
@@ -229,6 +230,7 @@ Found while building this table. Each is small; fixes belong in shared server co
 |---|---|---|---|
 | G-01 | Restoring an open report on a copy the author had withdrawn republished it | `decideReport()` restores only a copy still `under_review` (409 otherwise); `withdrawObservation()` closes open reports on its copies | S17 |
 | G-02 | A reported old version could be restored next to a newer one | `publish()` supersedes `published` **and** `under_review` copies, closes their reports and clears AIRA summaries that cited them | S18 |
+| G-05 | The audit log was append-only by convention only | Hash chain: each row stores `prev_hash` and `hash` = SHA-256 of the previous hash and its own fields; appends take a transaction advisory lock so the chain never forks; earlier rows are chained once at start (`sealAudit()`); `verifyAudit()` recomputes it and the admin page shows the result. Tamper evidence, not prevention: someone with database write access could rebuild the whole chain, so the head hash shown on the admin page should also be recorded outside the database | U6, S27 |
 | G-06 | Sessions lasted 8 hours regardless of activity | `getPrincipal()` ends a session unused for 30 minutes (`SESSION_IDLE_MINUTES`) on the server and deletes it; `last_seen_at` is refreshed at most once a minute. Existing databases gain the column through an idempotent `add column if not exists` | U5 |
 | G-07 | Public forms weren't rate limited | `createRequest()`: at most 5 stored requests per source and 3 per address in 15 minutes (429 after). The source is a keyed hash of the client IP Vercel sets (`x-real-ip`, which clients can't spoof there); the raw IP is never stored. Field types are checked before use | S25, S26 |
 | G-08 | Rules enforced in code had no negative test | Tests added: plain employee can't publish (S20), client refused the playground (S21), clients never see idea internals (S23), AIRA's evidence is published copies only (S24). A new `@azentio.com` address can't be signed in from the demo outbox (S22: real-mailbox codes are never shown), so "the domain grants nothing" stays proven by S3 and `verifyCode()` | S20-S24 |
@@ -238,8 +240,8 @@ Found while building this table. Each is small; fixes belong in shared server co
 
 ```bash
 npm run dev               # terminal 1
-npm test                  # unit tests (U1-U5)
-npm run test:security     # terminal 2: API tests (S1-S26)
+npm test                  # unit tests (U1-U6)
+npm run test:security     # terminal 2: API tests (S1-S27)
 ```
 
 When a gap is fixed, update its row's status and the summary counts, and add the new test to the legend above.

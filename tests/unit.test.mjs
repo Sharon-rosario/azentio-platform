@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { safePath } from "../src/lib/safe-path.ts";
+import { GENESIS, rowHash, verifyChain } from "../src/server/audit-chain.ts";
 import { isIdle, needsTouch } from "../src/server/session-policy.ts";
 import { locate } from "../src/server/evidence.ts";
 import { scan } from "../src/server/scan.ts";
@@ -44,4 +45,23 @@ test("sessions end after the idle limit, and activity is recorded at most once a
   assert.equal(isIdle(ago(31), now, 30), true, "31 minutes idle: signed out");
   assert.equal(needsTouch(ago(0.5), now), false, "no write for activity within the last minute");
   assert.equal(needsTouch(ago(2), now), true);
+});
+
+test("the audit hash chain detects an edited, removed or inserted entry", () => {
+  const rows = [];
+  let prev = GENESIS;
+  for (const [i, action] of ["auth.sign_in", "observation.create", "moderation.publish"].entries()) {
+    const r = { id: i + 1, at: `2026-10-30T10:0${i}:00Z`, actor_id: 1, actor: "a@b.example", org_id: null, action,
+      entity: "x", entity_id: String(i), detail: "{}" };
+    const hash = rowHash(prev, r);
+    rows.push({ ...r, prev_hash: prev, hash });
+    prev = hash;
+  }
+  assert.equal(verifyChain(rows).ok, true);
+  assert.equal(verifyChain(rows).checked, 3);
+  const edited = rows.map((r) => (r.id === 2 ? { ...r, detail: '{"note":"changed"}' } : r));
+  assert.equal(verifyChain(edited).brokenAt, 2, "an edited entry");
+  assert.equal(verifyChain([rows[0], rows[2]]).brokenAt, 3, "a removed entry");
+  const forged = { ...rows[1], id: 9, action: "forged", hash: rowHash(rows[0].hash, { ...rows[1], action: "forged" }) };
+  assert.equal(verifyChain([rows[0], forged, rows[1], rows[2]]).ok, false, "an inserted entry");
 });
