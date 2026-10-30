@@ -1,9 +1,7 @@
-import { BadgeCheck, EyeOff, FileClock, FlaskConical, KeyRound, ShieldCheck, ShieldHalf, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { Banner } from "@/components/banner";
-import { PageHeader, Panel } from "@/components/states";
+import { SiteTitle } from "@/components/site/content-index";
 import { MIN_ORGS } from "@/server/insights";
 
 export const metadata: Metadata = {
@@ -11,12 +9,11 @@ export const metadata: Metadata = {
   description: "How the azentio.ai portal protects identities, tenants, shared learning and AI output.",
 };
 
-type Section = { id: string; icon: LucideIcon; title: string; lead: string; points: ReactNode[] };
+type Section = { id: string; title: string; lead: string; points: ReactNode[] };
 
 const SECTIONS: Section[] = [
   {
     id: "identity",
-    icon: KeyRound,
     title: "Identity and sessions",
     lead: "Passwordless sign-in with email codes, and sessions the server controls.",
     points: [
@@ -28,7 +25,6 @@ const SECTIONS: Section[] = [
   },
   {
     id: "authorization",
-    icon: ShieldCheck,
     title: "Authorisation and tenant isolation",
     lead: "One server-side function decides every access, and it denies by default.",
     points: [
@@ -41,7 +37,6 @@ const SECTIONS: Section[] = [
   },
   {
     id: "data",
-    icon: EyeOff,
     title: "Data minimisation and shared learning",
     lead: "Contributions are private until their author decides otherwise, and what is shared is a reviewed copy.",
     points: [
@@ -55,7 +50,6 @@ const SECTIONS: Section[] = [
   },
   {
     id: "ai",
-    icon: BadgeCheck,
     title: "AI governance",
     lead: "AIRA, the portal's AI assistant, works only from approved material and must show its evidence.",
     points: [
@@ -68,7 +62,6 @@ const SECTIONS: Section[] = [
   },
   {
     id: "platform",
-    icon: ShieldHalf,
     title: "Platform hardening",
     lead: "Defence in depth on every response.",
     points: [
@@ -80,7 +73,6 @@ const SECTIONS: Section[] = [
   },
   {
     id: "audit",
-    icon: FileClock,
     title: "Audit",
     lead: "Every state change leaves a record.",
     points: [
@@ -91,7 +83,6 @@ const SECTIONS: Section[] = [
   },
   {
     id: "simulated",
-    icon: FlaskConical,
     title: "What's simulated in this demo",
     lead: "Built for the azentio.ai Build Labs challenge on synthetic data. Some parts stand in for production services.",
     points: [
@@ -104,51 +95,57 @@ const SECTIONS: Section[] = [
 
 export default function SecurityPage() {
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Security overview"
-        description="How the portal protects identities, tenants, shared learning and AI output. Written for reviewers: what the code does, not marketing claims."
-      />
-      <Banner tone="info" title="Every check happens on the server">
-        The interface hides actions you can&apos;t take, but that&apos;s a convenience. The server checks every request
-        again, so a hidden button is never the only thing standing in the way.
-      </Banner>
+    <div className="space-y-12">
+      <SiteTitle title="Security overview">
+        How the portal protects identities, tenants, shared learning and AI output. Written for reviewers: what the code
+        does, numbered so it can be cited.
+      </SiteTitle>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[220px_1fr]">
-        <nav aria-label="On this page" className="lg:sticky lg:top-24">
-          <p className="text-muted-foreground mb-2 text-[12px] font-medium">On this page</p>
-          <ul className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible">
-            {SECTIONS.map((s) => (
-              <li key={s.id}>
-                <a
-                  href={`#${s.id}`}
-                  className="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring inline-flex h-8 items-center rounded-full px-3 text-[13px] whitespace-nowrap outline-none focus-visible:ring-2"
-                >
-                  {s.title}
-                </a>
-              </li>
-            ))}
-          </ul>
+      <div className="grid gap-10 lg:grid-cols-12 lg:gap-6">
+        <nav aria-label="On this page" className="lg:col-span-3">
+          <div className="lg:sticky lg:top-24">
+            <p className="text-muted-foreground font-mono text-[12px] leading-4">contents</p>
+            <ol className="mt-3 border-t">
+              {SECTIONS.map((s, i) => (
+                <li key={s.id} className="border-b">
+                  <a
+                    href={`#${s.id}`}
+                    className="text-muted-foreground hover:text-foreground focus-visible:bg-muted flex gap-3 py-2.5 text-[14px] leading-5 outline-none transition-colors duration-150"
+                  >
+                    <span className="w-4 shrink-0 font-mono text-[12px] leading-5 tabular-nums">{i + 1}</span>
+                    {s.title}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </div>
         </nav>
 
-        <div className="min-w-0 space-y-3">
-          {SECTIONS.map((s) => (
-            <div key={s.id} id={s.id} className="scroll-mt-24">
-              <Panel
-                title={
-                  <span className="flex items-center gap-2">
-                    <s.icon className="text-muted-foreground size-4" strokeWidth={1.75} aria-hidden /> {s.title}
-                  </span>
-                }
-                description={s.lead}
-              >
-                <ul className="list-disc space-y-2 pl-5 text-[14px] leading-[22px] marker:text-muted-foreground [&_b]:font-medium [&_code]:bg-muted [&_code]:rounded-md [&_code]:px-1 [&_code]:font-mono [&_code]:text-[12px]">
-                  {s.points.map((point, i) => (
-                    <li key={i}>{point}</li>
-                  ))}
-                </ul>
-              </Panel>
-            </div>
+        <div className="min-w-0 lg:col-span-8 lg:col-start-5">
+          <p className="border-primary border-l-2 pl-5 text-[20px] leading-[28px] tracking-[-0.01em]">
+            Every check happens on the server. The interface hides actions you can&apos;t take, but that&apos;s a
+            convenience: the server checks every request again, so a hidden button is never the only thing standing in
+            the way.
+          </p>
+
+          {SECTIONS.map((s, i) => (
+            <section key={s.id} id={s.id} aria-labelledby={`${s.id}-title`} className="mt-14 scroll-mt-24">
+              <h2 id={`${s.id}-title`} className="flex items-baseline gap-4 text-[24px] leading-[30px] tracking-[-0.015em]">
+                <span className="text-muted-foreground w-8 shrink-0 font-mono text-[13px] leading-[18px] tabular-nums">{i + 1}</span>
+                {s.title}
+              </h2>
+              <p className="text-muted-foreground mt-2 pl-12 text-[16px] leading-6">{s.lead}</p>
+              <ol className="mt-5 border-t [&_b]:font-medium [&_code]:bg-muted [&_code]:rounded-[3px] [&_code]:px-1 [&_code]:font-mono [&_code]:text-[13px]">
+                {s.points.map((point, j) => (
+                  <li key={j} className="flex gap-4 border-b py-3.5 text-[15px] leading-6">
+                    <span className="text-muted-foreground w-8 shrink-0 pt-px font-mono text-[12px] leading-6 tabular-nums">
+                      {i + 1}.{j + 1}
+                    </span>
+                    <span className="min-w-0">{point}</span>
+                  </li>
+                ))}
+              </ol>
+            </section>
           ))}
         </div>
       </div>

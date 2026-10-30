@@ -8,16 +8,16 @@ import { cn } from "@/lib/utils";
 export const SITE_NAV = [
   { href: "/products", label: "Products" },
   { href: "/solutions", label: "Solutions" },
+  { href: "/security", label: "Security" },
   { href: "/insights", label: "Insights" },
   { href: "/hackathon/register", label: "Hackathons", match: "/hackathon" },
-  { href: "/connect", label: "Request a demo" },
 ];
 
-/** Public site navigation. On small screens it sits in its own row and scrolls sideways. */
+/** Public site navigation: plain text links, the current page underlined. Scrolls sideways on small screens. */
 export function SiteNav() {
   const path = usePathname();
   return (
-    <ul className="flex gap-1">
+    <ul className="flex gap-6">
       {SITE_NAV.map((i) => {
         const on = path.startsWith(i.match ?? i.href);
         return (
@@ -26,8 +26,8 @@ export function SiteNav() {
               href={i.href}
               aria-current={on ? "page" : undefined}
               className={cn(
-                "focus-visible:ring-ring inline-flex h-9 items-center rounded-full px-3 text-[13px] whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2",
-                on ? "bg-muted text-foreground font-medium" : "text-muted-foreground hover:text-foreground",
+                "inline-flex h-9 items-center rounded-sm text-[14px] whitespace-nowrap underline-offset-[6px] transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                on ? "text-foreground underline decoration-1" : "text-muted-foreground hover:text-foreground",
               )}
             >
               {i.label}
