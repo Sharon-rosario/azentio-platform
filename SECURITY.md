@@ -102,20 +102,25 @@ server for every request, not by what the interface chooses to show.
   versions and fails if the lockfile and `package.json` disagree. Next.js and React are pinned to exact versions.
 - **Verified packages.** `npm audit signatures`: all 677 installed packages have verified registry signatures, 170
   with provenance attestations (30 Oct 2026).
-- **Known advisories.** `npm audit` reports no critical, high or moderate issues. It reports three low ones, all one
-  advisory: `deepmerge` prototype poisoning ([GHSA-gcqx-w48m-w2h4](https://github.com/advisories/GHSA-gcqx-w48m-w2h4)),
-  pulled in by the `shadcn` CLI. It isn't reachable in the running app: the only thing the app takes from `shadcn` is a
-  stylesheet, at build time. npm's suggested fix downgrades `shadcn` to 1.0.0, a breaking change, so the risk is
+- **Known advisories.** The dependencies that ship have none (`npm audit --omit=dev`: 0), and **CI fails** on any
+  high or critical advisory in them (`npm audit --omit=dev --audit-level=high`). Development tooling has three low
+  findings, all one advisory: `deepmerge` prototype poisoning
+  ([GHSA-gcqx-w48m-w2h4](https://github.com/advisories/GHSA-gcqx-w48m-w2h4)), pulled in by the `shadcn` CLI, now a
+  dev dependency. It isn't reachable in the running app: the only thing the app takes from `shadcn` is a stylesheet,
+  at build time. No patched `deepmerge` exists and npm's suggested fix downgrades `shadcn` to 1.0.0, so the risk is
   accepted and rechecked with each update.
 - **Updates.** Dependabot ([`.github/dependabot.yml`](.github/dependabot.yml)) proposes npm and GitHub Actions updates
   weekly, grouped (Next.js with its ESLint config, React with its types, everything else minor/patch) so each week is
   one or two pull requests that CI verifies. A new release waits seven days before it's proposed, since most
-  malicious or broken publishes are pulled within days. Security updates are separate and open as soon as an advisory
-  is published.
-- **CI permissions.** The workflow token is read-only (`permissions: contents: read`), and CI uses throwaway secrets;
-  real ones live only in the deployment environment.
-- **Next steps:** pin GitHub Actions to commit SHAs, move `shadcn` to `devDependencies`, and fail CI on
-  `npm audit --audit-level=high`.
+  malicious or broken publishes are pulled within days. Dependabot alerts and security updates are enabled on the
+  repository, so a security fix opens its own pull request as soon as an advisory is published.
+- **CI permissions and pinning.** The workflow token is read-only (`permissions: contents: read`), CI uses throwaway
+  secrets (real ones live only in the deployment environment), and third-party actions are pinned to commit SHAs, so
+  a moved tag can't change what runs.
+- **Not enabled:** GitHub secret scanning and CodeQL code scanning need GitHub Advanced Security on a private
+  repository. In their place: no secret has ever been committed (the full history was scanned for key, token and
+  connection-string patterns on 30 Oct 2026), `.env*` is git-ignored, and every pull request runs typecheck, lint and
+  the black-box security suite.
 
 ## AI governance (AIRA)
 
