@@ -460,6 +460,33 @@ test("a null origin, wrong-typed idea and content fields and a malformed portal 
   }
 });
 
+test("a withdrawn observation is its author's alone: colleagues get a 404", async () => {
+  const sara = await login(SARA);
+  const ravi = await login(RAVI);
+  const created = await call("/api/observations", { cookie: sara, method: "POST", body: { title: `Withdraw-colleague ${Date.now().toString(36)}`,
+    body: "Shared with my organisation, then withdrawn.", category: "Market observation", offering: "riva", period: "Q4 2026",
+    evidence_type: "Review", confidence: "Low", visibility: "organisation" } });
+  const id = created.data.id;
+  assert.equal((await call(`/api/observations/${id}`, { cookie: ravi })).status, 200, "visible to the organisation first");
+  assert.equal((await call(`/api/observations/${id}/withdraw`, { cookie: sara, method: "POST" })).status, 200);
+  assert.equal((await call(`/api/observations/${id}`, { cookie: ravi })).status, 404);
+  assert.equal((await call(`/api/observations/${id}`, { cookie: sara })).status, 200, "the author still has it");
+});
+
+test("revoking a member cancels their pending invitations, so they can't rejoin", async () => {
+  const ravi = await login(RAVI);
+  const email = `rejoin.${Date.now().toString(36)}@test.example`;
+  for (let i = 0; i < 2; i++) assert.equal((await call("/api/members", { cookie: ravi, method: "POST", body: { email, role: "client_member" } })).status, 200);
+  const tokens = (await call("/api/dev/outbox")).data.filter((m) => m.to_email === email && m.body.includes("/invite/"))
+    .map((m) => m.body.match(/\/invite\/([\w-]+)/)[1]);
+  assert.equal(tokens.length, 2);
+  const newcomer = await login(email);
+  assert.equal((await call(`/api/invitations/${tokens[0]}`, { cookie: newcomer, method: "POST" })).status, 200);
+  const member = (await call("/api/members", { cookie: ravi })).data.members.find((m) => m.email === email);
+  assert.equal((await call(`/api/members/${member.id}`, { cookie: ravi, method: "DELETE" })).status, 200);
+  assert.equal((await call(`/api/invitations/${tokens[1]}`, { cookie: newcomer, method: "POST" })).status, 410);
+});
+
 test("the audit log's hash chain verifies end to end after every write in this suite", async () => {
   const html = (await call("/portal/admin", { cookie: await login(ADMIN) })).data;
   assert.match(html, /Hash chain intact: all \d+ entries verified/);

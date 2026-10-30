@@ -17,7 +17,7 @@ bullet, in the brief's order, prefixed by section. The section number after each
 | **Gap** | Known defect or missing control, listed under [Open gaps](#open-gaps) |
 | **Out of scope** | Not built, with the reason (brief marks it optional, P1/P2, or outside the minimum scope) |
 
-**Tests.** `S1`-`S34` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
+**Tests.** `S1`-`S36` are the black-box API tests in [`tests/security.test.mjs`](../tests/security.test.mjs), which sign in
 as real personas and call the API directly. `U1`-`U6` are the unit tests in [`tests/unit.test.mjs`](../tests/unit.test.mjs).
 CI runs all of them against a production build on every push and pull request ([`ci.yml`](../.github/workflows/ci.yml)).
 
@@ -56,7 +56,9 @@ CI runs all of them against a production build on every push and pull request ([
 | S31 | consent to publish must be an explicit yes: a string like "false" is refused |
 | S32 | parallel wrong guesses can't get past the five-attempt limit on a sign-in code |
 | S33 | a null origin, wrong-typed idea and content fields and a malformed portal id answer 4xx, never a 500 |
-| S34 | the audit log's hash chain verifies end to end after every write in this suite (runs last) |
+| S34 | a withdrawn observation is its author's alone: colleagues get a 404 |
+| S35 | revoking a member cancels their pending invitations, so they can't rejoin |
+| S36 | the audit log's hash chain verifies end to end after every write in this suite (runs last) |
 | U1 | scan flags identifiers that must not reach the shared feed |
 | U2 | scan leaves ordinary market observations alone |
 | U3 | verbatim keeps a quote only when its words are in the source, and returns the source's own words |
@@ -88,7 +90,7 @@ call get the same decision.
 | Platform controls (not numbered in the brief) | 6 | 5 | 1 | | | |
 | **Total** | **75** | **51** | **13** | **6** | **0** | **5** |
 
-No gaps remain open. Every gap found while building and reviewing it (G-01 to G-14) is fixed, with a test where one can show it, and listed at the end.
+No gaps remain open. Every gap found while building and reviewing it (G-01 to G-15) is fixed, with a test where one can show it, and listed at the end.
 
 ---
 
@@ -114,7 +116,7 @@ No gaps remain open. Every gap found while building and reviewing it (G-01 to G-
 | ROLE-CLI | Client member: tenant and entitlement checks on every protected resource; no employee-only experiments | `GRANTS.client_member` (no `content.employee`, no `playground.use`); `sameTenant()` | S4, S9 | **Proven** |
 | ROLE-CADM | Client admin can't grant platform roles, change another tenant or self-enable products | `members.ts` `invite()` limits roles to `CLIENT_ASSIGNABLE`, own org only; no API writes entitlements | S8 | **Proven** |
 | ROLE-PUBL | Content publisher: no identity administration or implicit access to private learning | `GRANTS.publisher` = `content.publish` only | none | **Enforced** |
-| ROLE-ADM | Portal admin: privileged actions audited; client-private content needs explicit moderation authorisation, not a broad role | `GRANTS.portal_admin` has no `observations.*`; every privileged service writes `audit()` in the same transaction | S6 (admin gets 403 on observations and moderation) | **Proven**; the audit trail is hash-chained, so an edited, removed or inserted entry is detected (G-05, S34) |
+| ROLE-ADM | Portal admin: privileged actions audited; client-private content needs explicit moderation authorisation, not a broad role | `GRANTS.portal_admin` has no `observations.*`; every privileged service writes `audit()` in the same transaction | S6 (admin gets 403 on observations and moderation) | **Proven**; the audit trail is hash-chained, so an edited, removed or inserted entry is detected (G-05, S36) |
 | ROLE-MOD | Moderator: no access to unsubmitted drafts | `learning.ts` `moderationQueue()`, `reviewItem()` only return `visibility='community'` and `status in ('submitted','published')` | S7 | **Proven** |
 | ROLE-EMP | Employee: verified work identity plus approved membership; no automatic access to every client's private data | Employee grants carry no `observations.*`; membership is provisioned, never inferred from `@azentio.com` | S3, S6 | **Enforced**: no test signs in a *new* `@azentio.com` address to prove it gets nothing |
 
@@ -185,7 +187,7 @@ No gaps remain open. Every gap found while building and reviewing it (G-01 to G-
 | SHR-02 | Separate consent for store, publish, attribute, train; append-only history | `consents` table, one row per purpose per change (`createObservation()`, `submitObservation()`, `withdrawObservation()`); history in `getObservation()` | S13 (submit without publish consent → 422) | **Proven** for publish; attribute and train are **Enforced** |
 | SHR-03 | No tenant ids, author profiles, attachments or reviewer notes in shared payloads | `sharedFeed()` column list; `listThemes()` strips `org_id` | S10 | **Proven** |
 | SHR-04 | De-identified wording by default; attribution opt-in and reviewed | `publish()`: attribution only when the author consented **and** the moderator ticks it | S10 (only the consenting org is attributed) | **Proven** |
-| SHR-05 | Reduce specific geography, dates or details that could identify a contributor | Moderator rewrites `region`, `period` and `industry`; a de-identified copy's industry defaults to a general value (`GENERAL_INDUSTRY`); industry and region filters only offer and apply values covering at least `MIN_ORGS` organisations (`broadValues()`) | S27 | **Proven** |
+| SHR-05 | Reduce specific geography, dates or details that could identify a contributor | Moderator rewrites `region`, `period` and `industry`; a de-identified copy's industry and region default to general values (`GENERAL_INDUSTRY`, `GENERAL_REGION`); industry, region and offering filters only offer and apply values covering at least `MIN_ORGS` organisations (`broadValues()`) | S27 | **Proven** |
 | SHR-06 | No pricing, customer records, secrets | `scan()` + publish block; synthetic seed data only | U1, S13 | **Enforced** (pattern-based) |
 | SHR-07 | Raw private records stay out of analytics, indexes, logs and AI payloads | `synthesize()` builds its prompt from published shared copies only; the audit `detail` stores ids, not bodies | S24 (AIRA's evidence is exactly the published copies, with no tenant or author fields) | **Proven** for AI payloads; logs store ids only (code) |
 | SHR-08 | Show the contributor who can see each version and how it may be used | "Who can see it" column and observation detail page (consents, shared versions) | none | **Enforced** |
@@ -235,7 +237,7 @@ None. Every gap found while building this table is fixed and tested; see below.
 | G-01 | Restoring an open report on a copy the author had withdrawn republished it | `decideReport()` restores only a copy still `under_review` (409 otherwise); `withdrawObservation()` closes open reports on its copies | S17 |
 | G-02 | A reported old version could be restored next to a newer one | `publish()` supersedes `published` **and** `under_review` copies, closes their reports and clears AIRA summaries that cited them | S18 |
 | G-04 | A de-identified copy carried the organisation's exact industry, and with few contributors the industry filter singled one out | `publish()` defaults a de-identified copy's industry to a general value the moderator can change; `broadValues()` offers and applies industry and region filters only for values covering at least `MIN_ORGS` organisations. Field types on moderation and report input are checked before use | S27, S28 |
-| G-05 | The audit log was append-only by convention only | Hash chain: each row stores `prev_hash` and `hash` = SHA-256 of the previous hash and its own fields; appends take a transaction advisory lock so the chain never forks; earlier rows are chained once at start (`sealAudit()`); `verifyAudit()` recomputes it and the admin page shows the result. Tamper evidence, not prevention: someone with database write access could rebuild the whole chain, so the head hash shown on the admin page should also be recorded outside the database | U6, S34 |
+| G-05 | The audit log was append-only by convention only | Hash chain: each row stores `prev_hash` and `hash` = SHA-256 of the previous hash and its own fields; appends take a transaction advisory lock so the chain never forks; earlier rows are chained once at start (`sealAudit()`); `verifyAudit()` recomputes it and the admin page shows the result. Tamper evidence, not prevention: someone with database write access could rebuild the whole chain, so the head hash shown on the admin page should also be recorded outside the database | U6, S36 |
 | G-06 | Sessions lasted 8 hours regardless of activity | `getPrincipal()` ends a session unused for 30 minutes (`SESSION_IDLE_MINUTES`) on the server and deletes it; `last_seen_at` is refreshed at most once a minute. Existing databases gain the column through an idempotent `add column if not exists` | U5 |
 | G-07 | Public forms weren't rate limited | `createRequest()`: at most 5 stored requests per source and 3 per address in 15 minutes (429 after). The source is a keyed hash of the client IP Vercel sets (`x-real-ip`, which clients can't spoof there); the raw IP is never stored. Field types are checked before use | S25, S26 |
 | G-08 | Rules enforced in code had no negative test | Tests added: plain employee can't publish (S20), client refused the playground (S21), clients never see idea internals (S23), AIRA's evidence is published copies only (S24). A new `@azentio.com` address can't be signed in from the demo outbox (S22: real-mailbox codes are never shown), so "the domain grants nothing" stays proven by S3 and `verifyCode()` | S20-S24 |
@@ -245,14 +247,15 @@ None. Every gap found while building this table is fixed and tested; see below.
 | G-11 | A summary could be saved citing a copy withdrawn or reported during the model call, and withdrawal cleared only summaries that quoted the copy | `synthesize()` locks the theme and saves only if the evidence it read is still exactly what's published (409 otherwise); `invalidateSummaries()` clears every summary of the copy's theme and locks it too | none: needs a model call mid-test |
 | G-12 | Races: parallel wrong codes could each pass the attempt check, one code could start two sessions, and a publish in flight could undo a withdrawal | Attempts are counted in one conditional `update … returning` before comparing; a code is marked used only `where used_at is null`; `publish()` and `withdrawObservation()` take a row lock and re-check the status | S32 (a guard: the local database serialises queries, so the race only shows on Postgres) |
 | G-13 | Wrong input types could still reach a 500: an `Origin: null` header, numeric idea and content fields, a non-numeric portal id; and any truthy value counted as consent | The origin is parsed safely (unparsable means cross-site); idea and content fields are type-checked; portal pages parse ids with `id()`; consent must be `true` | S31, S33 |
-| G-14 | Revoking a member left their pending invitations valid, so they could rejoin; three audited writes ran outside their change's transaction | `revokeMember()` revokes pending invitations to that organisation; `createContent()`, `createRequest()` and `switchWorkspace()` write their audit row in the same transaction | none |
+| G-14 | Revoking a member left their pending invitations valid, so they could rejoin; three audited writes ran outside their change's transaction | `revokeMember()` revokes pending invitations to that organisation; `createContent()`, `createRequest()` and `switchWorkspace()` write their audit row in the same transaction | S35 |
+| G-15 | A withdrawn observation stayed readable by direct link inside its organisation; a de-identified copy carried the organisation's exact region; the offering filter wasn't held back for small groups | `getObservation()` answers 404 to anyone but the author once withdrawn; `publish()` defaults a de-identified copy's region to "Not disclosed" (the moderator can name a wide region); `broadValues()` now also governs the offering filter | S34 |
 
 ## How to re-check this table
 
 ```bash
 npm run dev               # terminal 1
 npm test                  # unit tests (U1-U6)
-npm run test:security     # terminal 2: API tests (S1-S34)
+npm run test:security     # terminal 2: API tests (S1-S36)
 ```
 
 When a gap is fixed, update its row's status and the summary counts, and add the new test to the legend above.
