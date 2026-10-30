@@ -15,10 +15,49 @@ server for every request, not by what the interface chooses to show.
 | **Private by default** | Contributions start as private drafts; saving never shares. Moderators never see unsubmitted drafts. | `learning.ts` |
 | **Consent per purpose** | Storing, publishing a shared copy, organisation attribution and future model training are separate, append-only consent records. Membership is never consent. | `consents` table, `submitObservation()` |
 | **Data minimisation** | Publishing creates a *separate* shared copy containing only reviewed fields. Tenant ids, authors, original wording and moderator notes cannot leave through the shared feed or its API. | `shared_versions`, `sharedFeed()` |
-| **Withdrawal** | Removes the shared copy from the feed, search and every AI summary that cited it in the same database transaction (seconds, not the 60 s required). | `withdrawObservation()`, `invalidateSummaries()` |
+| **Withdrawal** | Removes the shared copy from the feed, search, filters, theme counts and every AIRA summary of its theme in the same database transaction as the withdrawal. See [Data retention and withdrawal](#data-retention-and-withdrawal). | `withdrawObservation()`, `invalidateSummaries()` |
 | **Aggregation safety** | Theme statistics, evidence and AI summaries are suppressed below a configurable minimum of distinct contributing organisations (default 3). Repeat posts from one organisation count once. | `listThemes()` in `insights.ts` |
 | **Database-layer defence in depth** | Row-level security is enabled on every table with no policies, and the `anon` and `authenticated` roles have their table and sequence privileges revoked, so a hosted Postgres's auto-generated REST API (Supabase exposes `public` tables to a key that ships to browsers) returns nothing. The app connects as the table owner, so all access still goes through `authorize()`. | `LOCKDOWN` in `db.ts` |
 | **Accountability** | Every state change writes an audit row in the same transaction as the change. Rows are hash-chained (SHA-256 over the previous hash and the row), so an edited, removed or inserted entry is detected; the admin page verifies the chain. | `audit.ts`, `audit-chain.ts`, `tx()` in `db.ts` |
+
+## Data retention and withdrawal
+
+### Withdrawal SLA
+
+- **What it removes:** the shared copy leaves the feed, search, filter options, theme counts and every AIRA summary of
+  its theme in the **same database transaction** as the withdrawal. The next request no longer sees it.
+- **Nothing to purge later:** there are no search indexes or caches. Every API response is sent with
+  `Cache-Control: no-store`.
+- **Production commitment:** within 60 seconds of the author's withdrawal. The build meets it immediately.
+- **What can't be recalled:** copies people already read, screenshots, and anything copied outside the portal. The
+  withdraw dialog tells the author so before they confirm.
+
+### What is kept, and why
+
+| Record | Kept | Why |
+|---|---|---|
+| Private observations | While the organisation's membership lasts | They are the organisation's own records |
+| Consent history | Append-only, never edited | Shows what was allowed, and when |
+| Withdrawn and superseded shared copies | As records, never shown again | Keeps moderation decisions auditable |
+| Moderation decisions and reports | With their records | Accountability for what was published |
+| Audit log | Append-only, hash-chained | Tamper evidence for every state change |
+
+### Retention periods
+
+*A proposal pending Azentio's own policy.*
+
+| Record | Proposed period |
+|---|---|
+| Consent history, moderation decisions, audit log | 7 years (a common financial-services norm) |
+| Sign-in codes and expired sessions | Deleted 24 hours after they expire or are used. **Implemented:** `purgeExpired()` in `db.ts` runs at start-up |
+| Demo outbox messages | Deleted after 30 days. **Implemented:** the same start-up purge |
+| A removed organisation's private observations | Deleted 90 days after offboarding (proposal; offboarding isn't built) |
+
+### Model training
+
+- No model is trained on contributions. The "future model-training programmes" consent is recorded and nothing else.
+- Withdrawal records a revoked publishing consent, so no future use can include the contribution.
+- Nothing here claims to undo a model that has already been trained.
 
 ## Identity and sessions
 

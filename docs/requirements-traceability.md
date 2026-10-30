@@ -84,12 +84,12 @@ call get the same decision.
 | 05 Employee portal | 5 | 2 | 1 | 1 | | 1 |
 | 06 Client portal | 7 | 5 | | 1 | | 1 |
 | 07 Observation capture | 5 | 4 | | | | 1 |
-| 08 Review, publication, withdrawal | 9 | 6 | 2 | 1 | | |
-| 09 Sharing, consent, aggregation | 11 | 7 | 3 | 1 | | |
+| 08 Review, publication, withdrawal | 9 | 7 | 1 | 1 | | |
+| 09 Sharing, consent, aggregation | 11 | 7 | 4 | | | |
 | 10 Insights and improvement | 7 | 2 | 3 | 1 | | 1 |
 | 11 Federated model learning (P2) | 1 | | | | | 1 |
 | Platform controls (not numbered in the brief) | 6 | 5 | 1 | | | |
-| **Total** | **75** | **51** | **13** | **6** | **0** | **5** |
+| **Total** | **75** | **52** | **13** | **5** | **0** | **5** |
 
 No gaps remain open. Every gap found while building and reviewing it (G-01 to G-15) is fixed, with a test where one can show it, and listed at the end.
 
@@ -177,7 +177,7 @@ No gaps remain open. Every gap found while building and reviewing it (G-01 to G-
 | WF-05 | Material edits create a new version and need renewed review; never silently widen an audience | `updateObservation()` sends published → submitted and keeps community visibility (`visibilityFor()`); `publish()` increments `version` and supersedes every earlier live or reported copy | S18, S19 | **Proven** |
 | WF-06 | Report action; moderator can unpublish during review, decide, inform the contributor; reporter not exposed | `report()` (copy → `under_review`, summaries invalidated); `decideReport()` restores only a copy still `under_review`; withdrawal and republication close open reports; `moderationQueue()` returns no reporter id | S17, S18 | **Proven** |
 | WF-07 | Withdrawal invalidates search, index, cache and future AIRA retrieval within 60 s | `withdrawObservation()`: copy withdrawn and `invalidateSummaries()` in one transaction; AIRA reads published copies only | S13 (feed search drops it on the next request) | **Proven** |
-| WF-08 | State the production propagation SLA; explain already-viewed copies can't be recalled | SECURITY.md "Withdrawal" row (same transaction); `observation-actions.tsx` withdraw dialog text | n/a | **Enforced** (documentation) |
+| WF-08 | State the production propagation SLA; explain already-viewed copies can't be recalled | SECURITY.md "Data retention and withdrawal": same transaction, no indexes or caches (`no-store`), production commitment within 60 s, what can't be recalled; `observation-actions.tsx` withdraw dialog says the same | S13 (gone from search after withdrawal) | **Proven** |
 | NOT-01 | Persisted notification and outbox records; never label anything "email delivered" | `notifications`, `outbox` tables; outbox shown only in demo mode and only for synthetic addresses (`members.ts` `outbox()`) | S2, S14 (read codes from the outbox) | **Partial**: no idempotency key, since no provider sends anything |
 
 ## 09 · Sharing, consent and confidentiality
@@ -192,7 +192,7 @@ No gaps remain open. Every gap found while building and reviewing it (G-01 to G-
 | SHR-06 | No pricing, customer records, secrets | `scan()` + publish block; synthetic seed data only | U1, S13 | **Enforced** (pattern-based) |
 | SHR-07 | Raw private records stay out of analytics, indexes, logs and AI payloads | `synthesize()` builds its prompt from published shared copies only; the audit `detail` stores ids, not bodies | S24 (AIRA's evidence is exactly the published copies, with no tenant or author fields) | **Proven** for AI payloads; logs store ids only (code) |
 | SHR-08 | Show the contributor who can see each version and how it may be used | "Who can see it" column and observation detail page (consents, shared versions) | none | **Enforced** |
-| SHR-09 | Accessible withdrawal; retain consent history, approved version and moderation decisions | `withdrawObservation()` keeps rows, marks them withdrawn; `consents` append-only | S13 | **Partial**: retention period isn't written down as a policy |
+| SHR-09 | Accessible withdrawal; retain consent history, approved version and moderation decisions | `withdrawObservation()` keeps rows, marks them withdrawn; `consents` append-only; SECURITY.md "Data retention and withdrawal" documents what is kept, why and for how long (periods proposed pending Azentio policy); `purgeExpired()` deletes expired codes, sessions and old outbox mail | S13 | **Enforced**: the policy is written; the 7-year and 90-day periods are proposals, not automated |
 | SHR-10 | Never claim withdrawal can undo a trained model | No model is trained; the `train` consent is recorded only | n/a | **Enforced** |
 | AGG-01 | Configurable minimum distinct organisations (3 for judging); suppress small cohorts and differencing-friendly filters | `insights.ts` `MIN_ORGS` (env), `listThemes()` counts distinct `org_id`, suppresses counts, evidence and summary below it; `synthesize()` refuses below it | S12 | **Proven** for themes; the feed's industry filter is affected by G-04 |
 

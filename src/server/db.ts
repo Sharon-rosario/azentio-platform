@@ -167,6 +167,7 @@ function driver(): Promise<Driver> {
     const [{ n }] = await d.exec("select count(*)::int as n from organisations", []);
     if (n === 0) await d.transaction((exec) => seed(exec));
     await sealAudit(d);
+    await purgeExpired(d);
     return d;
   })();
   return g.__azpDb;
@@ -176,6 +177,19 @@ function driver(): Promise<Driver> {
  * Chain any audit rows that don't have a hash yet: rows written before the chain existed, and the seed's history.
  * Runs once per start under the same advisory lock as audit(), so concurrent cold starts can't interleave.
  */
+/**
+ * Retention (SECURITY.md, "Data retention and withdrawal"): sign-in codes and sessions go 24 hours after they expire or
+ * are used, demo outbox messages after 30 days. Runs once per server start; none of these rows is audited content.
+ */
+async function purgeExpired(d: Driver) {
+  // The raw driver takes $n placeholders (the query helpers below translate ?).
+  const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
+  const monthAgo = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  await d.exec("delete from login_codes where expires_at < $1 or used_at < $1", [dayAgo]);
+  await d.exec("delete from sessions where expires_at < $1", [dayAgo]);
+  await d.exec("delete from outbox where created_at < $1", [monthAgo]);
+}
+
 async function sealAudit(d: Driver) {
   await d.transaction(async (e) => {
     await e(`select pg_advisory_xact_lock(${AUDIT_LOCK})`, []);
