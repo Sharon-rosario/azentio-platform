@@ -53,6 +53,7 @@ const TESTS = [
   "governed flow: submit → sensitive copy refused → redacted copy published → withdraw removes it at once",
   "revoking a membership takes effect on the next request",
   "cross-site writes are refused",
+  "malformed input is refused with 4xx on every write route, never a 500",
 ];
 
 export default async function Home() {
