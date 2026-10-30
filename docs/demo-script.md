@@ -37,6 +37,6 @@ All accounts and data are synthetic. In demo mode the sign-in code appears on th
 - Optional, to show it's enforced on the server and not just hidden: still signed in as Sara, open
   `/api/observations/<id>` with the id of one of Chen's Kestrel contributions. The answer is `404 Not found`, the same
   as an id that doesn't exist.
-- Close on the test suite: `npm run test:security`. Thirty-six black-box tests that attack the API directly, run on
+- Close on the test suite: `npm run test:security`. Thirty-seven black-box tests that attack the API directly, run on
   every pull request in CI. [Requirements traceability](requirements-traceability.md) maps each requirement in the
   brief to the code and the test that proves it.

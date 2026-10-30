@@ -83,6 +83,7 @@ const TESTS = [
   "a null origin, wrong-typed idea and content fields and a malformed portal id answer 4xx, never a 500",
   "a withdrawn observation is its author's alone: colleagues get a 404",
   "revoking a member cancels their pending invitations, so they can't rejoin",
+  "the shared feed filters by observation period, and a withdrawn copy's period leaves the filter options",
 ];
 
 export default async function Home() {

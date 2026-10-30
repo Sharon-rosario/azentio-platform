@@ -487,6 +487,27 @@ test("revoking a member cancels their pending invitations, so they can't rejoin"
   assert.equal((await call(`/api/invitations/${tokens[1]}`, { cookie: newcomer, method: "POST" })).status, 410);
 });
 
+test("the shared feed filters by observation period, and a withdrawn copy's period leaves the filter options", async () => {
+  const chen = await login(CHEN);
+  const omar = await login(OMAR);
+  const sara = await login(SARA);
+  const period = `Window ${Date.now().toString(36)}`;
+  const created = await call("/api/observations", { cookie: chen, method: "POST", body: { title: `Period probe ${period}`,
+    body: "Collections slow in the weeks before the harvest.", category: "Market observation", offering: "riva", period,
+    evidence_type: "Portfolio review", confidence: "Medium" } });
+  const id = created.data.id;
+  assert.equal((await call(`/api/observations/${id}/submit`, { cookie: chen, method: "POST", body: { publish: true } })).status, 200);
+  assert.equal((await call(`/api/moderation/${id}`, { cookie: omar, method: "POST", body: { decision: "publish" } })).status, 200);
+  const filtered = (await call(`/api/shared?period=${encodeURIComponent(period)}`, { cookie: sara })).data;
+  assert.equal(filtered.length, 1);
+  assert.ok(filtered.every((s) => s.period === period));
+  assert.ok((await call("/api/shared/facets", { cookie: sara })).data.period.includes(period));
+  assert.equal((await call(`/api/observations/${id}/withdraw`, { cookie: chen, method: "POST" })).status, 200);
+  assert.ok(!(await call("/api/shared/facets", { cookie: sara })).data.period.includes(period), "a withdrawn copy's period isn't offered");
+  assert.equal((await call(`/api/shared?period=${encodeURIComponent(period)}`, { cookie: sara })).data.length, 0);
+  assert.equal((await call("/api/shared/facets")).status, 401, "signed out: no facets");
+});
+
 test("the audit log's hash chain verifies end to end after every write in this suite", async () => {
   const html = (await call("/portal/admin", { cookie: await login(ADMIN) })).data;
   assert.match(html, /Hash chain intact: all \d+ entries verified/);
