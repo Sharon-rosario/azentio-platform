@@ -72,7 +72,7 @@ call get the same decision.
 |---|---|---|---|---|---|---|
 | 01 Reference: server-side enforcement | 2 | 1 | | 1 | | |
 | 03 Personas, IAM-01, IAM-02, access rule | 14 | 11 | 2 | 1 | | |
-| 04 Login and onboarding | 8 | 6 | 1 | 1 | | |
+| 04 Login and onboarding | 8 | 7 | 1 | | | |
 | 05 Employee portal | 5 | 2 | 1 | 1 | | 1 |
 | 06 Client portal | 7 | 5 | | 1 | | 1 |
 | 07 Observation capture | 5 | 4 | | | | 1 |
@@ -81,7 +81,7 @@ call get the same decision.
 | 10 Insights and improvement | 7 | 2 | 3 | 1 | | 1 |
 | 11 Federated model learning (P2) | 1 | | | | | 1 |
 | Platform controls (not numbered in the brief) | 6 | 5 | 1 | | | |
-| **Total** | **75** | **49** | **13** | **8** | **0** | **5** |
+| **Total** | **75** | **50** | **13** | **7** | **0** | **5** |
 
 No gaps remain open, with a suggested fix and the test that would prove each. All eight found while building it (G-01 to G-08) are fixed, with tests S17-S29, U5 and U6, and listed at the end.
 
@@ -124,7 +124,7 @@ No gaps remain open, with a suggested fix and the test that would prove each. Al
 | AUTH-05 | Single-use, expiring invitation naming organisation and role | `invite()` (7-day expiry, SHA-256 token hash), `acceptInvitation()` (410 when used/expired/revoked) | S14 (second accept → 410) | **Proven** |
 | AUTH-06 | Accept only as the intended verified account | `acceptInvitation()` compares the invitation email with the signed-in email | S14 (wrong account → 403) | **Proven** |
 | AUTH-07 | Show workspace terms and sharing explanation; joining is not consent | `src/app/invite/[token]/page.tsx` explanation; accepting writes no consent rows | none | **Enforced** |
-| AUTH-08 | Land on the right dashboard with only entitled features, active org shown, switcher for multi-membership users | `src/app/portal/page.tsx` (entitled demos, empty states), top panel workspace switcher | S11 | **Partial**: session lifetime is 8 h absolute with no idle timeout (G-06) |
+| AUTH-08 | Land on the right dashboard with only entitled features, active org shown, switcher for multi-membership users | `src/app/portal/page.tsx` (entitled demos, empty states), top panel workspace switcher; sessions end after 30 minutes idle or 8 hours (`getPrincipal()`) | S11, U5 | **Proven** |
 
 ## 05 · Employee experience
 
