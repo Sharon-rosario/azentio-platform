@@ -44,7 +44,7 @@ export function Wordmark({ className }: { className?: string }) {
         </g>
         <g fill={AZENTIO_GREEN}>{LEAF.map((d) => <path key={d} d={d} />)}</g>
       </svg>
-      <span className="text-brand-strong text-[17px] leading-[19px] font-semibold tracking-[-0.02em]">.ai</span>
+      <span className="text-primary in-[.bg-navy]:text-brand-strong text-[17px] leading-[19px] font-semibold tracking-[-0.02em]">.ai</span>
     </span>
   );
 }
