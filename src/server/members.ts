@@ -34,28 +34,30 @@ export async function listMembers(p: Principal | null, orgId?: number) {
  * Invite someone into an organisation. Client admins: only into their own, only client roles. The link is
  * single-use and expires; it names the organisation and role, and only works for the invited, verified email.
  */
-export async function invite(p: Principal | null, input: { email: string; role: string; orgId?: number }) {
-  const email = (input.email ?? "").trim().toLowerCase();
+export async function invite(p: Principal | null, input: { email?: unknown; role?: unknown; orgId?: unknown }) {
+  const email = typeof input.email === "string" ? input.email.trim().toLowerCase() : "";
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new HttpError(422, "Enter a valid email address");
   let orgId = p?.orgId ?? 0;
   if (can(p, "admin.roles")) {
-    orgId = input.orgId ?? orgId;
+    if (input.orgId !== undefined && !Number.isInteger(input.orgId)) throw new HttpError(422, "orgId must be a number");
+    orgId = (input.orgId as number | undefined) ?? orgId;
     if (!ROLES.includes(input.role as Role)) throw new HttpError(422, "Unknown role");
   } else {
     authorize(p, "members.manage");
     if (input.orgId && input.orgId !== p.orgId) throw new HttpError(404, "Not found");
     if (!CLIENT_ASSIGNABLE.includes(input.role as Role)) throw new HttpError(403, "You can only invite client members or client administrators");
   }
+  const role = input.role as Role; // checked above against ROLES or CLIENT_ASSIGNABLE
   const org = await one<{ name: string }>("select name from organisations where id = ?", orgId);
   if (!org) throw new HttpError(404, "Not found");
   const token = randomBytes(24).toString("base64url");
   await tx(async () => {
     const id = await insert(`insert into invitations (org_id,email,role,token_hash,invited_by,created_at,expires_at)
-      values (?,?,?,?,?,?,?)`, orgId, email, input.role, tokenHash(token), p!.userId, now(),
+      values (?,?,?,?,?,?,?)`, orgId, email, role, tokenHash(token), p!.userId, now(),
       new Date(Date.now() + INVITE_DAYS * 86_400_000).toISOString());
     await run("insert into outbox (to_email,subject,body,created_at) values (?,?,?,?)", email, `You're invited to ${org.name} on azentio.ai`,
-      `${p!.name} invited you to join ${org.name} as ${input.role.replace("_", " ")}. Accept: /invite/${token} (single use, expires in ${INVITE_DAYS} days).`, now());
-    await audit(p!, "member.invite", "invitation", id, { email, role: input.role, org: orgId });
+      `${p!.name} invited you to join ${org.name} as ${role.replace("_", " ")}. Accept: /invite/${token} (single use, expires in ${INVITE_DAYS} days).`, now());
+    await audit(p!, "member.invite", "invitation", id, { email, role, org: orgId });
   });
 }
 

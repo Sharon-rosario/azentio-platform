@@ -45,7 +45,9 @@ server for every request, not by what the interface chooses to show.
 - **Caching:** API responses are `Cache-Control: no-store`.
 - **Injection:** every SQL statement is parameterised; there is no string-built SQL with user input.
 - **Input validation:** types, enumerations and lengths are validated on the server for every write, independently of
-  the browser.
+  the browser. Request bodies must be JSON objects; path ids must be positive integers, and anything else answers
+  `404`, the same as a missing record, so ids can't be probed. Malformed input gets a `4xx`, never a `500`, and a
+  fuzz test sends wrong shapes and wrong types to every write route as every role to keep it that way.
 - **Errors:** one error shape (`{detail}`); unexpected errors return a generic message and are logged server-side only.
 
 ## AI governance (AIRA)
@@ -88,14 +90,15 @@ server for every request, not by what the interface chooses to show.
 
 ## Verification
 
-`tests/security.test.mjs` is a black-box suite of 15 tests that signs in as different personas and calls the API
+`tests/security.test.mjs` is a black-box suite of 16 tests that signs in as different personas and calls the API
 directly, the way an attacker would: cross-tenant reads and writes, private-draft access within an organisation, role
 escalation, moderator and administrator boundaries, feed payload contents, workspace switching, theme suppression, the
-full publish-and-withdraw flow, invitation reuse, revocation and cross-site writes.
+full publish-and-withdraw flow, invitation reuse, revocation, cross-site writes, and malformed input on every
+write route.
 
 ```bash
 npm run dev            # in one terminal
-npm run test:security  # in another: 15 passing
+npm run test:security  # in another: 16 passing
 ```
 
 ## What is simulated in this build

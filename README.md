@@ -103,7 +103,7 @@ Requirements: Node.js 24.
 ```bash
 npm install
 npm run dev              # http://localhost:3000, creates and seeds an embedded Postgres in ./data
-npm run test:security    # with the dev server running: 15 black-box API security tests
+npm run test:security    # with the dev server running: 16 black-box API security tests
 npm run reset            # wipe local data; it is re-seeded on the next request
 ```
 
