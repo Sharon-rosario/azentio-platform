@@ -56,31 +56,36 @@ export default async function ObservationsPage({ searchParams }: PageProps<"/por
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="text-muted-foreground text-[12px] font-normal">Title</TableHead>
-                {scope === "org" && <TableHead className="text-muted-foreground text-[12px] font-normal">Author</TableHead>}
-                <TableHead className="text-muted-foreground text-[12px] font-normal">Category</TableHead>
-                <TableHead className="text-muted-foreground text-[12px] font-normal">Offering</TableHead>
-                <TableHead className="text-muted-foreground text-[12px] font-normal">Who can see it</TableHead>
-                <TableHead className="text-muted-foreground text-[12px] font-normal">Status</TableHead>
-                <TableHead className="text-muted-foreground text-right text-[12px] font-normal">Updated</TableHead>
+                {scope === "org" && <TableHead className="hidden md:table-cell text-muted-foreground text-[12px] font-normal">Author</TableHead>}
+                <TableHead className="hidden lg:table-cell text-muted-foreground text-[12px] font-normal">Category</TableHead>
+                <TableHead className="hidden lg:table-cell text-muted-foreground text-[12px] font-normal">Offering</TableHead>
+                <TableHead className="hidden sm:table-cell text-muted-foreground text-[12px] font-normal">Who can see it</TableHead>
+                <TableHead className="hidden sm:table-cell text-muted-foreground text-[12px] font-normal">Status</TableHead>
+                <TableHead className="hidden text-right sm:table-cell text-muted-foreground text-[12px] font-normal">Updated</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.map((o) => (
                 <TableRow key={o.id}>
-                  <TableCell className="max-w-[360px] py-3">
+                  <TableCell className="py-3 whitespace-normal sm:max-w-[360px]">
                     <Link
                       href={`/portal/observations/${o.id}`}
-                      className="focus-visible:ring-ring block truncate rounded-sm text-[14px] font-medium outline-none hover:underline focus-visible:ring-2"
+                      className="focus-visible:ring-ring block rounded-sm text-[14px] font-medium outline-none hover:underline focus-visible:ring-2 sm:truncate"
                     >
                       {o.title}
                     </Link>
+                    {/* Phones: the columns below are hidden, so status and audience sit under the title. */}
+                    <div className="mt-1.5 flex flex-wrap gap-1.5 sm:hidden">
+                      <StatusBadge value={o.status} />
+                      <StatusBadge value={o.visibility} />
+                    </div>
                   </TableCell>
-                  {scope === "org" && <TableCell className="text-[13px]">{o.author}</TableCell>}
-                  <TableCell className="text-[13px]">{o.category}</TableCell>
-                  <TableCell className="text-[13px]">{PRODUCT_NAME[o.offering] ?? o.offering}</TableCell>
-                  <TableCell><StatusBadge value={o.visibility} /></TableCell>
-                  <TableCell><StatusBadge value={o.status} /></TableCell>
-                  <TableCell className="text-muted-foreground text-right text-[13px] tabular-nums">{date(o.updated_at)}</TableCell>
+                  {scope === "org" && <TableCell className="hidden text-[13px] md:table-cell">{o.author}</TableCell>}
+                  <TableCell className="hidden text-[13px] lg:table-cell">{o.category}</TableCell>
+                  <TableCell className="hidden text-[13px] lg:table-cell">{PRODUCT_NAME[o.offering] ?? o.offering}</TableCell>
+                  <TableCell className="hidden sm:table-cell"><StatusBadge value={o.visibility} /></TableCell>
+                  <TableCell className="hidden sm:table-cell"><StatusBadge value={o.status} /></TableCell>
+                  <TableCell className="text-muted-foreground hidden text-right text-[13px] tabular-nums sm:table-cell">{date(o.updated_at)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

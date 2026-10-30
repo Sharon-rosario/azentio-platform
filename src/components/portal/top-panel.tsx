@@ -53,7 +53,7 @@ export function TopPanel({ p, unread }: { p: Principal; unread: number }) {
           <UserMenu name={p.name} email={p.email} role={roleLabel} />
         </div>
       </div>
-      <nav aria-label="Portal" className="mx-auto max-w-[1280px] overflow-x-auto overflow-y-hidden px-4 sm:px-6">
+      <nav aria-label="Portal" className="mx-auto max-w-[1280px] overflow-x-auto overflow-y-hidden px-4 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
         <NavLinks items={navFor(p)} />
       </nav>
     </header>
