@@ -1,6 +1,5 @@
 // Small presentational pieces shared by the learning pages. No hooks: usable from server and client components.
 
-import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -51,46 +50,6 @@ export function LinkTabs({ items, label }: { items: { href: string; label: strin
         </Link>
       ))}
     </nav>
-  );
-}
-
-/** A native select styled like the kit's Select trigger, for GET filter forms. */
-export function FilterSelect({
-  name,
-  label,
-  value,
-  allLabel,
-  options,
-}: {
-  name: string;
-  label: string;
-  value?: string;
-  allLabel: string;
-  options: { value: string; label: string }[];
-}) {
-  const id = `filter-${name}`;
-  return (
-    <div className="grid gap-1.5">
-      <label htmlFor={id} className="text-[13px] font-medium">
-        {label}
-      </label>
-      <div className="relative">
-        <select
-          id={id}
-          name={name}
-          defaultValue={value ?? ""}
-          className="border-input bg-card focus-visible:border-ring focus-visible:ring-ring/50 h-10 w-full appearance-none rounded-full border pr-9 pl-4 text-[14px] outline-none focus-visible:ring-3"
-        >
-          <option value="">{allLabel}</option>
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="text-muted-foreground pointer-events-none absolute top-1/2 right-3.5 size-4 -translate-y-1/2" />
-      </div>
-    </div>
   );
 }
 
