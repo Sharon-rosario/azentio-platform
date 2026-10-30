@@ -112,6 +112,8 @@ async function connect(): Promise<Driver> {
       script: async (q) => { await sql.unsafe(q); },
     };
   }
+  // Serverless platforms have a read-only, per-instance filesystem: an embedded database there would lose data.
+  if (process.env.VERCEL) throw new Error("DATABASE_URL is required on Vercel (use the Supabase transaction pooler URI)");
   const { PGlite } = await import("@electric-sql/pglite");
   const dir = join(process.cwd(), "data", "pg");
   mkdirSync(dir, { recursive: true });
