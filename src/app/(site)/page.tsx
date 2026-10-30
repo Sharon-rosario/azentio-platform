@@ -81,6 +81,8 @@ const TESTS = [
   "consent to publish must be an explicit yes: a string like \"false\" is refused",
   "parallel wrong guesses can't get past the five-attempt limit on a sign-in code",
   "a null origin, wrong-typed idea and content fields and a malformed portal id answer 4xx, never a 500",
+  "a withdrawn observation is its author's alone: colleagues get a 404",
+  "revoking a member cancels their pending invitations, so they can't rejoin",
 ];
 
 export default async function Home() {

@@ -91,6 +91,8 @@ server for every request, not by what the interface chooses to show.
   order (case and punctuation aside), with at least five words, and it is saved in the source's own words. There is no
   fuzzy matching: one changed word can reverse a meaning. A summary with no verifiable citation is not saved, and one
   whose evidence was withdrawn or reported while AIRA was reading is refused.
+- **What isn't verified:** the summary's own sentences. Only its quotes are checked against sources, so the prose is
+  labelled as AIRA's and shown beside the quoted evidence; it is input for a product team, not a finding.
 - **Lifecycle:** a summary citing a withdrawn or reported contribution is cleared in the same transaction.
 - **Disclosure:** AI output is labelled in the interface with the model and generation time.
 
@@ -120,7 +122,7 @@ server for every request, not by what the interface chooses to show.
 
 ## Verification
 
-`tests/security.test.mjs` is a black-box suite of 34 tests that signs in as different personas and calls the API
+`tests/security.test.mjs` is a black-box suite of 36 tests that signs in as different personas and calls the API
 directly, the way an attacker would: cross-tenant reads and writes, private-draft access within an organisation, role
 escalation, moderator and administrator boundaries, feed payload contents, workspace switching, theme suppression, the
 full publish-and-withdraw flow, report and versioning edge cases (a withdrawn or superseded copy can't be restored,
@@ -129,7 +131,7 @@ on every write route.
 
 ```bash
 npm run dev            # in one terminal
-npm run test:security  # in another: 34 passing
+npm run test:security  # in another: 36 passing
 ```
 
 ## What is simulated in this build

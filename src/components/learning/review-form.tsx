@@ -49,8 +49,8 @@ export function ReviewForm({
   const [sendBack, setSendBack] = useState<"return" | "reject" | null>(null);
   const form = useForm<z.input<typeof schema>, unknown, z.output<typeof schema>>({
     resolver: zodResolver(schema),
-    // The industry starts general: an exact one can point at the contributor when only a few organisations take part.
-    defaultValues: { ...original, industry: "Financial services", theme: NO_THEME, attribute: false },
+    // Industry and region start general: an exact one can point at the contributor when only a few organisations take part.
+    defaultValues: { ...original, industry: "Financial services", region: "Not disclosed", theme: NO_THEME, attribute: false },
   });
   const busy = form.formState.isSubmitting;
   const [title, body, attribute] = useWatch({ control: form.control, name: ["title", "body", "attribute"] });
@@ -115,7 +115,8 @@ export function ReviewForm({
         <TextareaField form={form} name="body" label="Text" maxLength={4000} rows={8} />
         <div className="grid gap-5 sm:grid-cols-2">
           <TextField form={form} name="period" label="Period" description="Broaden it if it narrows down who wrote it." />
-          <TextField form={form} name="region" label="Region" description="For example a country or a wider region." />
+          <TextField form={form} name="region" label="Region"
+            description={`The organisation's is ${original.region}. Name a wide region only when several organisations share it.`} />
           <TextField form={form} name="industry" label="Industry"
             description={`The organisation's is ${original.industry}. Keep it general unless the organisation is named.`} />
         </div>
