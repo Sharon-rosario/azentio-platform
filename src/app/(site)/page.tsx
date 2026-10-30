@@ -62,6 +62,8 @@ const TESTS = [
   "a sign-in code for a real mailbox is never shown, even in demo mode",
   "clients see an idea's status and public note, never its internal fields",
   "AIRA's input is published shared copies only: theme evidence has no tenant or author data",
+  "the public request form is rate limited per source",
+  "public request fields with the wrong types are refused, never a 500",
 ];
 
 export default async function Home() {

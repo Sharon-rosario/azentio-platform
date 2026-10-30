@@ -34,6 +34,9 @@ function secret(): string {
 }
 
 const hash = (value: string) => createHmac("sha256", secret()).update(value).digest("hex");
+
+/** A keyed, one-way fingerprint (for example of a client IP), so a value can be counted without being stored. */
+export const fingerprint = (value: string) => hash(`fp:${value}`);
 const normalise = (email: string) => email.trim().toLowerCase();
 
 /** Email a one-time code. The response never says whether the address has an account. */

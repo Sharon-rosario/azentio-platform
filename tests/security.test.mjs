@@ -337,3 +337,25 @@ test("AIRA's input is published shared copies only: theme evidence has no tenant
     for (const k of ["org_id", "author_id", "author", "moderator_note", "observation_id", "email"]) assert.equal(k in e, false, `${k} in evidence`);
   }
 });
+
+test("the public request form is rate limited per source", async () => {
+  // At most 5 stored requests per source in 15 minutes. Holds whether or not earlier runs used the window.
+  const statuses = [];
+  for (let i = 0; i < 7; i++) {
+    const r = await call("/api/requests", { method: "POST", body: {
+      kind: "demo", name: "Rate Probe", email: `rate.${Date.now().toString(36)}.${i}@probe.example`, message: "probe" } });
+    statuses.push(r.status);
+    if (r.status === 429) break;
+  }
+  assert.ok(statuses.includes(429), `expected a 429, got ${statuses}`);
+  assert.ok(statuses.filter((s) => s === 200).length <= 5);
+  assert.ok(statuses.every((s) => s === 200 || s === 429), String(statuses));
+});
+
+test("public request fields with the wrong types are refused, never a 500", async () => {
+  for (const body of [{ kind: "demo", name: 123, email: "a@b.example" }, { kind: "hackathon", name: "Ok Name", email: ["x"] },
+    { kind: "demo", name: "Ok Name", email: "a@b.example", company: { x: 1 }, message: 42 }]) {
+    const r = await call("/api/requests", { method: "POST", body });
+    assert.ok(r.status >= 400 && r.status < 500, `${JSON.stringify(body)} -> ${r.status}`);
+  }
+});
