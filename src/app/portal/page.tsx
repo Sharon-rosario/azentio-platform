@@ -69,7 +69,7 @@ export default async function PortalHome() {
         {client ? (
           <Panel title="Your demos" description={`Products ${p.orgName} is entitled to, on synthetic data`}>
             {demos.length ? (
-              <ul className="divide-y border-y">
+              <ul className="-my-3.5 divide-y">
                 {demos.map((d) => (
                   <li key={d.id} className="py-3.5">
                     {d.product && <p className="text-muted-foreground font-mono text-[12px] leading-4">{PRODUCT_NAME[d.product] ?? d.product}</p>}
@@ -84,7 +84,7 @@ export default async function PortalHome() {
           </Panel>
         ) : (
           <Panel title="Internal experiments" description="Prototypes and notes. Not product commitments">
-            <ul className="divide-y border-y">
+            <ul className="-my-3.5 divide-y">
               {experiments.map((d) => (
                 <li key={d.id} className="py-3.5">
                   <p className="text-[15px] leading-6 font-medium">{d.title}</p>
@@ -101,7 +101,7 @@ export default async function PortalHome() {
         <Panel title="Sessions" description={client ? "Invitation-only client sessions" : "Employee broadcasts and recordings"}
           action={<Button variant="ghost" size="sm" render={<Link href="/portal/live" />}>All <ArrowRight /></Button>}>
           {sessions.length ? (
-            <ul className="divide-y border-y">
+            <ul className="-my-3.5 divide-y">
               {sessions.map((s) => (
                 <li key={s.id} className="py-3.5">
                   {s.starts_at && <p className="text-muted-foreground font-mono text-[12px] leading-4 tabular-nums">{date(s.starts_at)}</p>}
@@ -118,7 +118,7 @@ export default async function PortalHome() {
         <Panel title="Improvements" description={client ? "What's happening with ideas from shared learning" : "Linked to approved themes"}
           action={<Button variant="ghost" size="sm" render={<Link href="/portal/ideas" />}>All <ArrowRight /></Button>}>
           {ideas.length ? (
-            <ul className="divide-y border-y">
+            <ul className="-my-3.5 divide-y">
               {ideas.slice(0, 4).map((i) => (
                 <li key={i.id} className="flex items-center justify-between gap-3 py-3.5 text-[15px] leading-6">
                   <span className="min-w-0 truncate">{i.title}</span>

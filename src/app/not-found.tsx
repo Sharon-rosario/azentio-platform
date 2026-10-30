@@ -11,7 +11,7 @@ export default function NotFound() {
       <div className="w-full max-w-[440px] text-center">
         <Mark className="mx-auto size-10" />
         <p className="text-muted-foreground mt-8 text-[13px] tabular-nums">404</p>
-        <h1 className="mt-1 text-[32px] leading-[38px] font-normal tracking-[-0.02em]">This page doesn&apos;t exist</h1>
+        <h1 className="mt-1 text-[32px] leading-[38px] font-semibold tracking-[-0.02em]">This page doesn&apos;t exist</h1>
         <p className="text-muted-foreground mx-auto mt-3 max-w-[22rem] text-[15px] leading-6">
           The link may be old, or the address mistyped. Everything in {appConfig.name} starts from the home page or your portal.
         </p>

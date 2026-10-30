@@ -19,7 +19,7 @@ export function PageHeader({
   return (
     <div className={cn("flex flex-wrap items-end justify-between gap-4", className)}>
       <div className="min-w-0">
-        <h1 className="text-[32px] leading-[38px] font-normal tracking-[-0.02em] text-balance">{title}</h1>
+        <h1 className="text-[30px] leading-[38px] font-semibold tracking-[-0.02em] text-balance">{title}</h1>
         {description && <p className="text-muted-foreground mt-1.5 text-[15px] leading-6">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -27,7 +27,7 @@ export function PageHeader({
   );
 }
 
-/** A ruled section with an optional title row: the base unit of every portal page. Hairline on top, no card. */
+/** A white card with an optional title row: the base surface of every portal page. */
 export function Panel({
   title,
   description,
@@ -44,17 +44,17 @@ export function Panel({
   bodyClassName?: string;
 }) {
   return (
-    <section className={cn("flex flex-col border-t pt-5", className)}>
+    <section className={cn("bg-card shadow-card flex flex-col rounded-2xl border", className)}>
       {(title || action) && (
-        <header className="mb-4 flex items-start justify-between gap-3">
+        <header className="flex items-start justify-between gap-3 border-b px-5 py-4">
           <div className="min-w-0">
-            {title && <h2 className="text-[17px] leading-6 font-medium tracking-[-0.005em]">{title}</h2>}
-            {description && <p className="text-muted-foreground mt-0.5 text-[14px] leading-5">{description}</p>}
+            {title && <h2 className="text-[16px] leading-6 font-semibold tracking-[-0.01em]">{title}</h2>}
+            {description && <p className="text-muted-foreground mt-0.5 text-[13px] leading-5">{description}</p>}
           </div>
           {action}
         </header>
       )}
-      <div className={cn("min-h-0 flex-1", bodyClassName)}>{children}</div>
+      <div className={cn("min-h-0 flex-1 p-5", bodyClassName)}>{children}</div>
     </section>
   );
 }
@@ -74,7 +74,9 @@ export function EmptyState({
 }) {
   return (
     <div className={cn("flex flex-col items-center justify-center gap-1.5 py-10 text-center", className)}>
-      <Icon aria-hidden className="text-muted-foreground mb-1 size-5" strokeWidth={1.5} />
+      <span className="bg-brand-soft text-primary mb-1.5 grid size-10 place-items-center rounded-full">
+        <Icon aria-hidden className="size-[18px]" strokeWidth={1.75} />
+      </span>
       <p className="text-[15px] font-medium">{title}</p>
       {description && <p className="text-muted-foreground max-w-sm text-[14px] leading-5">{description}</p>}
       {action && <div className="mt-2">{action}</div>}
