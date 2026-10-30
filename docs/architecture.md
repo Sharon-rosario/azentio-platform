@@ -58,6 +58,8 @@ other organisations can read, and it carries no tenant id, author or moderator n
 
 ## Contribution lifecycle
 
+The private source (`observations`):
+
 ```mermaid
 stateDiagram-v2
     [*] --> draft: create (private by default)
@@ -68,10 +70,23 @@ stateDiagram-v2
     submitted --> rejected: moderator declines
     published --> submitted: author edits (re-review, no silent widening)
     published --> withdrawn: author withdraws<br/>(feed, search and AI summaries purged)
-    draft --> withdrawn
 ```
 
-A published copy can also be **reported**: it is unpublished (`under_review`) until a moderator restores or removes it.
+The author can withdraw from any state; the diagram shows the one that matters (a live shared copy).
+
+Each publication writes a new reviewed copy (`shared_versions`), numbered per contribution:
+
+```mermaid
+stateDiagram-v2
+    [*] --> published: moderator publishes version n
+    published --> superseded: version n+1 published
+    published --> under_review: a client reports it<br/>(hidden, AI summaries citing it cleared)
+    under_review --> published: moderator restores
+    under_review --> withdrawn: moderator removes
+    published --> withdrawn: author withdraws
+```
+
+Only `published` copies appear in the feed, search, filters, theme counts and AIRA's sources.
 
 ## AIRA synthesis pipeline
 
@@ -114,11 +129,29 @@ src/
   server/            services and the security core (server-only)
     policy.ts        roles, permissions, authorize(), tenant and audience rules
     auth.ts          email codes, sessions, principal, workspaces
+    http.ts          route() wrapper: same-origin check, input parsing, one error shape
+    page.ts          load() for server pages: 401 → sign-in, 403 → explanation, 404 → not found
     learning.ts      contributions, consent, moderation, shared feed, reports, withdrawal
     insights.ts      themes, suppression, AIRA, improvement ideas
-    members.ts       invitations, roles, revocation, audit log
-    content.ts       audience- and entitlement-filtered content
-    db.ts, seed.ts   Postgres data layer and synthetic seed
+    members.ts       invitations, roles, revocation, audit log, notifications
+    content.ts       audience- and entitlement-filtered content, public forms
+    scan.ts          sensitive-content detector (emails, phones, account numbers, PAN, IBAN)
+    evidence.ts      quote verification for AIRA citations
+    llm.ts           schema-constrained model calls, fail closed
+    audit.ts         append-only audit rows and in-app notifications
+    db.ts, seed.ts   Postgres data layer, RLS lockdown and synthetic seed
+  lib/safe-path.ts   same-origin redirect check
   components/        UI (design system in src/app/globals.css)
-tests/security.test.mjs   black-box API security suite
+tests/
+  security.test.mjs  black-box API security suite (16 tests, run against a live server)
+  unit.test.mjs      scanner, quote verification and redirect checks
+docs/
+  adr/               architecture decision records
 ```
+
+## Further reading
+
+- [Architecture decision records](adr/README.md): why the system is shaped this way, one decision per page.
+- [Requirements traceability](requirements-traceability.md): every requirement in the brief, where it's enforced and
+  which test proves it.
+- [SECURITY.md](../SECURITY.md): security model, threat model and known limitations.

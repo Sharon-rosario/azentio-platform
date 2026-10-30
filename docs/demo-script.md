@@ -34,5 +34,9 @@ All accounts and data are synthetic. In demo mode the sign-in code appears on th
 - As the author, withdraw a published contribution: it leaves the feed, search and AI summaries in the same
   transaction.
 - Optional: as `maya@advisory.example`, switch between Kestrel and Harbourline. One organisation at a time.
-- Close on the test suite: `npm run test:security`. Fifteen black-box tests that attack the API directly, run on
-  every pull request in CI.
+- Optional, to show it's enforced on the server and not just hidden: still signed in as Sara, open
+  `/api/observations/<id>` with the id of one of Chen's Kestrel contributions. The answer is `404 Not found`, the same
+  as an id that doesn't exist.
+- Close on the test suite: `npm run test:security`. Sixteen black-box tests that attack the API directly, run on
+  every pull request in CI. [Requirements traceability](requirements-traceability.md) maps each requirement in the
+  brief to the code and the test that proves it.
