@@ -73,14 +73,25 @@ function clean(input: ObsInput) {
     category: pick(input.category, "Category", CATEGORIES), offering: t(input.offering, "Offering", 80),
     period: t(input.period, "Observation period", 60), evidence_type: t(input.evidence_type, "Evidence type", 80),
     confidence: pick(input.confidence, "Confidence", CONFIDENCE),
-    // Saving never shares: community visibility only takes effect through submit + moderation.
-    visibility: pick(input.visibility ?? "private", "Visibility", VISIBILITIES),
   };
+}
+
+/**
+ * Saving never shares. Community visibility is set only by submit (which records the author's consent) and left only
+ * by withdrawal, so create and edit accept "private" or "organisation", and an item already proposed or published to
+ * the community keeps that visibility when edited.
+ */
+function visibilityFor(requested: unknown, current?: Observation["visibility"]): Observation["visibility"] {
+  if (current === "community") return "community";
+  const v = requested ?? current ?? "private";
+  if (v === "community") throw new HttpError(422, "Propose it for the learning community with Submit, which records your permission");
+  if (!VISIBILITIES.includes(v as Observation["visibility"])) throw new HttpError(422, `Visibility must be one of: ${VISIBILITIES.join(", ")}`);
+  return v as Observation["visibility"];
 }
 
 export async function createObservation(p: Principal | null, input: ObsInput) {
   authorize(p, "observations.write");
-  const v = clean(input);
+  const v = { ...clean(input), visibility: visibilityFor(input.visibility) };
   const org = (await one<{ industry: string; region: string }>("select industry, region from organisations where id = ?", p.orgId!))!;
   return await tx(async () => {
     const id = await insert(`insert into observations (org_id,author_id,title,body,category,offering,industry,region,period,
@@ -98,7 +109,7 @@ export async function updateObservation(p: Principal | null, id: number, input: 
   const o = await getObservation(p, id);
   if (!o.mine) throw new HttpError(403, "Only the author can edit this");
   if (!["draft", "returned", "published"].includes(o.status)) throw new HttpError(409, `Can't edit while ${o.status}`);
-  const v = clean({ ...o, ...input });
+  const v = { ...clean({ ...o, ...input }), visibility: visibilityFor(input.visibility, o.visibility) };
   const status = o.status === "published" ? "submitted" : o.status === "returned" ? "draft" : o.status;
   await tx(async () => {
     await run(`update observations set title=?,body=?,category=?,offering=?,period=?,evidence_type=?,confidence=?,visibility=?,status=?,
@@ -137,6 +148,8 @@ export async function withdrawObservation(p: Principal | null, id: number) {
     await run("update observations set status='withdrawn', updated_at=? where id = ?", now(), id);
     const ids = (await all<{ id: number }>("select id from shared_versions where observation_id = ? and status != 'withdrawn'", id)).map((r) => r.id);
     await run("update shared_versions set status='withdrawn', withdrawn_at=? where observation_id = ? and status != 'withdrawn'", now(), id);
+    // Open reports on these copies are moot: nothing is left to restore, so a moderator can't republish by accident.
+    await closeReports(ids, "closed: withdrawn by the author");
     await run("insert into consents (observation_id,purpose,granted,actor_id,at) values (?,?,?,?,?)", id, "publish", 0, p!.userId, now());
     await invalidateSummaries(ids);
     await audit(p!, "observation.withdraw", "observation", id, { shared_versions: ids });
@@ -183,7 +196,11 @@ export async function publish(p: Principal | null, id: number, input: PublishInp
   const attribution = input.attribute && o.consents.attribute ? o.org : null; // opt-in by the author AND the moderator
   await tx(async () => {
     const version = ((await one<{ v: number }>("select coalesce(max(version),0)::int as v from shared_versions where observation_id = ?", id))?.v ?? 0) + 1;
-    await run("update shared_versions set status='superseded' where observation_id = ? and status = 'published'", id);
+    // Every earlier live or reported copy is replaced, so a reported old version can't later be restored beside this one.
+    const replaced = (await all<{ id: number }>("select id from shared_versions where observation_id = ? and status in ('published','under_review')", id)).map((r) => r.id);
+    await run("update shared_versions set status='superseded' where observation_id = ? and status in ('published','under_review')", id);
+    await closeReports(replaced, "closed: superseded by a newer reviewed copy");
+    await invalidateSummaries(replaced);
     const sid = await insert(`insert into shared_versions (observation_id,version,title,body,category,offering,industry,region,period,
       evidence_type,confidence,attribution,theme_id,published_by,published_at) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       id, version, title, bodyText, o.category, o.offering, o.industry, (input.region ?? o.region).trim(),
@@ -252,8 +269,11 @@ export async function report(p: Principal | null, sharedId: number, reason: stri
 
 export async function decideReport(p: Principal | null, reportId: number, decision: "restore" | "remove", note: string) {
   authorize(p, "reports.decide");
-  const r = await one<{ id: number; shared_id: number; status: string }>("select id, shared_id, status from reports where id = ?", reportId);
+  const r = await one<{ id: number; shared_id: number; status: string; shared_status: string }>(
+    "select r.id, r.shared_id, r.status, s.status as shared_status from reports r join shared_versions s on s.id = r.shared_id where r.id = ?", reportId);
   if (!r || r.status !== "open") throw new HttpError(404, "Not found");
+  // Only a copy still held for this review can be restored; a withdrawn or replaced copy must stay down.
+  if (r.shared_status !== "under_review") throw new HttpError(409, "This copy was withdrawn or replaced, so it can't be restored");
   await tx(async () => {
     await run("update reports set status='closed', decision=? where id = ?", `${decision}: ${note.trim()}`, reportId);
     await run("update shared_versions set status=?, withdrawn_at=? where id = ?", decision === "restore" ? "published" : "withdrawn",
@@ -264,6 +284,11 @@ export async function decideReport(p: Principal | null, reportId: number, decisi
     await notify(author.author_id, decision === "restore" ? `"${author.title}" was reviewed and is visible again`
       : `"${author.title}" was removed after a report`, "/portal/observations");
   });
+}
+
+/** Close the open reports on these copies with a recorded reason (called inside the caller's transaction). */
+async function closeReports(sharedIds: number[], decision: string) {
+  for (const sid of sharedIds) await run("update reports set status='closed', decision=? where shared_id = ? and status = 'open'", decision, sid);
 }
 
 /** Any AIRA summary that cited these copies is cleared, so withdrawn or reported material can't live on in it. */
