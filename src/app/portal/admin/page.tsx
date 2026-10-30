@@ -5,9 +5,12 @@ import Link from "next/link";
 import { Banner } from "@/components/banner";
 import { Forbidden } from "@/components/portal/forbidden";
 import { EmptyState, PageHeader, Panel } from "@/components/states";
+import { StatTile } from "@/components/stats";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { dateTime } from "@/lib/format";
-import { auditLog, organisations } from "@/server/members";
+import { cn } from "@/lib/utils";
+import { auditPage, organisations } from "@/server/members";
 import { isForbidden, load } from "@/server/page";
 
 export const metadata: Metadata = { title: "Admin" };
@@ -26,10 +29,25 @@ function compact(detail: string | null) {
   return text === "{}" || text === "null" ? "" : text;
 }
 
-export default async function AdminPage() {
-  const data = await load(async (p) => ({ log: await auditLog(p), orgs: await organisations(p) }), "/portal/admin");
+const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) || undefined;
+
+export default async function AdminPage({ searchParams }: PageProps<"/portal/admin">) {
+  const sp = await searchParams;
+  const data = await load(async (p) => ({
+    audit: await auditPage(p, { area: one(sp.area), page: Number(one(sp.page) ?? 1) }),
+    orgs: await organisations(p),
+  }), "/portal/admin");
   if (isForbidden(data)) return <Forbidden message={data.forbidden} />;
-  const { log, orgs } = data;
+  const { audit, orgs } = data;
+  const log = audit.rows;
+  const areaCount = (a: string) => audit.byArea.find((x) => x.area === a)?.n ?? 0;
+  const href = (q: { area?: string | null; page?: number }) => {
+    const u = new URLSearchParams();
+    if (q.area) u.set("area", q.area);
+    if (q.page && q.page > 1) u.set("page", String(q.page));
+    const qs = u.toString();
+    return `/portal/admin${qs ? `?${qs}` : ""}#audit`;
+  };
 
   return (
     <div className="space-y-6">
@@ -37,6 +55,13 @@ export default async function AdminPage() {
       <Banner tone="info">
         Privileged actions are audited. Administrators can&apos;t read client contributions; that needs moderation rights.
       </Banner>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatTile label="Organisations" value={orgs.length} hint={`${orgs.filter((o) => o.kind === "client").length} client organisations`} />
+        <StatTile label="Active members" value={orgs.reduce((n, o) => n + o.members, 0)} hint="Across every organisation" />
+        <StatTile label="Audited actions" value={audit.byArea.reduce((n, a) => n + a.n, 0)} hint="Written in the same transaction as the change" />
+        <StatTile label="Moderation decisions" value={areaCount("moderation") + areaCount("report")} hint="Publish, return, decline and report outcomes" />
+      </div>
 
       <Panel title="Organisations" description={`${orgs.length} on the portal`}>
         {orgs.length ? (
@@ -73,7 +98,28 @@ export default async function AdminPage() {
         )}
       </Panel>
 
-      <Panel title="Audit log" description={`Most recent ${log.length} entries, newest first.`}>
+      <Panel
+        title={<span id="audit" className="scroll-mt-28">Audit log</span>}
+        description={`${audit.total} ${audit.area ? `"${audit.area}" ` : ""}entries, newest first · page ${audit.page} of ${audit.pages}`}
+      >
+        <nav aria-label="Filter by area" className="-mt-1 mb-4 flex flex-wrap gap-1.5">
+          {[{ area: null as string | null, n: audit.byArea.reduce((n, a) => n + a.n, 0) }, ...audit.byArea].map((a) => {
+            const on = a.area === audit.area;
+            return (
+              <Link
+                key={a.area ?? "all"}
+                href={href({ area: a.area })}
+                aria-current={on ? "page" : undefined}
+                className={cn(
+                  "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[13px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+                  on ? "bg-navy border-navy text-white" : "bg-card hover:bg-muted",
+                )}
+              >
+                {a.area ?? "All"} <span className={cn("tabular-nums", on ? "text-navy-muted" : "text-muted-foreground")}>{a.n}</span>
+              </Link>
+            );
+          })}
+        </nav>
         {log.length ? (
           <Table>
             <TableHeader>
@@ -110,6 +156,19 @@ export default async function AdminPage() {
           </Table>
         ) : (
           <EmptyState icon={ScrollText} title="Nothing audited yet" />
+        )}
+        {audit.pages > 1 && (
+          <div className="mt-4 flex items-center justify-between gap-3 border-t pt-4 text-[13px]">
+            <span className="text-muted-foreground tabular-nums">Page {audit.page} of {audit.pages}</span>
+            <div className="flex gap-2">
+              {audit.page > 1 && (
+                <Button variant="outline" size="sm" render={<Link href={href({ area: audit.area, page: audit.page - 1 })} />}>Newer</Button>
+              )}
+              {audit.page < audit.pages && (
+                <Button variant="outline" size="sm" render={<Link href={href({ area: audit.area, page: audit.page + 1 })} />}>Older</Button>
+              )}
+            </div>
+          </div>
         )}
       </Panel>
     </div>
