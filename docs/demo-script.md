@@ -4,7 +4,7 @@ All accounts and data are synthetic. In demo mode the sign-in code appears on th
 
 ## 1. Public site (30 s)
 
-- Open `/`. Offerings, how governed sharing works, the security model in four points.
+- Open `/`. The products and solutions, how a contribution is shared safely (draft, consent, reviewed copy, three organisations, withdrawal), the test names, and AIRA's quote beside its source.
 - Open `/security`: "every control here is enforced on the server; the overview maps to SECURITY.md".
 
 ## 2. A client contributes (60 s), as `sara@meridianbank.example`
@@ -37,6 +37,6 @@ All accounts and data are synthetic. In demo mode the sign-in code appears on th
 - Optional, to show it's enforced on the server and not just hidden: still signed in as Sara, open
   `/api/observations/<id>` with the id of one of Chen's Kestrel contributions. The answer is `404 Not found`, the same
   as an id that doesn't exist.
-- Close on the test suite: `npm run test:security`. Sixteen black-box tests that attack the API directly, run on
+- Close on the test suite: `npm run test:security`. Thirty-four black-box tests that attack the API directly, run on
   every pull request in CI. [Requirements traceability](requirements-traceability.md) maps each requirement in the
   brief to the code and the test that proves it.

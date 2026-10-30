@@ -134,7 +134,7 @@ still open.
 | Supabase's public API locked: RLS on every table, `anon` grants revoked | `LOCKDOWN` in `src/server/db.ts` |
 | Every state change audited in the same transaction, hash-chained for tamper evidence | `src/server/audit.ts`, `audit-chain.ts`, `tx()` |
 
-30 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
+34 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
 escalation, private drafts, payload contents, withdrawal, revocation, CSRF, malformed input on every write route).
 CI runs them against a production build on every pull request. The threat model (STRIDE), OWASP Top 10 mapping, what is
 simulated and the known limitations are in [SECURITY.md](SECURITY.md).
@@ -150,7 +150,7 @@ npm run dev    # http://localhost:3000: creates and seeds an embedded Postgres i
 | Command | What it does |
 |---|---|
 | `npm test` | Unit tests: sensitive-content scanner, quote verification, redirect checks |
-| `npm run test:security` | With the dev server running: the 30 API security tests |
+| `npm run test:security` | With the dev server running: the 34 API security tests |
 | `npm run typecheck && npm run lint` | Type and lint checks, as in CI |
 | `npm run reset` | Wipe local data; it's re-seeded on the next request |
 

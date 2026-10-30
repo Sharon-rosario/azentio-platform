@@ -76,6 +76,10 @@ const TESTS = [
   "a de-identified copy names no exact industry, and a filter can't single out one organisation",
   "moderation and report fields with the wrong types are refused on real records, never a 500",
   "pages get a nonce-based script policy, fresh per request, and the API allows nothing to run",
+  "an identifier in any published field blocks publication, not just in the title and text",
+  "consent to publish must be an explicit yes: a string like \"false\" is refused",
+  "parallel wrong guesses can't get past the five-attempt limit on a sign-in code",
+  "a null origin, wrong-typed idea and content fields and a malformed portal id answer 4xx, never a 500",
 ];
 
 export default async function Home() {

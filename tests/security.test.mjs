@@ -401,6 +401,65 @@ test("pages get a nonce-based script policy, fresh per request, and the API allo
 });
 
 // Runs last: after every test above has written audit rows, the whole chain must still verify end to end.
+test("an identifier in any published field blocks publication, not just in the title and text", async () => {
+  const chen = await login(CHEN);
+  const omar = await login(OMAR);
+  const created = await call("/api/observations", { cookie: chen, method: "POST", body: {
+    title: `Evidence-field probe ${Date.now().toString(36)}`, body: "Collections dip each monsoon across the book.",
+    category: "Market observation", offering: "sme-credit-decisioning", period: "Q4 2026",
+    evidence_type: "Ask rbi.desk@kestrelfinance.example", confidence: "Medium" } });
+  const id = created.data.id;
+  assert.equal((await call(`/api/observations/${id}/submit`, { cookie: chen, method: "POST", body: { publish: true } })).status, 200);
+  const r = await call(`/api/moderation/${id}`, { cookie: omar, method: "POST", body: { decision: "publish" } });
+  assert.equal(r.status, 422, JSON.stringify(r.data));
+  assert.match(r.data.detail, /email address/);
+  const free = await call("/api/observations", { cookie: chen, method: "POST", body: { title: "Free-text offering", body: "x".repeat(20),
+    category: "Market observation", offering: "a@b.example", period: "Q4 2026", evidence_type: "Review", confidence: "Medium" } });
+  assert.equal(free.status, 422, "the offering is one of the products, never free text");
+});
+
+test("consent to publish must be an explicit yes: a string like \"false\" is refused", async () => {
+  const sara = await login(SARA);
+  const created = await call("/api/observations", { cookie: sara, method: "POST", body: { title: `Consent probe ${Date.now().toString(36)}`,
+    body: "A pattern worth sharing with the community.", category: "Market observation", offering: "riva", period: "Q4 2026",
+    evidence_type: "Review", confidence: "Low" } });
+  const r = await call(`/api/observations/${created.data.id}/submit`, { cookie: sara, method: "POST", body: { publish: "false" } });
+  assert.equal(r.status, 422);
+});
+
+test("parallel wrong guesses can't get past the five-attempt limit on a sign-in code", async () => {
+  const email = `burst.${Date.now().toString(36)}@test.example`;
+  await call("/api/auth/code", { method: "POST", body: { email } });
+  const guesses = await Promise.all(Array.from({ length: 12 }, (_, i) =>
+    call("/api/auth/verify", { method: "POST", body: { email, code: String(100000 + i) } })));
+  const tried = guesses.filter((g) => g.status === 400).length;
+  assert.ok(tried <= 5, `${tried} guesses were checked; the limit is 5`);
+  assert.ok(guesses.every((g) => g.status === 400 || g.status === 429), guesses.map((g) => g.status).join(","));
+});
+
+test("a null origin, wrong-typed idea and content fields and a malformed portal id answer 4xx, never a 500", async () => {
+  const origin = await call("/api/auth/code", { method: "POST", origin: "null", body: { email: "x@test.example" } });
+  assert.equal(origin.status, 403);
+  const priya = await login(PRIYA);
+  for (const body of [{ title: 5, problem: "p", proposed_outcome: "o", owner: "x", theme_id: 1 },
+    { title: "t", problem: ["p"], proposed_outcome: "o", owner: "x", theme_id: 1, priority: 3 }]) {
+    const r = await call("/api/ideas", { cookie: priya, method: "POST", body });
+    assert.ok(r.status >= 400 && r.status < 500, `idea ${JSON.stringify(body)} -> ${r.status}`);
+  }
+  const ideas = (await call("/api/ideas", { cookie: priya })).data;
+  const patch = await call(`/api/ideas/${ideas[0].id}`, { cookie: priya, method: "PATCH", body: { status: "Planned", public_note: 7 } });
+  assert.equal(patch.status, 422);
+  const lena = await login("lena@azentio.com");
+  for (const body of [{ kind: "insight", audience: "public", title: 9, summary: "s" },
+    { kind: "insight", audience: "public", title: "t", summary: "s", product: { x: 1 } }]) {
+    const r = await call("/api/content", { cookie: lena, method: "POST", body });
+    assert.ok(r.status >= 400 && r.status < 500, `content ${JSON.stringify(body)} -> ${r.status}`);
+  }
+  for (const path of ["/portal/observations/abc", "/portal/observations/1e3", "/portal/moderation/abc"]) {
+    assert.equal((await call(path, { cookie: await login(SARA) })).status, 404, path);
+  }
+});
+
 test("the audit log's hash chain verifies end to end after every write in this suite", async () => {
   const html = (await call("/portal/admin", { cookie: await login(ADMIN) })).data;
   assert.match(html, /Hash chain intact: all \d+ entries verified/);
