@@ -41,8 +41,12 @@ server for every request, not by what the interface chooses to show.
 ## Platform hardening
 
 - **CSRF:** `SameSite` cookies plus a same-origin (`Origin` vs `Host`) check on every state-changing API request.
-- **Headers on every response:** Content-Security-Policy (same-origin sources only, `object-src 'none'`,
-  `frame-ancestors 'none'`, `base-uri` and `form-action` restricted), Strict-Transport-Security (2 years, preload),
+- **Content Security Policy:** every page gets a fresh nonce per request (`src/proxy.ts`), and `script-src` allows only
+  `'self'`, that nonce and `'strict-dynamic'`: no `'unsafe-inline'`, so an injected inline script doesn't run. Next.js
+  stamps the nonce on its own scripts during server rendering. Also `object-src 'none'`, `frame-ancestors 'none'`,
+  `base-uri` and `form-action` restricted. Styles keep `'unsafe-inline'` for inline style attributes (far lower risk
+  than scripts). API responses, generated images and files get a static `default-src 'none'` policy.
+- **Other headers on every response:** Strict-Transport-Security (2 years, preload),
   `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`,
   a restrictive `Permissions-Policy`, `Cross-Origin-Opener-Policy: same-origin`; `X-Powered-By` removed.
 - **Caching:** API responses are `Cache-Control: no-store`.
@@ -105,7 +109,7 @@ server for every request, not by what the interface chooses to show.
 |---|---|
 | A01 Broken access control | Deny-by-default `authorize()`, tenant checks returning 404, audience and entitlement filtering, black-box tests |
 | A02 Cryptographic failures | HMAC-SHA-256 code hashing, SHA-256 session-id hashing, HTTPS-only `__Host-` cookies, HSTS |
-| A03 Injection | Parameterised SQL only; CSP limits script and resource origins |
+| A03 Injection | Parameterised SQL only; nonce-based CSP with no inline scripts, so injected markup can't run script |
 | A04 Insecure design | Separate shared representation, consent per purpose, small-cohort suppression, fail-closed AI |
 | A05 Security misconfiguration | Security headers on every response; production refuses to start without `SESSION_SECRET` (or, on Vercel, `DATABASE_URL`); demo features off by default in production; row-level security and revoked grants so a hosted database's auto-generated API exposes nothing |
 | A07 Identification and authentication failures | Single-use expiring codes, attempt limits, server-side sessions, immediate revocation |
@@ -114,7 +118,7 @@ server for every request, not by what the interface chooses to show.
 
 ## Verification
 
-`tests/security.test.mjs` is a black-box suite of 29 tests that signs in as different personas and calls the API
+`tests/security.test.mjs` is a black-box suite of 30 tests that signs in as different personas and calls the API
 directly, the way an attacker would: cross-tenant reads and writes, private-draft access within an organisation, role
 escalation, moderator and administrator boundaries, feed payload contents, workspace switching, theme suppression, the
 full publish-and-withdraw flow, report and versioning edge cases (a withdrawn or superseded copy can't be restored,
@@ -123,7 +127,7 @@ on every write route.
 
 ```bash
 npm run dev            # in one terminal
-npm run test:security  # in another: 29 passing
+npm run test:security  # in another: 30 passing
 ```
 
 ## What is simulated in this build
@@ -139,7 +143,7 @@ npm run test:security  # in another: 29 passing
 
 ## Known limitations and next steps
 
-- `script-src` allows `'unsafe-inline'` for Next.js hydration; a nonce-based CSP via middleware is the next hardening step.
+- `style-src` allows `'unsafe-inline'` for inline style attributes; scripts are nonce-only.
 - Rate limits live in the database (per address for sign-in, per source and address for public forms); at production
   scale, add limiting at the edge as well.
 - The sensitive-content scanner is pattern-based; pair it with a named-entity model before broad rollout.

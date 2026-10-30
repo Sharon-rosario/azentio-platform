@@ -67,6 +67,7 @@ const TESTS = [
   "the audit log's hash chain verifies end to end after every write in this suite",
   "a de-identified copy names no exact industry, and a filter can't single out one organisation",
   "moderation and report fields with the wrong types are refused on real records, never a 500",
+  "pages get a nonce-based script policy, fresh per request, and the API allows nothing to run",
 ];
 
 export default async function Home() {

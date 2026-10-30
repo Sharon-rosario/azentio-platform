@@ -65,7 +65,7 @@ const SECTIONS: Section[] = [
     title: "Platform hardening",
     lead: "Defence in depth on every response.",
     points: [
-      <>A <b>Content Security Policy</b> that allows same-origin resources only (inline scripts are still permitted for Next.js hydration), with <code>frame-ancestors &apos;none&apos;</code> so no other site can frame the portal.</>,
+      <>A <b>Content Security Policy</b> with a fresh nonce on every page: only scripts carrying it run, so an injected inline script doesn&apos;t, and <code>frame-ancestors &apos;none&apos;</code> means no other site can frame the portal.</>,
       <><b>HSTS</b>, <code>X-Content-Type-Options: nosniff</code>, a strict referrer policy, and a permissions policy that turns off camera, microphone, location and payment APIs.</>,
       <>API responses are sent with <code>Cache-Control: no-store</code>, so browsers and proxies don&apos;t keep personal data.</>,
       <>Every write is checked for a <b>same-origin</b> request, which together with the SameSite cookie blocks cross-site request forgery.</>,

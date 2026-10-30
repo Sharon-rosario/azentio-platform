@@ -388,6 +388,18 @@ test("moderation and report fields with the wrong types are refused on real reco
   assert.ok(r.status >= 400 && r.status < 500, `report -> ${r.status}`);
 });
 
+test("pages get a nonce-based script policy, fresh per request, and the API allows nothing to run", async () => {
+  const csp = async (path) => (await fetch(BASE + path)).headers.get("content-security-policy") ?? "";
+  const [a, b] = [await csp("/"), await csp("/")];
+  const script = a.split(";").find((d) => d.trim().startsWith("script-src")) ?? "";
+  assert.match(script, /'nonce-[A-Za-z0-9+/=]+'/);
+  assert.match(script, /'strict-dynamic'/);
+  assert.doesNotMatch(script, /'unsafe-inline'/, "no inline scripts without the nonce");
+  assert.notEqual(a.match(/'nonce-([^']+)'/)[1], b.match(/'nonce-([^']+)'/)[1], "a new nonce on every request");
+  assert.match(a, /frame-ancestors 'none'/);
+  assert.match(await csp("/api/content"), /default-src 'none'/);
+});
+
 // Runs last: after every test above has written audit rows, the whole chain must still verify end to end.
 test("the audit log's hash chain verifies end to end after every write in this suite", async () => {
   const html = (await call("/portal/admin", { cookie: await login(ADMIN) })).data;
