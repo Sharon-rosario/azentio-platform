@@ -30,12 +30,22 @@ export function route<C = Record<string, string>>(handler: Handler<C>) {
   };
 }
 
+/** The request's JSON body. Anything other than a JSON object (null, an array, a bare string) is refused with 400. */
 export async function body<T = Record<string, unknown>>(req: Request): Promise<T> {
+  let parsed: unknown;
   try {
-    return (await req.json()) as T;
+    parsed = await req.json();
   } catch {
     throw new HttpError(400, "Send a JSON body");
   }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) throw new HttpError(400, "Send a JSON object");
+  return parsed as T;
+}
+
+/** A numeric path id. Anything else answers 404, the same as a record that doesn't exist, so ids can't be probed. */
+export function id(raw: string): number {
+  if (!/^[1-9]\d{0,9}$/.test(raw) || Number(raw) > 2_147_483_647) throw new HttpError(404, "Not found");
+  return Number(raw);
 }
 
 /** Trimmed string with a length limit, checked on the server (the client checks too, but that's for convenience). */
