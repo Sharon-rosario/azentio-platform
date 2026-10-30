@@ -1,11 +1,7 @@
 import type { MetadataRoute } from "next";
 
-import { siteUrl } from "@/config/app";
-
-// Public pages may be indexed; signed-in and machine surfaces may not.
+// No crawling at all: this is a hackathon prototype that uses Azentio's real name and logo, so it must not appear in
+// search results next to azentio.com. Every page also carries a noindex meta tag (app/layout.tsx).
 export default function robots(): MetadataRoute.Robots {
-  return {
-    rules: { userAgent: "*", allow: "/", disallow: ["/portal", "/api", "/login", "/invite"] },
-    sitemap: `${siteUrl()}/sitemap.xml`,
-  };
+  return { rules: { userAgent: "*", disallow: "/" } };
 }

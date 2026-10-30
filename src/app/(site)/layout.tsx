@@ -79,8 +79,9 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
         </div>
         <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
           <p className="text-navy-muted border-t border-white/10 py-6 text-[12px] leading-4">
-            Built for the azentio.ai Build Labs challenge. Every organisation, person and figure on this site and in the
-            portal is synthetic.
+            Hackathon prototype built for the Azentio.ai Build Labs challenge; not an official Azentio website. Every
+            organisation, person and figure on this site and in the portal is synthetic. The Azentio name and logo belong
+            to Azentio Software and are used at the organiser&apos;s request for this challenge.
           </p>
         </div>
       </footer>
