@@ -6,7 +6,7 @@ export const appConfig = {
 };
 
 /**
- * The public origin, for absolute URLs in link previews, robots.txt and the sitemap. NEXT_PUBLIC_SITE_URL wins;
+ * The public origin, for absolute URLs in link previews. NEXT_PUBLIC_SITE_URL wins;
  * on Vercel the production domain is used; locally, localhost.
  */
 export function siteUrl(): string {

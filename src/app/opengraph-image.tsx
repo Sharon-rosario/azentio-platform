@@ -1,6 +1,9 @@
 import { ImageResponse } from "next/og";
 
-// The one link-preview image for every URL (WhatsApp, Slack, LinkedIn, X): calm, in Azentio's brand colours.
+import { AZENTIO_GREEN, LEAF } from "@/components/brand";
+
+// The one link-preview image for every URL (WhatsApp, Slack, LinkedIn, X): calm, in Azentio's brand colours, with
+// Azentio's leaf and a plain note that this is a hackathon prototype, not Azentio's own site.
 export const alt = "azentio.ai: banks learn from each other, nobody sees who said what";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -15,7 +18,9 @@ export default function OpenGraphImage() {
 
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           <div style={{ width: 56, height: 56, borderRadius: 16, background: "#1d3d4d", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ width: 22, height: 22, borderRadius: 11, background: "#55ffbe" }} />
+            <svg width="26" height="33" viewBox="141.3 -0.2 23.7 29.8" fill={AZENTIO_GREEN}>
+              {LEAF.map((d) => <path key={d} d={d} />)}
+            </svg>
           </div>
           <div style={{ display: "flex", fontSize: 36 }}>
             <span>azentio</span>
@@ -31,10 +36,15 @@ export default function OpenGraphImage() {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 14, fontSize: 22, color: "#b7c9d1" }}>
-          {["Private by default", "Consent per purpose", "De-identified copies", "Verified AI quotes"].map((t) => (
-            <div key={t} style={{ display: "flex", padding: "10px 20px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.18)" }}>{t}</div>
-          ))}
+        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+          <div style={{ display: "flex", gap: 14, fontSize: 22, color: "#b7c9d1" }}>
+            {["Private by default", "Consent per purpose", "De-identified copies", "Verified AI quotes"].map((t) => (
+              <div key={t} style={{ display: "flex", padding: "10px 20px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.18)" }}>{t}</div>
+            ))}
+          </div>
+          <div style={{ display: "flex", fontSize: 20, color: "#8fa6b2" }}>
+            Hackathon prototype for the Azentio.ai Build Labs challenge. Not an official Azentio website.
+          </div>
         </div>
       </div>
     ),

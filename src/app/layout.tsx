@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Poppins } from "next/font/google";
 
+import { PrototypeNotice } from "@/components/prototype-notice";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { appConfig, siteUrl } from "@/config/app";
@@ -31,12 +32,15 @@ export const metadata: Metadata = {
   // The preview image comes from app/opengraph-image.tsx and applies to every URL.
   openGraph: { type: "website", siteName: appConfig.name, title: appConfig.name, description, locale: "en_IN" },
   twitter: { card: "summary_large_image", title: appConfig.name, description },
+  // A prototype that carries Azentio's real brand stays out of search results, so it never competes with azentio.com.
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${poppins.variable} ${plexMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
+        <PrototypeNotice />
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster />
       </body>

@@ -193,3 +193,10 @@ docs/                architecture, demo script, decision records, requirements t
 AIRA is Anthropic's Claude, used only to summarise approved, de-identified contributions. Its output is labelled,
 grounded in verified quotes and never drives an action. This codebase was built with the help of AI coding tools
 (Claude Code), as the challenge rules allow.
+
+## Brand and prototype notice
+
+This is a hackathon prototype for the Azentio.ai Build Labs challenge, not an official Azentio website. The Azentio name
+and logo belong to Azentio Software and are used at the organiser's request: the challenge asks teams to follow
+Azentio's branding and visual identity. Every page says it's a prototype, the deployment asks search engines not to
+index it, and all organisations, people and figures in it are synthetic.
