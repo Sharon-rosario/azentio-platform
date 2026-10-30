@@ -359,3 +359,9 @@ test("public request fields with the wrong types are refused, never a 500", asyn
     assert.ok(r.status >= 400 && r.status < 500, `${JSON.stringify(body)} -> ${r.status}`);
   }
 });
+
+// Runs last: after every test above has written audit rows, the whole chain must still verify end to end.
+test("the audit log's hash chain verifies end to end after every write in this suite", async () => {
+  const html = (await call("/portal/admin", { cookie: await login(ADMIN) })).data;
+  assert.match(html, /Hash chain intact: all \d+ entries verified/);
+});
