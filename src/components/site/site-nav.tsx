@@ -10,7 +10,9 @@ export const SITE_NAV = [
   { href: "/solutions", label: "Solutions" },
   { href: "/security", label: "Security" },
   { href: "/insights", label: "Insights" },
+  { href: "/media", label: "Media" },
   { href: "/hackathon/register", label: "Hackathons", match: "/hackathon" },
+  { href: "/about", label: "About" },
 ];
 
 /** Public site navigation: plain text links, the current page underlined. Scrolls sideways on small screens. */
