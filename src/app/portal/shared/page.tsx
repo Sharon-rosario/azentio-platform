@@ -2,7 +2,7 @@ import { Search, SearchX } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { FilterSelect } from "@/components/learning/bits";
+import { FilterSelect } from "@/components/learning/filter-select";
 import { ReportButton } from "@/components/learning/report-actions";
 import { Forbidden } from "@/components/portal/forbidden";
 import { EmptyState, PageHeader, Panel } from "@/components/states";
@@ -39,7 +39,7 @@ export default async function SharedPage({ searchParams }: PageProps<"/portal/sh
       />
 
       <Panel>
-        <form method="get" className="grid grid-cols-2 gap-3 lg:grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))_auto] lg:items-end">
+        <form method="get" className="grid grid-cols-2 gap-3 lg:grid-cols-[minmax(0,1.6fr)_repeat(5,minmax(0,1fr))_auto] lg:items-end">
           <div className="col-span-2 grid gap-1.5 lg:col-span-1">
             <label htmlFor="filter-q" className="text-[13px] font-medium">Search</label>
             <div className="relative">
