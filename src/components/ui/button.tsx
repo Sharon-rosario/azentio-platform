@@ -2,7 +2,7 @@ import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Loader2Icon } from "lucide-react"
 import Link from "next/link"
-import { isValidElement } from "react"
+import { cloneElement, isValidElement, type ReactElement } from "react"
 import { cn } from "cn"
 
 // Pill buttons. Primary is the one mint action per view (mint fill, navy text; see src/app/theme.css).
@@ -53,16 +53,24 @@ function Button({
     /** Spinner in place of the leading icon, disabled, and announced as busy. */
     loading?: boolean
   }) {
+  // Rendered as a link (<Link> or <a>): the link itself with the button's look. It stays a link for assistive tech
+  // (Base UI would add role="button" to a non-button element), so it's announced as one and opens like one.
+  const { render, ...rest } = props
+  if (isValidElement<{ className?: string }>(render) && rendersLink(render)) {
+    return cloneElement(
+      render as ReactElement<Record<string, unknown>>,
+      { ...rest, "data-slot": "button", className: cn(buttonVariants({ variant, size, className }), render.props.className) },
+      children
+    )
+  }
   return (
     <ButtonPrimitive
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }), loading && "[&>svg:first-child:not(.spin)]:hidden")}
-      // Rendered as a link (<Link> or <a>): link semantics, not button ones. Anything else that
-      // renders its own <button> (e.g. a combobox trigger) keeps Base UI's default.
-      nativeButton={rendersLink(props.render) ? false : undefined}
+      render={render}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      {...props}
+      {...rest}
     >
       {loading && <Loader2Icon className="spin animate-spin" aria-hidden />}
       {children}
