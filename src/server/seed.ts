@@ -1,3 +1,5 @@
+import { SAMPLES, sampleText } from "@/lib/sample-observations";
+
 type Exec = (sql: string, params: unknown[]) => Promise<Record<string, unknown>[]>;
 
 // Synthetic data only (the brief: "Use synthetic data throughout"). Three fictional client organisations, so the
@@ -178,6 +180,26 @@ export async function seed(exec: Exec) {
         org === "kestrel" ? o[1] : null,
         theme, moderator, at(15 - i));
       await log(at(15 - i), "omar@azentio.com", "moderation.publish", "observation", id, { version: 1, attribution: org === "kestrel" });
+    }
+  }
+
+  // Demo only (DEMO_QUEUE=25 in a local .env): a busy week's queue, so autonomous moderation has something to work through.
+  // Off by default, so tests, CI and the deployed site keep the normal seed.
+  const queued = Math.min(Number(process.env.DEMO_QUEUE) || 0, 60);
+  const writers: [string, string][] = [["meridian", "sara@meridianbank.example"], ["kestrel", "chen@kestrelfinance.example"],
+    ["harbourline", "amina@harbourline.example"], ["meridian", "ravi@meridianbank.example"], ["kestrel", "anil@kestrelfinance.example"]];
+  for (let i = 0; i < queued; i++) {
+    const [org, author] = writers[i % writers.length];
+    const o = ORGS.find((x) => x[0] === org)!;
+    const sample = SAMPLES[i % SAMPLES.length];
+    const when = new Date(Date.now() - (queued - i) * 7 * 60_000).toISOString();
+    const id = Number((await ins(`insert into observations (org_id,author_id,title,body,category,offering,industry,region,period,
+      evidence_type,confidence,visibility,status,created_at,updated_at) values (?,?,?,?,?,?,?,?,?,?,?,'community','submitted',?,?)`,
+      orgId[org], userId[author], sample.title, sampleText(sample.body, org), sample.category, sample.offering, o[3], o[4],
+      sample.period, sampleText(sample.evidence, org), "Medium", when, when)).lastInsertRowid);
+    await log(when, author, "observation.submit", "observation", id, { consents: { publish: true } });
+    for (const [purpose, granted] of [["store", 1], ["publish", 1], ["attribute", 0], ["train", 0]] as const) {
+      await ins("insert into consents (observation_id,purpose,granted,actor_id,at) values (?,?,?,?,?)", id, purpose, granted, userId[author], when);
     }
   }
 

@@ -145,7 +145,7 @@ src/
   lib/safe-path.ts   same-origin redirect check
   components/        UI (design system in src/app/globals.css)
 tests/
-  security.test.mjs  black-box API security suite (44 tests, run against a live server)
+  security.test.mjs  black-box API security suite (45 tests, run against a live server)
   unit.test.mjs      scanner, quote verification and redirect checks
 docs/
   adr/               architecture decision records

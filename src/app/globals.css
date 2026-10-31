@@ -239,3 +239,21 @@
 body {
   overflow-x: clip;
 }
+
+/* Autonomous moderation: work flowing between pipeline stages, and rows arriving. */
+.ap-flow {
+  background: repeating-linear-gradient(90deg, #2ed88e 0 6px, transparent 6px 12px);
+  background-size: 24px 2px;
+  animation: ap-flow 0.7s linear infinite;
+}
+@keyframes ap-flow {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 24px 0;
+  }
+}
+.ap-row {
+  animation: az-in 0.35s ease-out both;
+}

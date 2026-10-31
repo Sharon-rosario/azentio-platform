@@ -2,6 +2,7 @@ import { ArrowRight, Flag, ShieldCheck, TriangleAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { Autopilot } from "@/components/learning/autopilot";
 import { ReportDecision } from "@/components/learning/report-actions";
 import { Forbidden } from "@/components/portal/forbidden";
 import { EmptyState, PageHeader, Panel } from "@/components/states";
@@ -10,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { date, dateTime } from "@/lib/format";
 import { PRODUCT_NAME } from "@/lib/products";
 import { cn } from "@/lib/utils";
-import { getPrincipal } from "@/server/auth";
+import { DEMO_MODE, getPrincipal } from "@/server/auth";
 import { moderationQueue } from "@/server/learning";
 import { isForbidden, load } from "@/server/page";
 import { can } from "@/server/policy";
@@ -29,6 +30,8 @@ export default async function ModerationPage() {
         title="Moderation"
         description="Only contributions proposed for the learning community reach this queue. Private and organisation-only drafts never do."
       />
+
+      <Autopilot demo={DEMO_MODE} queued={q.items.length} />
 
       <Panel
         title="Waiting for review"

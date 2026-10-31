@@ -626,6 +626,15 @@ test("public demo requests and hackathon registrations are readable by the porta
   if (sent.status === 200) assert.ok(r.data.some((x) => x.email === email && x.kind === "hackathon"));
 });
 
+test("autonomous moderation and the queue simulator are for moderators only", async () => {
+  for (const [method, path, body] of [["POST", "/api/moderation/6/auto", {}], ["POST", "/api/moderation/simulate", { count: 1 }]]) {
+    assert.equal((await call(path, { method, body })).status, 401, `${path} signed out`);
+    for (const who of [SARA, CHEN, ADMIN, DEV, PRIYA]) {
+      assert.equal((await call(path, { method, body, cookie: await login(who) })).status, 403, `${path} as ${who}`);
+    }
+  }
+});
+
 test("the audit log's hash chain verifies end to end after every write in this suite", async () => {
   const html = (await call("/portal/admin", { cookie: await login(ADMIN) })).data;
   assert.match(html, /Hash chain intact: all \d+ entries verified/);

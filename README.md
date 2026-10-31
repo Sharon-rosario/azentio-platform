@@ -28,7 +28,7 @@ shared learning that improves Azentio's products.**
 </p>
 
 <p>
-  <a href="tests/security.test.mjs"><img alt="API security tests: 44 passing" src="https://img.shields.io/badge/API_security_tests-44_passing-2ed88e?style=flat-square"></a>
+  <a href="tests/security.test.mjs"><img alt="API security tests: 45 passing" src="https://img.shields.io/badge/API_security_tests-45_passing-2ed88e?style=flat-square"></a>
   <a href="tests/unit.test.mjs"><img alt="Unit tests: 9 passing" src="https://img.shields.io/badge/unit_tests-9_passing-2ed88e?style=flat-square"></a>
   <a href=".github/workflows/ci.yml"><img alt="CI on every pull request" src="https://img.shields.io/badge/CI-every_pull_request-16303d?style=flat-square&logo=githubactions&logoColor=white"></a>
   <img alt="Built at Azentio.ai Build Labs 2026" src="https://img.shields.io/badge/built_at-Azentio.ai_Build_Labs_2026-55ffbe?style=flat-square&labelColor=16303d">
@@ -88,6 +88,7 @@ everyone can check that the server enforces every rule. Even Azentio's portal ad
 | 🪪 **The shared copy is a different record** | Moderators publish a reviewed copy with no tenant, author or notes in it, and the region and industry start general. Publication is blocked while any field still holds an email, phone, account number, PAN or IBAN, and one click on **Remove identifiers with AIRA** rewrites the copy without names and disguised details the patterns can't see. The rewrite is checked before it's shown (none of the found identifiers left, nothing the scanner flags), and the moderator reads it beside the original, can undo, and still decides to publish. |
 | 🧹 **Withdrawal means gone** | Withdrawing removes the contribution from the feed, search, filters and every AIRA summary of its theme, in one transaction. The retention policy and withdrawal SLA are in [SECURITY.md](SECURITY.md#data-retention-and-withdrawal). |
 | 👥 **Small numbers stay hidden** | A theme needs contributions from at least three distinct organisations before any count, evidence or summary is shown, and a filter value is only offered once it covers that many. |
+| ⚡ **Built for 3,000 clients** | Autonomous mode lets AIRA, the same agent everywhere, work through the whole moderation queue in seconds. It publishes only what it can make anonymous and holds the rest for a person. |
 | 🤖 **AI that can only say what the evidence shows** | AIRA summarises approved copies only, answers in a validated schema, and every quote must appear word for word in its source (no fuzzy matching). A summary that can't be backed, or whose evidence changed while AIRA was reading, is thrown away. |
 
 ## See it
@@ -206,7 +207,7 @@ still open.
 
 </details>
 
-44 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
+45 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
 escalation, private drafts, payload contents, withdrawal, revocation, CSRF, malformed input on every write route).
 CI runs them against a production build on every pull request. The threat model (STRIDE), OWASP Top 10 mapping, what is
 simulated and the known limitations are in [SECURITY.md](SECURITY.md).
@@ -230,7 +231,7 @@ npm run dev    # http://localhost:3000: creates and seeds an embedded Postgres i
 | Command | What it does |
 |---|---|
 | `npm test` | Unit tests: sensitive-content scanner, verbatim quote check, AI finding check, identifier removal, redirect checks, session idle timeout, audit hash chain |
-| `npm run test:security` | With the dev server running: the 44 API security tests |
+| `npm run test:security` | With the dev server running: the 45 API security tests |
 | `npm run attack` | Fifteen common attacks against the live site (or `npm run attack -- http://localhost:3000`), each reported as blocked or not |
 | `npm run typecheck && npm run lint` | Type and lint checks, as in CI |
 | `npm run reset` | Wipe local data; it's re-seeded on the next request |

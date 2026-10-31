@@ -154,6 +154,11 @@ server for every request, not by what the interface chooses to show.
   result lands in the moderator's editable copy, with every finding listed and an Undo; nothing is published until the
   moderator chooses Publish, and the scanner still blocks publication. A rewrite can still word a fact differently,
   which is why the moderator reads it beside the author's original before publishing.
+- **Autonomous moderation:** for a queue too long to read one by one, AIRA reviews every waiting contribution in parallel
+  (`autopilot.ts`, `moderation.review` only). An item is published only through the moderator's own `publish()`
+  (consent, scanner on every published field, row lock, audit), and only with AIRA's checked rewrite, or the author's
+  words when AIRA found nothing. AIRA unavailable, a failed rewrite or a publish refusal holds the item for a person;
+  nothing is declined or deleted automatically. The queue simulator that fills the queue for demos works in demo mode only.
 
 ## Threat model (STRIDE)
 
@@ -181,7 +186,7 @@ server for every request, not by what the interface chooses to show.
 
 ## Verification
 
-`tests/security.test.mjs` is a black-box suite of 44 tests that signs in as different personas and calls the API
+`tests/security.test.mjs` is a black-box suite of 45 tests that signs in as different personas and calls the API
 directly, the way an attacker would: cross-tenant reads and writes, private-draft access within an organisation, role
 escalation, moderator and administrator boundaries, feed payload contents, workspace switching, theme suppression, the
 full publish-and-withdraw flow, report and versioning edge cases (a withdrawn or superseded copy can't be restored,
@@ -196,7 +201,7 @@ and a forged session.
 
 ```bash
 npm run dev            # in one terminal
-npm run test:security  # in another: 44 passing
+npm run test:security  # in another: 45 passing
 npm run attack         # the live site: 15 of 15 attacks blocked
 ```
 
