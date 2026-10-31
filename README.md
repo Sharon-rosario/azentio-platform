@@ -175,7 +175,7 @@ still open.
 | Retention policy and withdrawal SLA; expired codes and sessions purged | [SECURITY.md](SECURITY.md#data-retention-and-withdrawal), `purgeExpired()` |
 | Locked installs, actions pinned to SHAs, CI fails on high advisories, Dependabot security updates | [SECURITY.md](SECURITY.md#supply-chain), `.github/workflows/ci.yml` |
 
-43 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
+44 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
 escalation, private drafts, payload contents, withdrawal, revocation, CSRF, malformed input on every write route).
 CI runs them against a production build on every pull request. The threat model (STRIDE), OWASP Top 10 mapping, what is
 simulated and the known limitations are in [SECURITY.md](SECURITY.md).
@@ -195,7 +195,7 @@ npm run dev    # http://localhost:3000: creates and seeds an embedded Postgres i
 | Command | What it does |
 |---|---|
 | `npm test` | Unit tests: sensitive-content scanner, verbatim quote check, redirect checks, session idle timeout, audit hash chain |
-| `npm run test:security` | With the dev server running: the 43 API security tests |
+| `npm run test:security` | With the dev server running: the 44 API security tests |
 | `npm run attack` | Fifteen common attacks against the live site (or `npm run attack -- http://localhost:3000`), each reported as blocked or not |
 | `npm run typecheck && npm run lint` | Type and lint checks, as in CI |
 | `npm run reset` | Wipe local data; it's re-seeded on the next request |

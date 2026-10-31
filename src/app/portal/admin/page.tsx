@@ -1,4 +1,4 @@
-import { Building2, ScrollText, ShieldAlert, ShieldCheck } from "lucide-react";
+import { Building2, Inbox, ScrollText, ShieldAlert, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { dateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { listRequests } from "@/server/content";
 import { auditPage, organisations, verifyAudit } from "@/server/members";
 import { isForbidden, load } from "@/server/page";
 
@@ -37,9 +38,10 @@ export default async function AdminPage({ searchParams }: PageProps<"/portal/adm
     audit: await auditPage(p, { area: one(sp.area), page: Number(one(sp.page) ?? 1) }),
     chain: await verifyAudit(p),
     orgs: await organisations(p),
+    requests: await listRequests(p),
   }), "/portal/admin");
   if (isForbidden(data)) return <Forbidden message={data.forbidden} />;
-  const { audit, orgs, chain } = data;
+  const { audit, orgs, chain, requests } = data;
   const log = audit.rows;
   const areaCount = (a: string) => audit.byArea.find((x) => x.area === a)?.n ?? 0;
   const href = (q: { area?: string | null; page?: number }) => {
@@ -52,7 +54,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/portal/adm
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Administration" description="Organisations on the portal and the audit log of privileged actions." />
+      <PageHeader title="Administration" description="Organisations on the portal, public requests and the audit log of privileged actions." />
       <Banner tone="info">
         Privileged actions are audited. Administrators can&apos;t read client contributions; that needs moderation rights.
       </Banner>
@@ -96,6 +98,47 @@ export default async function AdminPage({ searchParams }: PageProps<"/portal/adm
           </Table>
         ) : (
           <EmptyState icon={Building2} title="No organisations yet" />
+        )}
+      </Panel>
+
+      <Panel
+        title={<span id="requests" className="scroll-mt-28">Demo requests and hackathon registrations</span>}
+        description={`${requests.length} from the public forms, newest first. Shown to the portal administrator for now, until an events team owns them.`}
+      >
+        {requests.length ? (
+          <Table>
+            <TableHeader>
+              <TableRow className="text-[12px] hover:bg-transparent">
+                <TableHead className="text-muted-foreground font-normal">Received</TableHead>
+                <TableHead className="text-muted-foreground font-normal">Type</TableHead>
+                <TableHead className="text-muted-foreground font-normal">Name</TableHead>
+                <TableHead className="text-muted-foreground font-normal">Email</TableHead>
+                <TableHead className="text-muted-foreground font-normal">Company</TableHead>
+                <TableHead className="text-muted-foreground font-normal">Message</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {requests.map((r) => (
+                <TableRow key={r.id} className="text-[13px]">
+                  <TableCell className="text-muted-foreground tabular-nums">{dateTime(r.created_at)}</TableCell>
+                  <TableCell>
+                    <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-[12px]",
+                      r.kind === "hackathon" ? "border-primary/30 text-primary" : "text-muted-foreground")}>
+                      {r.kind === "hackathon" ? "Hackathon" : "Demo"}
+                    </span>
+                  </TableCell>
+                  <TableCell className="font-medium">{r.name}</TableCell>
+                  <TableCell>{r.email}</TableCell>
+                  <TableCell>{r.company || "—"}</TableCell>
+                  <TableCell className="max-w-[24rem]">
+                    <span title={r.message ?? undefined} className="text-muted-foreground block truncate">{r.message || "—"}</span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <EmptyState icon={Inbox} title="No requests yet" />
         )}
       </Panel>
 

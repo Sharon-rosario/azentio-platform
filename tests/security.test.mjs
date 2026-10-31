@@ -42,7 +42,7 @@ const PRIYA = "priya@azentio.com"; // product owner
 test("signed out: only public content, everything else refused", async () => {
   const content = (await call("/api/content")).data;
   assert.ok(content.length > 0 && content.every((c) => c.audience === "public"));
-  for (const path of ["/api/shared", "/api/observations", "/api/themes", "/api/moderation", "/api/admin/audit", "/api/members"]) {
+  for (const path of ["/api/shared", "/api/observations", "/api/themes", "/api/moderation", "/api/admin/audit", "/api/admin/requests", "/api/members"]) {
     assert.equal((await call(path)).status, 401, path);
   }
 });
@@ -600,6 +600,21 @@ test("signing in doesn't reveal whether an address has an account", async () => 
   const unknown = await call("/api/auth/code", { method: "POST", body: { email: `nobody.${Date.now().toString(36)}@test.example` } });
   assert.equal(known.status, unknown.status);
   assert.deepEqual(known.data, unknown.data, "the same answer for an account and a stranger");
+});
+
+test("public demo requests and hackathon registrations are readable by the portal admin only", async () => {
+  const email = `hack.${Date.now().toString(36)}@probe.example`;
+  // The rate-limit test may already have used this source's window; the read check below holds either way.
+  const sent = await call("/api/requests", { method: "POST", body: { kind: "hackathon", name: "Inbox Probe", email, message: "probe" } });
+  assert.ok(sent.status === 200 || sent.status === 429, String(sent.status));
+  assert.equal((await call("/api/admin/requests")).status, 401);
+  for (const who of [SARA, RAVI, CHEN, OMAR, PRIYA, DEV]) {
+    assert.equal((await call("/api/admin/requests", { cookie: await login(who) })).status, 403, who);
+  }
+  const r = await call("/api/admin/requests", { cookie: await login(ADMIN) });
+  assert.equal(r.status, 200);
+  assert.ok(r.data.every((x) => x.kind === "demo" || x.kind === "hackathon") && !r.data.some((x) => "source_hash" in x));
+  if (sent.status === 200) assert.ok(r.data.some((x) => x.email === email && x.kind === "hackathon"));
 });
 
 test("the audit log's hash chain verifies end to end after every write in this suite", async () => {
