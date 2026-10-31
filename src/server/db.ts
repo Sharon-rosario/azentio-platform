@@ -1,6 +1,7 @@
 import "server-only";
 
 import { AsyncLocalStorage } from "node:async_hooks";
+import { createHash } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 
@@ -108,10 +109,13 @@ create table if not exists audit (
 -- Tamper evidence (added after first deploy): each row's hash covers the previous row's hash and its own fields.
 alter table audit add column if not exists prev_hash text;
 alter table audit add column if not exists hash text;
+-- Which version of this schema was last applied (see migrate()).
+create table if not exists schema_meta (key text primary key, applied_at text not null);
 `;
 
 const TABLES = ["organisations", "users", "memberships", "entitlements", "sessions", "login_codes", "invitations", "outbox",
-  "content", "requests", "observations", "consents", "themes", "shared_versions", "reports", "ideas", "notifications", "audit"];
+  "content", "requests", "observations", "consents", "themes", "shared_versions", "reports", "ideas", "notifications", "audit",
+  "schema_meta"];
 
 /**
  * Defence in depth for hosted Postgres. Supabase exposes tables in the public schema through its REST API to the
@@ -174,15 +178,32 @@ const g = globalThis as unknown as { __azpDb?: Promise<Driver> };
 function driver(): Promise<Driver> {
   g.__azpDb ??= (async () => {
     const d = await connect();
-    await d.script(SCHEMA);
-    await d.script(LOCKDOWN);
+    await migrate(d);
     const [{ n }] = await d.exec("select count(*)::int as n from organisations", []);
     if (n === 0) await d.transaction((exec) => seed(exec));
     await sealAudit(d);
     await purgeExpired(d);
     return d;
-  })();
+  })().catch((e) => {
+    g.__azpDb = undefined; // a failed start is retried on the next request, not cached for the instance's lifetime
+    throw e;
+  });
   return g.__azpDb;
+}
+
+const SCHEMA_KEY = createHash("sha256").update(SCHEMA + LOCKDOWN).digest("hex").slice(0, 16);
+
+/**
+ * Apply the schema only when it changed. Its ALTER TABLE statements take exclusive locks on every table, and every
+ * serverless cold start runs this: one request left mid-transaction by a frozen instance would make that lock wait,
+ * and every later query on the table queue behind it. When the stored key matches, start-up takes no table locks.
+ */
+async function migrate(d: Driver) {
+  const applied = await d.exec("select 1 from schema_meta where key = $1", [SCHEMA_KEY]).catch(() => []);
+  if (applied.length) return;
+  await d.script(SCHEMA);
+  await d.script(LOCKDOWN);
+  await d.exec("insert into schema_meta (key, applied_at) values ($1, $2) on conflict (key) do nothing", [SCHEMA_KEY, new Date().toISOString()]);
 }
 
 /**
