@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420" role="img" aria-label="azentio.ai: banks learn from each other, nobody learns who said what. A private note has its phone number struck out and its region generalised, then becomes a de-identified shared copy.">
+  <title>azentio.ai</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0c1d25"/>
+      <stop offset="0.55" stop-color="#16303d"/>
+      <stop offset="1" stop-color="#1d4b52"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.8" cy="0.4" r="0.55">
+      <stop offset="0" stop-color="#2ed88e" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2ed88e" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#ffffff" stroke-opacity="0.05"/>
+    </pattern>
+    <linearGradient id="scan" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2ed88e" stop-opacity="0"/>
+      <stop offset="0.85" stop-color="#2ed88e" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2ed88e" stop-opacity="0.85"/>
+    </linearGradient>
+    <clipPath id="card"><rect x="696" y="58" width="440" height="304" rx="14"/></clipPath>
+    <clipPath id="frame"><rect width="1200" height="420" rx="20"/></clipPath>
+    <style>
+      .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Poppins, Inter, Helvetica, Arial, sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+    </style>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="1200" height="420" fill="url(#bg)"/>
+    <rect width="1200" height="420" fill="url(#grid)"/>
+    <rect width="1200" height="420" fill="url(#glow)"/>
+
+    <!-- Logo mark: the two leaves of the azentio mark -->
+    <g transform="translate(80 70)">
+      <rect width="72" height="72" rx="18" fill="#ffffff" fill-opacity="0.06" stroke="#ffffff" stroke-opacity="0.16"/>
+      <g transform="translate(-187.6 15.5) scale(1.45)" fill="#2ed88e">
+        <path d="M142.299 28.604V11.084C142.299 5.43 146.893 0.842 152.549 0.842V18.362C152.549 24.016 147.955 28.604 142.299 28.604Z"/>
+        <path d="M153.748 18.359V0.84C159.406 0.84 163.997 5.43 163.997 11.081V28.601C158.34 28.601 153.748 24.011 153.748 18.359Z">
+          <animate attributeName="fill-opacity" values="1;0.55;1" dur="3s" repeatCount="indefinite"/>
+        </path>
+      </g>
+    </g>
+
+    <text x="78" y="214" class="sans" font-size="60" font-weight="700" fill="#ffffff" letter-spacing="-1.5">azentio<tspan fill="#2ed88e">.ai</tspan></text>
+    <text x="80" y="258" class="sans" font-size="22" fill="#d6e3e8">Banks learn from each other.</text>
+    <text x="80" y="288" class="sans" font-size="22" fill="#d6e3e8">Nobody learns who said what.</text>
+
+    <!-- Chips -->
+    <g class="sans" font-size="14" font-weight="600">
+      <g transform="translate(80 318)">
+        <rect width="150" height="32" rx="16" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.18"/>
+        <text x="75" y="21" text-anchor="middle" fill="#e6f2ef">Server-side access</text>
+      </g>
+      <g transform="translate(240 318)">
+        <rect width="168" height="32" rx="16" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.18"/>
+        <text x="84" y="21" text-anchor="middle" fill="#e6f2ef">Consent per purpose</text>
+      </g>
+      <g transform="translate(418 318)">
+        <rect width="168" height="32" rx="16" fill="#ffffff" fill-opacity="0.07" stroke="#ffffff" stroke-opacity="0.18"/>
+        <text x="84" y="21" text-anchor="middle" fill="#e6f2ef">Quote-verified AI</text>
+      </g>
+    </g>
+
+    <!-- The note, from private draft to shared copy (one 8 s cycle) -->
+    <g>
+      <rect x="700" y="66" width="440" height="304" rx="14" fill="#000000" fill-opacity="0.28"/>
+      <rect x="696" y="58" width="440" height="304" rx="14" fill="#ffffff"/>
+      <g clip-path="url(#card)">
+        <rect x="696" y="58" width="440" height="50" fill="#f1f6f7"/>
+        <text x="720" y="89" class="mono" font-size="14" font-weight="700" fill="#16303d">Observation #42</text>
+        <!-- author line: the bank's name, then hidden -->
+        <text x="1112" y="89" class="sans" font-size="13" fill="#556670" text-anchor="end">Meridian Bank · Sara
+          <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.5;0.52;0.95;1" dur="8s" repeatCount="indefinite"/>
+        </text>
+        <text x="1112" y="89" class="sans" font-size="13" font-weight="600" fill="#0a7a53" text-anchor="end" opacity="0">Contributor hidden
+          <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.5;0.52;0.95;1" dur="8s" repeatCount="indefinite"/>
+        </text>
+
+        <g class="sans" font-size="15" fill="#16303d">
+          <text x="720" y="140">Seasonal shops look risky in their</text>
+          <text x="720" y="163">off-season; bureau scores miss it.</text>
+
+          <!-- identifier: flagged, then struck out -->
+          <rect x="708" y="178" width="416" height="36" rx="8" fill="#fdecea" opacity="0.6">
+            <animate attributeName="opacity" values="0.6;1;0.6;1;0" keyTimes="0;0.15;0.3;0.42;0.5" dur="8s" repeatCount="indefinite"/>
+          </rect>
+          <text x="720" y="201" font-weight="600" fill="#b42318">Call me on <tspan class="mono">98765 43210</tspan>
+            <animate attributeName="opacity" values="1;1;0.35;0.35;1" keyTimes="0;0.42;0.5;0.95;1" dur="8s" repeatCount="indefinite"/>
+          </text>
+          <line x1="718" y1="196" x2="718" y2="196" stroke="#b42318" stroke-width="2">
+            <animate attributeName="x2" values="718;718;888;888;718" keyTimes="0;0.4;0.48;0.95;1" dur="8s" repeatCount="indefinite"/>
+          </line>
+          <line x1="720" y1="226" x2="1112" y2="226" stroke="#e3ecee"/>
+
+          <!-- region: exact, then generalised -->
+          <text x="720" y="252" fill="#556670" font-size="14">Region</text>
+          <text x="1112" y="252" text-anchor="end" font-size="14" font-weight="600">Pune, Maharashtra
+            <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.56;0.58;0.95;1" dur="8s" repeatCount="indefinite"/>
+          </text>
+          <text x="1112" y="252" text-anchor="end" font-size="14" font-weight="600" opacity="0">Not disclosed
+            <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.56;0.58;0.95;1" dur="8s" repeatCount="indefinite"/>
+          </text>
+          <text x="720" y="278" fill="#556670" font-size="14">Industry</text>
+          <text x="1112" y="278" text-anchor="end" font-size="14" font-weight="600">Financial services</text>
+        </g>
+
+        <!-- status badge: private, then published -->
+        <g transform="translate(720 304)">
+          <g>
+            <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.64;0.66;0.95;1" dur="8s" repeatCount="indefinite"/>
+            <rect width="118" height="26" rx="13" fill="#eef3f4" stroke="#c9d6da"/>
+            <text x="59" y="18" class="sans" font-size="12" font-weight="700" fill="#556670" text-anchor="middle" letter-spacing="0.8">PRIVATE DRAFT</text>
+            <text x="134" y="18" class="sans" font-size="13" fill="#556670">Only Sara can see this</text>
+          </g>
+          <g opacity="0">
+            <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.64;0.66;0.95;1" dur="8s" repeatCount="indefinite"/>
+            <rect width="118" height="26" rx="13" fill="#55ffbe"/>
+            <text x="59" y="18" class="sans" font-size="12" font-weight="700" fill="#16303d" text-anchor="middle" letter-spacing="0.8">DE-IDENTIFIED</text>
+            <text x="134" y="18" class="sans" font-size="13" fill="#0a7a53" font-weight="600">Shared copy, reviewed by a moderator</text>
+          </g>
+        </g>
+
+        <!-- scanner sweeping the note while it is being reviewed -->
+        <rect x="696" y="0" width="440" height="44" fill="url(#scan)">
+          <animate attributeName="y" values="70;300;70;70" keyTimes="0;0.2;0.4;1" dur="8s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;1;1;0;0" keyTimes="0;0.38;0.4;0.42;1" dur="8s" repeatCount="indefinite"/>
+        </rect>
+      </g>
+    </g>
+  </g>
+</svg>
