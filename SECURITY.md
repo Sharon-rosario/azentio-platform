@@ -147,12 +147,13 @@ server for every request, not by what the interface chooses to show.
   only for `moderation.review`, only on an item under review, and it is advisory: it never blocks or publishes, and if
   the model is unavailable the review works as before. A finding is shown only if its text is really in the copy, and
   the audit row records counts, never the text (`ai-check.ts`).
-- **Remove identifiers (moderation):** the same check, with neutral wording for each finding ("a mid-size bank").
-  The model never rewrites the copy: the browser replaces exactly the words it found, longest first
-  (`applyRedactions()` in `lib/redact.ts`), and wording that repeats an identifier or trips the scanner falls back to
-  a placeholder such as "[contact removed]" (`safeReplacement()`). Anything the scanner flags is replaced too. The
-  result lands in the moderator's editable copy with every change listed and an Undo; nothing is published until
-  the moderator chooses Publish, and the scanner still blocks publication.
+- **Remove identifiers (moderation):** AIRA lists what identifies someone and rewrites the copy without it, keeping
+  the facts. The rewrite is used only if none of the identifiers it found is still in it (in any case), the pattern
+  scanner flags nothing, and both fields are within limits (`safeRewrite()` in `lib/redact.ts`). Otherwise the found
+  words are replaced with checked neutral wording instead (`applyRedactions()`, `safeReplacement()`). Either way the
+  result lands in the moderator's editable copy, with every finding listed and an Undo; nothing is published until the
+  moderator chooses Publish, and the scanner still blocks publication. A rewrite can still word a fact differently,
+  which is why the moderator reads it beside the author's original before publishing.
 
 ## Threat model (STRIDE)
 
