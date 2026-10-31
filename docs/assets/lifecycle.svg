@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="1200" height="360" role="img" aria-label="The life of an observation: private draft, consent, moderation, shared copy, theme across three or more banks, then an AIRA summary and an improvement idea. Withdrawal removes it from the feed, search and AI summaries in one transaction.">
+  <title>The life of an observation</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0c1d25"/>
+      <stop offset="1" stop-color="#16303d"/>
+    </linearGradient>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#ffffff" fill-opacity="0.06"/>
+    </pattern>
+    <radialGradient id="pulse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.4" stop-color="#2ed88e"/>
+      <stop offset="1" stop-color="#2ed88e" stop-opacity="0"/>
+    </radialGradient>
+    <marker id="back" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#ff8a7a"/>
+    </marker>
+    <style>
+      .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Poppins, Inter, Helvetica, Arial, sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+      .flow { stroke-dasharray: 5 7; animation: flow 1.2s linear infinite; }
+      @keyframes flow { to { stroke-dashoffset: -24; } }
+      .ret { stroke-dasharray: 6 6; animation: ret 1.6s linear infinite; }
+      @keyframes ret { to { stroke-dashoffset: 24; } }
+      .stage rect.box { fill: #1b3a48; stroke: #2f5666; stroke-width: 1.5; }
+      .stage { animation: lit 9s ease-in-out infinite; }
+      .s1 { animation-delay: 0s; } .s2 { animation-delay: 1.5s; } .s3 { animation-delay: 3s; }
+      .s4 { animation-delay: 4.5s; } .s5 { animation-delay: 6s; } .s6 { animation-delay: 7.5s; }
+      @keyframes lit { 0%, 18%, 100% { opacity: 0.6; } 5%, 12% { opacity: 1; } }
+      .stage .ring { opacity: 0; animation: ring 9s ease-in-out infinite; animation-delay: inherit; }
+      @keyframes ring { 0%, 18%, 100% { opacity: 0; } 5%, 12% { opacity: 1; } }
+    </style>
+  </defs>
+
+  <rect width="1200" height="360" rx="20" fill="url(#bg)"/>
+  <rect width="1200" height="360" rx="20" fill="url(#dots)"/>
+
+  <text x="36" y="44" class="sans" font-size="13" font-weight="700" fill="#2ed88e" letter-spacing="2">THE LIFE OF AN OBSERVATION</text>
+  <text x="1164" y="44" class="sans" font-size="13" fill="#9fb6bf" text-anchor="end">Every step checked on the server, with consent, and audited</text>
+
+  <!-- connectors between the six stages (176 wide, 18 gap, from x=30) -->
+  <g stroke="#2ed88e" stroke-width="2" fill="none" stroke-opacity="0.75">
+    <path class="flow" d="M206 150H224"/>
+    <path class="flow" d="M400 150H418"/>
+    <path class="flow" d="M594 150H612"/>
+    <path class="flow" d="M788 150H806"/>
+    <path class="flow" d="M982 150H1000"/>
+  </g>
+  <path id="track" d="M118 244H1088" fill="none" stroke="#2ed88e" stroke-opacity="0.16" stroke-width="2" stroke-linecap="round"/>
+
+  <g class="stage s1">
+    <rect class="ring" x="26" y="76" width="184" height="148" rx="18" fill="none" stroke="#2ed88e" stroke-width="2"/>
+    <rect class="box" x="30" y="80" width="176" height="140" rx="14"/>
+    <text x="48" y="110" class="mono" font-size="12" fill="#2ed88e">01 · Sara</text>
+    <text x="48" y="137" class="sans" font-size="19" font-weight="700" fill="#ffffff">Private draft</text>
+    <text x="48" y="162" class="sans" font-size="13" fill="#b7c9d1">Only the author</text>
+    <text x="48" y="181" class="sans" font-size="13" fill="#b7c9d1">can see it.</text>
+    <text x="48" y="200" class="sans" font-size="13" fill="#b7c9d1">Saving never shares.</text>
+  </g>
+
+  <g class="stage s2">
+    <rect class="ring" x="220" y="76" width="184" height="148" rx="18" fill="none" stroke="#2ed88e" stroke-width="2"/>
+    <rect class="box" x="224" y="80" width="176" height="140" rx="14"/>
+    <text x="242" y="110" class="mono" font-size="12" fill="#2ed88e">02 · Sara</text>
+    <text x="242" y="137" class="sans" font-size="19" font-weight="700" fill="#ffffff">Consent</text>
+    <text x="242" y="162" class="sans" font-size="13" fill="#b7c9d1">Publish, show the</text>
+    <text x="242" y="181" class="sans" font-size="13" fill="#b7c9d1">bank's name, train:</text>
+    <text x="242" y="200" class="sans" font-size="13" fill="#b7c9d1">separate choices.</text>
+  </g>
+
+  <g class="stage s3">
+    <rect class="ring" x="414" y="76" width="184" height="148" rx="18" fill="none" stroke="#2ed88e" stroke-width="2"/>
+    <rect class="box" x="418" y="80" width="176" height="140" rx="14"/>
+    <text x="436" y="110" class="mono" font-size="12" fill="#2ed88e">03 · Omar</text>
+    <text x="436" y="137" class="sans" font-size="19" font-weight="700" fill="#ffffff">Moderation</text>
+    <text x="436" y="162" class="sans" font-size="13" fill="#b7c9d1">Edits a separate copy.</text>
+    <text x="436" y="181" class="sans" font-size="13" fill="#b7c9d1">Identifiers block it;</text>
+    <text x="436" y="200" class="sans" font-size="13" fill="#b7c9d1">AIRA spots disguises.</text>
+  </g>
+
+  <g class="stage s4">
+    <rect class="ring" x="608" y="76" width="184" height="148" rx="18" fill="none" stroke="#2ed88e" stroke-width="2"/>
+    <rect class="box" x="612" y="80" width="176" height="140" rx="14"/>
+    <text x="630" y="110" class="mono" font-size="12" fill="#2ed88e">04 · Chen</text>
+    <text x="630" y="137" class="sans" font-size="19" font-weight="700" fill="#ffffff">Shared copy</text>
+    <text x="630" y="162" class="sans" font-size="13" fill="#b7c9d1">No bank, author or</text>
+    <text x="630" y="181" class="sans" font-size="13" fill="#b7c9d1">notes in it. Other</text>
+    <text x="630" y="200" class="sans" font-size="13" fill="#b7c9d1">banks can search it.</text>
+  </g>
+
+  <g class="stage s5">
+    <rect class="ring" x="802" y="76" width="184" height="148" rx="18" fill="none" stroke="#2ed88e" stroke-width="2"/>
+    <rect class="box" x="806" y="80" width="176" height="140" rx="14"/>
+    <text x="824" y="110" class="mono" font-size="12" fill="#2ed88e">05 · 3+ banks</text>
+    <text x="824" y="137" class="sans" font-size="19" font-weight="700" fill="#ffffff">Theme</text>
+    <text x="824" y="162" class="sans" font-size="13" fill="#b7c9d1">Counted by distinct</text>
+    <text x="824" y="181" class="sans" font-size="13" fill="#b7c9d1">bank. Fewer than</text>
+    <text x="824" y="200" class="sans" font-size="13" fill="#b7c9d1">three stays hidden.</text>
+  </g>
+
+  <g class="stage s6">
+    <rect class="ring" x="996" y="76" width="184" height="148" rx="18" fill="none" stroke="#2ed88e" stroke-width="2"/>
+    <rect class="box" x="1000" y="80" width="176" height="140" rx="14"/>
+    <text x="1018" y="110" class="mono" font-size="12" fill="#2ed88e">06 · Priya</text>
+    <text x="1018" y="137" class="sans" font-size="19" font-weight="700" fill="#ffffff">AIRA → idea</text>
+    <text x="1018" y="162" class="sans" font-size="13" fill="#b7c9d1">Quotes word for word</text>
+    <text x="1018" y="181" class="sans" font-size="13" fill="#b7c9d1">or saves nothing.</text>
+    <text x="1018" y="200" class="sans" font-size="13" fill="#b7c9d1">Banks see the status.</text>
+  </g>
+
+  <!-- travelling pulse, pausing under each stage -->
+  <circle r="9" fill="url(#pulse)">
+    <animateMotion dur="9s" repeatCount="indefinite" calcMode="linear"
+      keyPoints="0;0;0.2;0.2;0.4;0.4;0.6;0.6;0.8;0.8;1;1"
+      keyTimes="0;0.1;0.167;0.267;0.333;0.433;0.5;0.6;0.667;0.767;0.833;1">
+      <mpath href="#track"/>
+    </animateMotion>
+  </circle>
+
+  <!-- withdrawal: back out of everything at once -->
+  <path class="ret" d="M1088 262V288H118V264" fill="none" stroke="#ff8a7a" stroke-width="2" stroke-opacity="0.85" marker-end="url(#back)"/>
+  <rect x="402" y="274" width="396" height="28" rx="14" fill="#0c1d25" stroke="#ff8a7a" stroke-opacity="0.6"/>
+  <text x="600" y="293" class="sans" font-size="13" font-weight="600" fill="#ffb4a8" text-anchor="middle">Withdraw at any time: gone in one transaction</text>
+  <text x="600" y="330" class="sans" font-size="13" fill="#9fb6bf" text-anchor="middle">Feed, search, filters, theme counts and every AIRA summary drop it before the next request.</text>
+</svg>

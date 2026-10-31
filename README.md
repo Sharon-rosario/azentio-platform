@@ -1,22 +1,38 @@
 <div align="center">
 
-<img src="src/app/icon.svg" alt="azentio.ai" width="72" height="72">
+<img src="docs/assets/banner.svg" alt="azentio.ai: banks learn from each other, nobody learns who said what" width="100%">
 
-# azentio.ai
+<br>
 
 **An enterprise AI website and a secure collaboration portal, where clients' market observations become governed,
 shared learning that improves Azentio's products.**
 
-[![Live demo](https://img.shields.io/badge/live_demo-azentio--platform.vercel.app-16303d?style=flat-square)](https://azentio-platform.vercel.app)
-[![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs)](https://nextjs.org)
-[![React 19](https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white)](https://react.dev)
-[![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript&logoColor=white)](tsconfig.json)
-[![Postgres](https://img.shields.io/badge/Postgres-Supabase_·_PGlite-336791?style=flat-square&logo=postgresql&logoColor=white)](docs/adr/0002-postgres-everywhere-with-rls-lockdown.md)
-[![API security tests](https://img.shields.io/badge/API_security_tests-44_passing-2ed88e?style=flat-square)](tests/security.test.mjs)
+<p>
+  <a href="https://azentio-platform.vercel.app"><b>Live demo</b></a> ·
+  <a href="#how-it-works-in-one-story"><b>How it works</b></a> ·
+  <a href="#quick-start"><b>Quick start</b></a> ·
+  <a href="SECURITY.md"><b>Security model</b></a> ·
+  <a href="docs/requirements-traceability.md"><b>Traceability</b></a> ·
+  <a href="docs/architecture.md"><b>Architecture</b></a> ·
+  <a href="docs/adr/README.md"><b>Decisions</b></a>
+</p>
 
-[**Live demo**](https://azentio-platform.vercel.app) · [How it works](https://azentio-platform.vercel.app/how-it-works) · [Security model](SECURITY.md) ·
-[Requirements traceability](docs/requirements-traceability.md) · [Architecture](docs/architecture.md) ·
-[Decision records](docs/adr/README.md)
+<p>
+  <a href="https://nextjs.org"><img alt="Next.js 16" src="https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs&logoColor=white"></a>
+  <a href="https://react.dev"><img alt="React 19" src="https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white"></a>
+  <a href="tsconfig.json"><img alt="TypeScript strict" src="https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript&logoColor=white"></a>
+  <a href="src/app/theme.css"><img alt="Tailwind CSS 4" src="https://img.shields.io/badge/Tailwind-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white"></a>
+  <a href="docs/adr/0002-postgres-everywhere-with-rls-lockdown.md"><img alt="Postgres" src="https://img.shields.io/badge/Postgres-Supabase_·_PGlite-336791?style=flat-square&logo=postgresql&logoColor=white"></a>
+  <a href="src/server/llm.ts"><img alt="AIRA on Claude" src="https://img.shields.io/badge/AIRA-Claude-D97757?style=flat-square&logo=anthropic&logoColor=white"></a>
+  <a href="https://azentio-platform.vercel.app"><img alt="Hosted on Vercel" src="https://img.shields.io/badge/hosted_on-Vercel-000000?style=flat-square&logo=vercel&logoColor=white"></a>
+</p>
+
+<p>
+  <a href="tests/security.test.mjs"><img alt="API security tests: 44 passing" src="https://img.shields.io/badge/API_security_tests-44_passing-2ed88e?style=flat-square"></a>
+  <a href="tests/unit.test.mjs"><img alt="Unit tests: 7 passing" src="https://img.shields.io/badge/unit_tests-7_passing-2ed88e?style=flat-square"></a>
+  <a href=".github/workflows/ci.yml"><img alt="CI on every pull request" src="https://img.shields.io/badge/CI-every_pull_request-16303d?style=flat-square&logo=githubactions&logoColor=white"></a>
+  <img alt="Built at Azentio.ai Build Labs 2026" src="https://img.shields.io/badge/built_at-Azentio.ai_Build_Labs_2026-55ffbe?style=flat-square&labelColor=16303d">
+</p>
 
 <br>
 
@@ -34,9 +50,14 @@ Visitors explore Azentio's offerings and request demos. Employees and clients si
 workspaces. Clients contribute market observations; moderators publish de-identified copies; product teams turn the
 recurring themes into improvement ideas. Every step is governed by consent, enforced on the server, and audited.
 
-Built for the **Azentio.ai Build Labs Special Challenge**.
+> [!NOTE]
+> Built for the **Azentio.ai Build Labs Special Challenge** (Bengaluru, October 2026). It's a prototype, not an
+> official Azentio website, and every person, bank and figure in it is synthetic. Try it on the
+> [live demo](https://azentio-platform.vercel.app): in demo mode the one-time sign-in code appears on screen.
 
 ## How it works, in one story
+
+<img src="docs/assets/lifecycle.svg" alt="The life of an observation: private draft, consent, moderation, shared copy, theme across three or more banks, AIRA summary and improvement idea; withdrawal removes it everywhere in one transaction" width="100%">
 
 Banks notice market problems first, and if they shared what they see, Azentio could build better products for all of
 them. But banks compete, so they share only when it's safe: nobody can tell who said what, and they can take it back.
@@ -60,22 +81,14 @@ everyone can check that the server enforces every rule. Even Azentio's portal ad
 
 ## Why it's different
 
-- **Access is decided on the server, for every request.** One deny-by-default `authorize()` decides every action from
-  the active membership's roles. Another organisation's record answers `404`, even through a direct API call. The UI
-  only hides what the server would refuse anyway.
-- **Private by default, consent per purpose.** Saving never shares. Publishing a shared copy, showing the
-  organisation's name and future model training are separate consents with history. Joining a workspace is never
-  consent.
-- **The shared copy is a different record.** Moderators publish a reviewed copy that has no tenant, author or notes in
-  it, and the region and industry start general. Publication is blocked while any published field still contains an
-  email, phone, account number, PAN or IBAN.
-- **Withdrawal means gone.** Withdrawing removes the contribution from the feed, search, filters and every AIRA summary
-  of its theme, in one transaction. The retention policy and withdrawal SLA are in [SECURITY.md](SECURITY.md#data-retention-and-withdrawal).
-- **Small numbers stay hidden.** A theme needs contributions from at least three distinct organisations before any
-  count, evidence or summary is shown, and a filter value is only offered once it covers that many.
-- **AI that can only say what the evidence shows.** AIRA summarises approved copies only, answers in a validated schema, and
-  every quote must appear word for word in its source (no fuzzy matching). A summary that can't be backed, or whose
-  evidence changed while AIRA was reading, is thrown away.
+| | |
+| --- | --- |
+| 🔐 **Access decided on the server, every request** | One deny-by-default `authorize()` decides every action from the active membership's roles. Another organisation's record answers `404`, even through a direct API call. The UI only hides what the server would refuse anyway. |
+| ✅ **Private by default, consent per purpose** | Saving never shares. Publishing a shared copy, showing the organisation's name and future model training are separate consents with history. Joining a workspace is never consent. |
+| 🪪 **The shared copy is a different record** | Moderators publish a reviewed copy with no tenant, author or notes in it, and the region and industry start general. Publication is blocked while any field still holds an email, phone, account number, PAN or IBAN, and AIRA points out names and disguised identifiers that pattern checks can't see. |
+| 🧹 **Withdrawal means gone** | Withdrawing removes the contribution from the feed, search, filters and every AIRA summary of its theme, in one transaction. The retention policy and withdrawal SLA are in [SECURITY.md](SECURITY.md#data-retention-and-withdrawal). |
+| 👥 **Small numbers stay hidden** | A theme needs contributions from at least three distinct organisations before any count, evidence or summary is shown, and a filter value is only offered once it covers that many. |
+| 🤖 **AI that can only say what the evidence shows** | AIRA summarises approved copies only, answers in a validated schema, and every quote must appear word for word in its source (no fuzzy matching). A summary that can't be backed, or whose evidence changed while AIRA was reading, is thrown away. |
 
 ## See it
 
@@ -117,7 +130,7 @@ exactly what the server lets it do:
 | Product owner | `priya@azentio.com` | Run AIRA on themes; create and progress improvement ideas |
 | Content publisher | `lena@azentio.com` | Publish broadcasts and content to chosen audiences |
 | Employee | `dev@azentio.com` | Internal experiments, broadcasts, playground |
-| Portal administrator | `admin@azentio.com` | Organisations, roles, audit log; **no** access to client contributions |
+| Portal administrator | `admin@azentio.com` | Organisations, roles, audit log, demo requests and hackathon registrations (for now); **no** access to client contributions |
 
 ## Architecture
 
@@ -138,6 +151,12 @@ flowchart LR
     L -->|published copies only| AN[Anthropic API]
 ```
 
+### Anatomy of a request
+
+<img src="docs/assets/request-anatomy.svg" alt="Anatomy of a request: Chen at Kestrel Finance asks for Meridian Bank's observation 42; the route, session and permission checks pass, the tenant check fails, and the answer is 404 Not found" width="100%">
+
+<sub>Every page and API call goes through the same chain. The security suite's tenant-isolation test (S4) makes exactly this request, with no UI.</sub>
+
 More diagrams (request lifecycle, data model, contribution and shared-copy lifecycles, AIRA pipeline) are in
 [docs/architecture.md](docs/architecture.md); the reasoning behind each choice is in the
 [decision records](docs/adr/README.md).
@@ -147,6 +166,10 @@ More diagrams (request lifecycle, data model, contribution and shared-copy lifec
 Every requirement is mapped to the code that enforces it and the test that proves it in
 [docs/requirements-traceability.md](docs/requirements-traceability.md), including what is partial and what is
 still open.
+
+<details open>
+<summary><b>Brief sections against what was delivered</b></summary>
+<br>
 
 | Brief section | Delivered |
 |---|---|
@@ -160,7 +183,13 @@ still open.
 | 10 Insights and improvement | Themes counted by distinct organisation, AIRA synthesis with verified citations, improvement ideas with audited statuses |
 | 11 Federated learning (optional P2) | Out of scope; stated, not simulated |
 
+</details>
+
 ## Security
+
+<details open>
+<summary><b>Controls and where they live</b></summary>
+<br>
 
 | Control | Where |
 |---|---|
@@ -174,6 +203,8 @@ still open.
 | Every state change audited in the same transaction, hash-chained for tamper evidence | `src/server/audit.ts`, `audit-chain.ts`, `tx()` |
 | Retention policy and withdrawal SLA; expired codes and sessions purged | [SECURITY.md](SECURITY.md#data-retention-and-withdrawal), `purgeExpired()` |
 | Locked installs, actions pinned to SHAs, CI fails on high advisories, Dependabot security updates | [SECURITY.md](SECURITY.md#supply-chain), `.github/workflows/ci.yml` |
+
+</details>
 
 44 black-box tests sign in as different personas and attack the API directly (cross-tenant reads and writes, role
 escalation, private drafts, payload contents, withdrawal, revocation, CSRF, malformed input on every write route).
@@ -192,13 +223,19 @@ npm install
 npm run dev    # http://localhost:3000: creates and seeds an embedded Postgres in ./data, no set-up needed
 ```
 
+<details open>
+<summary><b>Commands</b></summary>
+<br>
+
 | Command | What it does |
 |---|---|
-| `npm test` | Unit tests: sensitive-content scanner, verbatim quote check, redirect checks, session idle timeout, audit hash chain |
+| `npm test` | Unit tests: sensitive-content scanner, verbatim quote check, AI finding check, redirect checks, session idle timeout, audit hash chain |
 | `npm run test:security` | With the dev server running: the 44 API security tests |
 | `npm run attack` | Fifteen common attacks against the live site (or `npm run attack -- http://localhost:3000`), each reported as blocked or not |
 | `npm run typecheck && npm run lint` | Type and lint checks, as in CI |
 | `npm run reset` | Wipe local data; it's re-seeded on the next request |
+
+</details>
 
 Requires Node.js 20.9 or newer (CI uses 24). AIRA uses the Claude Code CLI if you're signed in to it, or the API if
 `ANTHROPIC_API_KEY` is set (see [`.env.example`](.env.example)).
@@ -249,3 +286,14 @@ This is a hackathon prototype for the Azentio.ai Build Labs challenge, not an of
 and logo belong to Azentio Software and are used at the organiser's request: the challenge asks teams to follow
 Azentio's branding and visual identity. Every page says it's a prototype, the deployment asks search engines not to
 index it, and all organisations, people and figures in it are synthetic.
+
+## Contributors
+
+<a href="https://github.com/Sharon-rosario/azentio-platform/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Sharon-rosario/azentio-platform" alt="Contributors">
+</a>
+
+<div align="center">
+<br>
+<sub>Built at the Azentio.ai Build Labs hackathon, Bengaluru, October 2026.</sub>
+</div>
