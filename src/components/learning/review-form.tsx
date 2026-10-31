@@ -112,7 +112,15 @@ export function ReviewForm({
           </div>
         )}
 
-        <AiCheck id={id} title={title ?? ""} body={body ?? ""} />
+        <AiCheck
+          id={id}
+          title={title ?? ""}
+          body={body ?? ""}
+          onChange={(t, b) => {
+            form.setValue("title", t, { shouldDirty: true, shouldValidate: true });
+            form.setValue("body", b, { shouldDirty: true, shouldValidate: true });
+          }}
+        />
 
         <TextField form={form} name="title" label="Title" maxLength={140} />
         <TextareaField form={form} name="body" label="Text" maxLength={4000} rows={8} />
