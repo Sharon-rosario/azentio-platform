@@ -88,11 +88,17 @@ test("roles: clients can't moderate or administer; admins can't read client obse
   assert.equal((await call("/api/moderation", { cookie: sara })).status, 403);
   assert.equal((await call("/api/admin/audit", { cookie: sara })).status, 403);
   assert.equal((await call("/api/members", { cookie: sara })).status, 403);
+  // AIRA's identifier check is a moderation tool: refused before any model call for everyone else.
+  const check = (cookie) => call("/api/moderation/6/ai-check", { cookie, method: "POST", body: { title: "x", body: "y" } });
+  assert.equal((await check(undefined)).status, 401);
+  assert.equal((await check(sara)).status, 403);
   const admin = await login(ADMIN);
   assert.equal((await call("/api/observations", { cookie: admin })).status, 403);
   assert.equal((await call("/api/moderation", { cookie: admin })).status, 403);
+  assert.equal((await check(admin)).status, 403);
   const dev = await login(DEV);
   assert.equal((await call("/api/ideas", { cookie: dev, method: "POST", body: { title: "x" } })).status, 403);
+  assert.equal((await check(dev)).status, 403);
 });
 
 test("a moderator never sees unsubmitted drafts", async () => {
@@ -100,6 +106,9 @@ test("a moderator never sees unsubmitted drafts", async () => {
   const omar = await login(OMAR);
   const draft = (await call("/api/observations", { cookie: sara })).data.find((o) => o.status === "draft");
   assert.equal((await call(`/api/moderation/${draft.id}`, { cookie: omar })).status, 404);
+  // AIRA's identifier check can't be pointed at a draft either: the text sent is checked only for an item under review.
+  assert.equal((await call(`/api/moderation/${draft.id}/ai-check`, { cookie: omar, method: "POST",
+    body: { title: "x", body: "y" } })).status, 404);
   const queue = (await call("/api/moderation", { cookie: omar })).data.items;
   assert.ok(queue.every((o) => o.status === "submitted" && o.visibility === "community"));
 });
@@ -216,7 +225,7 @@ test("malformed input is refused with 4xx on every write route, never a 500", as
     ["POST", "/api/auth/code"], ["POST", "/api/auth/verify"], ["POST", "/api/requests"],
     ["POST", "/api/content"], ["POST", "/api/ideas"], ["PATCH", "/api/ideas/:id"],
     ["POST", "/api/invitations/:id"], ["POST", "/api/me/workspace"], ["POST", "/api/members"],
-    ["DELETE", "/api/members/:id"], ["POST", "/api/moderation/:id"], ["POST", "/api/observations"],
+    ["DELETE", "/api/members/:id"], ["POST", "/api/moderation/:id"], ["POST", "/api/moderation/:id/ai-check"], ["POST", "/api/observations"],
     ["PATCH", "/api/observations/:id"], ["POST", "/api/observations/:id/submit"],
     ["POST", "/api/observations/:id/withdraw"], ["POST", "/api/reports/:id"],
     ["POST", "/api/shared/:id/report"], ["POST", "/api/themes/:id/synthesize"],

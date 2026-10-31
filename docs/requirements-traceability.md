@@ -72,6 +72,7 @@ CI runs all of them against a production build on every push and pull request ([
 | U4 | safePath allows same-origin paths only (no open redirect) |
 | U5 | sessions end after the idle limit, and activity is recorded at most once a minute |
 | U6 | the audit hash chain detects an edited, removed or inserted entry |
+| U7 | locate keeps an AI identifier finding only when it is really in the copy, in the copy's own characters |
 
 **Where the rules live.** One policy module decides everything: [`src/server/policy.ts`](../src/server/policy.ts)
 (`GRANTS`, `authorize`, `sameTenant`, `canSeeContent`). API routes ([`http.ts`](../src/server/http.ts) `route()`) and
@@ -195,8 +196,8 @@ No gaps remain open. Every gap found while building and reviewing it (G-01 to G-
 | SHR-03 | No tenant ids, author profiles, attachments or reviewer notes in shared payloads | `sharedFeed()` column list; `listThemes()` strips `org_id` | S10 | **Proven** |
 | SHR-04 | De-identified wording by default; attribution opt-in and reviewed | `publish()`: attribution only when the author consented **and** the moderator ticks it | S10 (only the consenting org is attributed) | **Proven** |
 | SHR-05 | Reduce specific geography, dates or details that could identify a contributor | Moderator rewrites `region`, `period` and `industry`; a de-identified copy's industry and region default to general values (`GENERAL_INDUSTRY`, `GENERAL_REGION`); industry, region and offering filters only offer and apply values covering at least `MIN_ORGS` organisations (`broadValues()`) | S27 | **Proven** |
-| SHR-06 | No pricing, customer records, secrets | `scan()` + publish block; synthetic seed data only | U1, S13 | **Enforced** (pattern-based) |
-| SHR-07 | Raw private records stay out of analytics, indexes, logs and AI payloads | `synthesize()` builds its prompt from published shared copies only; the audit `detail` stores ids, not bodies | S24 (AIRA's evidence is exactly the published copies, with no tenant or author fields) | **Proven** for AI payloads; logs store ids only (code) |
+| SHR-06 | No pricing, customer records, secrets | `scan()` + publish block; synthetic seed data only. Advisory AI check for names and disguised identifiers the patterns miss: `aiCheck()` (moderators only, items under review only, findings kept only when found in the copy, audited) | U1, S13; U7, S6-S7 (only moderators, never on a draft) | **Enforced** (pattern-based; the AI check advises, never blocks) |
+| SHR-07 | Raw private records stay out of analytics, indexes, logs and AI payloads | `synthesize()` builds its prompt from published shared copies only; the audit `detail` stores ids, not bodies | S24 (AIRA's evidence is exactly the published copies, with no tenant or author fields) | **Proven** for AI payloads; logs store ids only (code). The moderator's identifier check sends the copy under review (title and text only, author's publish consent recorded); its audit row stores counts, not text |
 | SHR-08 | Show the contributor who can see each version and how it may be used | "Who can see it" column and observation detail page (consents, shared versions) | none | **Enforced** |
 | SHR-09 | Accessible withdrawal; retain consent history, approved version and moderation decisions | `withdrawObservation()` keeps rows, marks them withdrawn; `consents` append-only; SECURITY.md "Data retention and withdrawal" documents what is kept, why and for how long (periods proposed pending Azentio policy); `purgeExpired()` deletes expired codes, sessions and old outbox mail | S13 | **Enforced**: the policy is written; the 7-year and 90-day periods are proposals, not automated |
 | SHR-10 | Never claim withdrawal can undo a trained model | No model is trained; the `train` consent is recorded only | n/a | **Enforced** |
@@ -261,7 +262,7 @@ None. Every gap found while building this table is fixed and tested; see below.
 
 ```bash
 npm run dev               # terminal 1
-npm test                  # unit tests (U1-U6)
+npm test                  # unit tests (U1-U7)
 npm run test:security     # terminal 2: API tests (S1-S43)
 ```
 

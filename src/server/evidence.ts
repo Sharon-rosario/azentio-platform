@@ -18,3 +18,17 @@ export function verbatim(quote: string, text: string): string | null {
   }
   return null;
 }
+
+/**
+ * Where a flagged phrase sits in a text: the text's own characters, or null when the phrase isn't there exactly.
+ * Used for AIRA's identifier check, where findings are short ("Meridian", "9 8 7 6 5"), so words aren't counted;
+ * only case is ignored, because a disguise lives in the exact spacing and symbols.
+ */
+export function locate(phrase: string, text: string): string | null {
+  const p = phrase.trim();
+  if (p.length < 2) return null;
+  const lower = text.toLowerCase();
+  // Lower-casing can change a string's length for a few scripts; then only an exact match is trusted.
+  const i = lower.length === text.length ? lower.indexOf(p.toLowerCase()) : text.indexOf(p);
+  return i < 0 ? null : text.slice(i, i + p.length);
+}
