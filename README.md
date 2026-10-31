@@ -29,7 +29,7 @@ shared learning that improves Azentio's products.**
 
 <p>
   <a href="tests/security.test.mjs"><img alt="API security tests: 44 passing" src="https://img.shields.io/badge/API_security_tests-44_passing-2ed88e?style=flat-square"></a>
-  <a href="tests/unit.test.mjs"><img alt="Unit tests: 8 passing" src="https://img.shields.io/badge/unit_tests-8_passing-2ed88e?style=flat-square"></a>
+  <a href="tests/unit.test.mjs"><img alt="Unit tests: 9 passing" src="https://img.shields.io/badge/unit_tests-9_passing-2ed88e?style=flat-square"></a>
   <a href=".github/workflows/ci.yml"><img alt="CI on every pull request" src="https://img.shields.io/badge/CI-every_pull_request-16303d?style=flat-square&logo=githubactions&logoColor=white"></a>
   <img alt="Built at Azentio.ai Build Labs 2026" src="https://img.shields.io/badge/built_at-Azentio.ai_Build_Labs_2026-55ffbe?style=flat-square&labelColor=16303d">
 </p>

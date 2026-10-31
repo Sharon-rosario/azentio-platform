@@ -75,6 +75,7 @@ CI runs all of them against a production build on every push and pull request ([
 | U6 | the audit hash chain detects an edited, removed or inserted entry |
 | U7 | locate keeps an AI identifier finding only when it is really in the copy, in the copy's own characters |
 | U8 | removing identifiers replaces exactly what was found, and AI wording that would identify someone is refused |
+| U9 | AIRA's rewritten copy is used only when none of the identifiers it found survive and the scanner flags nothing |
 
 **Where the rules live.** One policy module decides everything: [`src/server/policy.ts`](../src/server/policy.ts)
 (`GRANTS`, `authorize`, `sameTenant`, `canSeeContent`). API routes ([`http.ts`](../src/server/http.ts) `route()`) and
@@ -264,7 +265,7 @@ None. Every gap found while building this table is fixed and tested; see below.
 
 ```bash
 npm run dev               # terminal 1
-npm test                  # unit tests (U1-U8)
+npm test                  # unit tests (U1-U9)
 npm run test:security     # terminal 2: API tests (S1-S44)
 ```
 

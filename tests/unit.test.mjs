@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { applyRedactions, safeReplacement } from "../src/lib/redact.ts";
+import { applyRedactions, safeReplacement, safeRewrite } from "../src/lib/redact.ts";
 import { safePath } from "../src/lib/safe-path.ts";
 import { GENESIS, rowHash, verifyChain } from "../src/server/audit-chain.ts";
 import { isIdle, needsTouch } from "../src/server/session-policy.ts";
@@ -60,6 +60,18 @@ test("removing identifiers replaces exactly what was found, and AI wording that 
   assert.equal(safeReplacement("Meridian's team", "a financial institution", ["Meridian"], flagged), "a financial institution", "repeats the identifier");
   assert.equal(safeReplacement("call 98765 43210", "[contact removed]", [], flagged), "[contact removed]", "the scanner flags it");
   assert.equal(safeReplacement("  ", "[number removed]", [], flagged), "[number removed]");
+});
+
+test("AIRA's rewritten copy is used only when none of the identifiers it found survive and the scanner flags nothing", () => {
+  const flagged = (t) => scan(t).length > 0;
+  const found = ["Meridian Bank", "sara dot ahmed at meridianbank dot example"];
+  const ok = { title: "KYC onboarding stalls on incomplete documents", body: "A mid-size bank sees SME files stall for weeks." };
+  assert.deepEqual(safeRewrite(ok, found, flagged), ok);
+  assert.equal(safeRewrite({ ...ok, body: "At meridian bank, files stall." }, found, flagged), null, "an identifier survived (any case)");
+  assert.equal(safeRewrite({ ...ok, body: "Call 98765 43210 for the list." }, found, flagged), null, "the scanner flags it");
+  assert.equal(safeRewrite({ ...ok, title: "" }, found, flagged), null, "a field is empty");
+  assert.equal(safeRewrite({ ...ok, title: "x".repeat(141) }, found, flagged), null, "the title is too long");
+  assert.equal(safeRewrite(undefined, found, flagged), null);
 });
 
 test("safePath allows same-origin paths only (no open redirect)", () => {
