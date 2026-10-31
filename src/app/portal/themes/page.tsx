@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CreateIdeaButton } from "@/components/insights/create-idea-button";
 import { SynthesizeButton } from "@/components/insights/synthesize-button";
 import { Forbidden } from "@/components/portal/forbidden";
+import { AiraFootnote, AiraMark } from "@/components/aira";
 import { EmptyState, PageHeader, Panel } from "@/components/states";
 import { StatusBadge, TONES } from "@/components/status-badge";
 import { dateTime } from "@/lib/format";
@@ -108,16 +109,14 @@ function ThemePanel({ t, p }: { t: Theme; p: Principal }) {
         </section>
 
         <section aria-labelledby={`sum-${t.id}`}>
-          <h3 id={`sum-${t.id}`} className="text-muted-foreground font-mono text-[12px] leading-4">aira summary</h3>
+          <h3 id={`sum-${t.id}`}><AiraMark job="theme summary" /></h3>
           {t.summary ? (
             <div className="border-primary mt-3 border-l-2 pl-5">
               <p className="text-[16px] leading-[26px] whitespace-pre-line">{t.summary}</p>
-              <p className="text-muted-foreground mt-3 text-[13px] leading-5">
-                AI-generated from approved contributions; quotes verified against sources.
-                {(t.summary_model || t.summary_at) && (
-                  <> {[t.summary_model, t.summary_at && dateTime(t.summary_at)].filter(Boolean).join(" · ")}</>
-                )}
-              </p>
+              <AiraFootnote model={t.summary_model} className="mt-3">
+                Written from approved contributions only, and every quote is checked word for word against its source.
+                {t.summary_at && <> {dateTime(t.summary_at)}.</>}
+              </AiraFootnote>
               {t.citations.length > 0 && (
                 <ul className="mt-4 border-t">
                   {t.citations.map((c, i) => (

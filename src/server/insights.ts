@@ -66,8 +66,7 @@ const Summary = z.object({
   })).describe("At least one quote per contribution you relied on"),
 });
 
-const SYSTEM = `You are AIRA, Azentio's insight assistant. You summarise approved, de-identified market observations from clients
-for product teams. Use only the contributions given. Never guess which organisation wrote what, never add facts, and say how
+const SYSTEM = `Summarise a theme for Azentio's product teams from approved, de-identified contributions. Use only the contributions given. Never guess which organisation wrote what, never add facts, and say how
 small the sample is. Every point must be backed by a quote copied word for word from a contribution.`;
 
 /** AIRA: summarise a theme from approved shared copies only; every quote is checked against its source. */

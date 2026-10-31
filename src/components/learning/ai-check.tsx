@@ -3,6 +3,7 @@
 import { CircleCheck, Eraser, Sparkles, TriangleAlert, Undo2 } from "lucide-react";
 import { useState } from "react";
 
+import { AiraMark } from "@/components/aira";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { applyRedactions } from "@/lib/redact";
@@ -64,6 +65,7 @@ export function AiCheck({ id, title, body, onChange }: {
 
   return (
     <div className="grid gap-3">
+      <AiraMark job="identifier check" />
       <div className="flex flex-wrap items-center gap-2">
         <Button type="button" size="sm" loading={busy === "remove"} disabled={!!busy} onClick={() => run("remove")}>
           <Eraser /> {busy === "remove" ? "AIRA is removing identifiers…" : "Remove identifiers with AIRA"}
@@ -120,7 +122,7 @@ export function AiCheck({ id, title, body, onChange }: {
             </ul>
           )}
           <p className="text-muted-foreground mt-1.5 text-[12px] leading-[18px]">
-            {stale ? "The copy changed since this check. " : ""}AI-assisted ({result.model}); it can miss things, so read it yourself too.
+            {stale ? "The copy changed since this check. " : ""}By AIRA, Azentio&apos;s AI agent ({result.model}). It can miss things, so read it yourself too.
           </p>
         </div>
       )}

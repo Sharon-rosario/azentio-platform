@@ -45,7 +45,7 @@ const WithRewrite = Findings.extend({
     "bank', 'the onboarding team'); add nothing that isn't in the copy"),
 });
 
-const SYSTEM = `You check a moderator's copy of a bank's market observation before it is shared with other, competing banks.
+const SYSTEM = `Check a moderator's copy of a bank's observation before it is shared with other, competing banks.
 Find every detail that could identify a person, a customer, or the organisation that wrote it, especially disguised ones:
 - names of people, banks, companies or customers, including short forms, nicknames and misspellings;
 - contact details written to dodge filters, such as "name dot surname at mail dot com", "(at)", "[dot]", letters or digits
