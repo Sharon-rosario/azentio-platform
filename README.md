@@ -211,6 +211,9 @@ Requires Node.js 20.9 or newer (CI uses 24). AIRA uses the Claude Code CLI if yo
 3. Put Vercel's Function Region next to the database, and deploy. The schema, the RLS lockdown and the synthetic data
    are created on the first request.
 
+Only `main` deploys: [`vercel.json`](vercel.json) turns off preview deployments for every other branch, and CI checks
+each pull request on its own.
+
 ## Project layout
 
 ```
