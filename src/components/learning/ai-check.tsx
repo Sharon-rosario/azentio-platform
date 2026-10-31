@@ -9,11 +9,12 @@ import { applyRedactions } from "@/lib/redact";
 import { cn } from "@/lib/utils";
 
 type Finding = { text: string; kind: string; reason: string; replacement: string };
-type Result = { findings: Finding[]; model: string; checked: string; removed: boolean };
+type Result = { findings: Finding[]; model: string; checked: string; removed: boolean; rewritten: boolean };
 
 /**
- * AIRA's identifier check on the copy being reviewed. "Remove" replaces exactly what AIRA found with neutral wording,
- * in the moderator's editable copy; nothing is published, and Undo puts the copy back. Advisory: if the model is
+ * AIRA's identifier check on the copy being reviewed. "Remove" puts AIRA's de-identified rewrite (checked on the
+ * server) in the moderator's editable copy, or, if it failed the checks, the copy with exactly what AIRA found replaced by
+ * neutral wording. Nothing is published, and Undo puts the copy back. Advisory: if the model is
  * unavailable the moderator carries on with the automatic checks and their own reading, as before.
  */
 export function AiCheck({ id, title, body, onChange }: {
@@ -35,15 +36,16 @@ export function AiCheck({ id, title, body, onChange }: {
     setBusy(mode);
     setFailed(false);
     try {
-      const res = await api<{ findings: Finding[]; model: string }>(`/api/moderation/${id}/ai-check`, "POST", { title, body, mode });
+      const res = await api<{ findings: Finding[]; model: string; rewrite: { title: string; body: string } | null }>(
+        `/api/moderation/${id}/ai-check`, "POST", { title, body, mode });
       if (mode === "remove" && res.findings.length) {
-        const next = { title: applyRedactions(title, res.findings), body: applyRedactions(body, res.findings) };
+        const next = res.rewrite ?? { title: applyRedactions(title, res.findings), body: applyRedactions(body, res.findings) };
         setBefore({ title, body });
         onChange(next.title, next.body);
-        setResult({ ...res, checked: `${next.title}\n${next.body}`, removed: true });
+        setResult({ ...res, checked: `${next.title}\n${next.body}`, removed: true, rewritten: !!res.rewrite });
       } else {
         setBefore(null);
-        setResult({ ...res, checked: copy, removed: false });
+        setResult({ ...res, checked: copy, removed: false, rewritten: false });
       }
     } catch {
       // api() already showed the reason as a toast
@@ -71,7 +73,7 @@ export function AiCheck({ id, title, body, onChange }: {
         </Button>
       </div>
       <p className="text-muted-foreground -mt-1 text-[12px] leading-[18px]">
-        Finds names and disguised details the automatic check can miss, and swaps them for neutral wording in the copy below.
+        Finds names and disguised details the automatic check can miss, and rewrites the copy below without them.
         Nothing is published until you choose Publish.
       </p>
 
@@ -91,7 +93,9 @@ export function AiCheck({ id, title, body, onChange }: {
                 ? "AIRA found nothing identifying"
                 : remaining.length
                   ? `AIRA: ${remaining.length} possible ${remaining.length === 1 ? "identifier is" : "identifiers are"} still in the copy`
-                  : result.removed
+                  : result.rewritten
+                    ? `AIRA rewrote the copy without ${result.findings.length} identifying ${result.findings.length === 1 ? "detail" : "details"}. Read it before you publish.`
+                    : result.removed
                     ? `AIRA removed ${result.findings.length} identifying ${result.findings.length === 1 ? "detail" : "details"}. Read the copy before you publish.`
                     : "Everything AIRA found is out of the copy"}
             </p>
@@ -108,7 +112,7 @@ export function AiCheck({ id, title, body, onChange }: {
                 return (
                   <li key={f.text} className="min-w-0 break-words">
                     {f.kind}: <span className={cn("font-mono", !left && "text-muted-foreground line-through")}>{f.text}</span>
-                    {result.removed && !left ? <> → <span className="font-medium">{f.replacement}</span></> : null}
+                    {result.removed && !result.rewritten && !left ? <> → <span className="font-medium">{f.replacement}</span></> : null}
                     <span className="text-muted-foreground"> · {f.reason}</span>
                   </li>
                 );
