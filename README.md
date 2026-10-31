@@ -29,7 +29,7 @@ shared learning that improves Azentio's products.**
 
 <p>
   <a href="tests/security.test.mjs"><img alt="API security tests: 44 passing" src="https://img.shields.io/badge/API_security_tests-44_passing-2ed88e?style=flat-square"></a>
-  <a href="tests/unit.test.mjs"><img alt="Unit tests: 7 passing" src="https://img.shields.io/badge/unit_tests-7_passing-2ed88e?style=flat-square"></a>
+  <a href="tests/unit.test.mjs"><img alt="Unit tests: 8 passing" src="https://img.shields.io/badge/unit_tests-8_passing-2ed88e?style=flat-square"></a>
   <a href=".github/workflows/ci.yml"><img alt="CI on every pull request" src="https://img.shields.io/badge/CI-every_pull_request-16303d?style=flat-square&logo=githubactions&logoColor=white"></a>
   <img alt="Built at Azentio.ai Build Labs 2026" src="https://img.shields.io/badge/built_at-Azentio.ai_Build_Labs_2026-55ffbe?style=flat-square&labelColor=16303d">
 </p>
@@ -85,7 +85,7 @@ everyone can check that the server enforces every rule. Even Azentio's portal ad
 | --- | --- |
 | 🔐 **Access decided on the server, every request** | One deny-by-default `authorize()` decides every action from the active membership's roles. Another organisation's record answers `404`, even through a direct API call. The UI only hides what the server would refuse anyway. |
 | ✅ **Private by default, consent per purpose** | Saving never shares. Publishing a shared copy, showing the organisation's name and future model training are separate consents with history. Joining a workspace is never consent. |
-| 🪪 **The shared copy is a different record** | Moderators publish a reviewed copy with no tenant, author or notes in it, and the region and industry start general. Publication is blocked while any field still holds an email, phone, account number, PAN or IBAN, and AIRA points out names and disguised identifiers that pattern checks can't see. |
+| 🪪 **The shared copy is a different record** | Moderators publish a reviewed copy with no tenant, author or notes in it, and the region and industry start general. Publication is blocked while any field still holds an email, phone, account number, PAN or IBAN, and one click on **Remove identifiers with AIRA** swaps names and disguised details the patterns can't see for neutral wording, with every change listed for the moderator to check or undo. |
 | 🧹 **Withdrawal means gone** | Withdrawing removes the contribution from the feed, search, filters and every AIRA summary of its theme, in one transaction. The retention policy and withdrawal SLA are in [SECURITY.md](SECURITY.md#data-retention-and-withdrawal). |
 | 👥 **Small numbers stay hidden** | A theme needs contributions from at least three distinct organisations before any count, evidence or summary is shown, and a filter value is only offered once it covers that many. |
 | 🤖 **AI that can only say what the evidence shows** | AIRA summarises approved copies only, answers in a validated schema, and every quote must appear word for word in its source (no fuzzy matching). A summary that can't be backed, or whose evidence changed while AIRA was reading, is thrown away. |
@@ -229,7 +229,7 @@ npm run dev    # http://localhost:3000: creates and seeds an embedded Postgres i
 
 | Command | What it does |
 |---|---|
-| `npm test` | Unit tests: sensitive-content scanner, verbatim quote check, AI finding check, redirect checks, session idle timeout, audit hash chain |
+| `npm test` | Unit tests: sensitive-content scanner, verbatim quote check, AI finding check, identifier removal, redirect checks, session idle timeout, audit hash chain |
 | `npm run test:security` | With the dev server running: the 44 API security tests |
 | `npm run attack` | Fifteen common attacks against the live site (or `npm run attack -- http://localhost:3000`), each reported as blocked or not |
 | `npm run typecheck && npm run lint` | Type and lint checks, as in CI |

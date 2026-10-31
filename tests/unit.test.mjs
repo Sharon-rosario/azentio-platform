@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { applyRedactions, safeReplacement } from "../src/lib/redact.ts";
 import { safePath } from "../src/lib/safe-path.ts";
 import { GENESIS, rowHash, verifyChain } from "../src/server/audit-chain.ts";
 import { isIdle, needsTouch } from "../src/server/session-policy.ts";
@@ -40,6 +41,25 @@ test("locate keeps an AI identifier finding only when it is really in the copy, 
   assert.equal(locate("Kestrel Finance", copy), null, "a name that isn't in the copy is dropped");
   assert.equal(locate("sara@meridian.example", copy), null, "the model's tidied-up version doesn't count");
   assert.equal(locate(" ", copy), null);
+});
+
+test("removing identifiers replaces exactly what was found, and AI wording that would identify someone is refused", () => {
+  const changes = [
+    { text: "kestrelfinance", replacement: "a lender" },
+    { text: "rbi.desk@kestrelfinance.example", replacement: "[contact removed]" },
+    { text: "Meridian Bank", replacement: "a mid-size bank" },
+  ];
+  assert.equal(
+    applyRedactions("meridian bank saw it; mail rbi.desk@kestrelfinance.example. Meridian Bank agrees.", changes),
+    "A mid-size bank saw it; mail [contact removed]. A mid-size bank agrees.",
+    "every occurrence in any case, the email before the name inside it, and capitalised at a sentence start",
+  );
+  assert.equal(applyRedactions("Cost was $5", [{ text: "Cost", replacement: "$& price" }]), "$& price was $5", "replacement is literal text");
+  const flagged = (t) => scan(t).length > 0;
+  assert.equal(safeReplacement("the onboarding desk", "[contact removed]", ["ops@bank.example"], flagged), "the onboarding desk");
+  assert.equal(safeReplacement("Meridian's team", "a financial institution", ["Meridian"], flagged), "a financial institution", "repeats the identifier");
+  assert.equal(safeReplacement("call 98765 43210", "[contact removed]", [], flagged), "[contact removed]", "the scanner flags it");
+  assert.equal(safeReplacement("  ", "[number removed]", [], flagged), "[number removed]");
 });
 
 test("safePath allows same-origin paths only (no open redirect)", () => {

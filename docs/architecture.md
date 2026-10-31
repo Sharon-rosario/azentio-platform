@@ -137,10 +137,11 @@ src/
     content.ts       audience- and entitlement-filtered content, public forms
     scan.ts          sensitive-content detector (emails, phones, account numbers, PAN, IBAN)
     evidence.ts      quote verification for AIRA citations, and locating AI identifier findings
-    ai-check.ts      AIRA's advisory identifier check for moderators (names, disguised details)
+    ai-check.ts      AIRA's advisory identifier check and removal for moderators (names, disguised details)
     llm.ts           schema-constrained model calls, fail closed
     audit.ts         append-only audit rows and in-app notifications
     db.ts, seed.ts   Postgres data layer, RLS lockdown and synthetic seed
+  lib/redact.ts      replaces the identifiers AIRA found with checked neutral wording (client and server)
   lib/safe-path.ts   same-origin redirect check
   components/        UI (design system in src/app/globals.css)
 tests/

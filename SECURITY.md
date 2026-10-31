@@ -147,6 +147,12 @@ server for every request, not by what the interface chooses to show.
   only for `moderation.review`, only on an item under review, and it is advisory: it never blocks or publishes, and if
   the model is unavailable the review works as before. A finding is shown only if its text is really in the copy, and
   the audit row records counts, never the text (`ai-check.ts`).
+- **Remove identifiers (moderation):** the same check, with neutral wording for each finding ("a mid-size bank").
+  The model never rewrites the copy: the browser replaces exactly the words it found, longest first
+  (`applyRedactions()` in `lib/redact.ts`), and wording that repeats an identifier or trips the scanner falls back to
+  a placeholder such as "[contact removed]" (`safeReplacement()`). Anything the scanner flags is replaced too. The
+  result lands in the moderator's editable copy with every change listed and an Undo; nothing is published until
+  the moderator chooses Publish, and the scanner still blocks publication.
 
 ## Threat model (STRIDE)
 
