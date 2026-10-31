@@ -82,3 +82,10 @@ export async function createRequest(kind: "demo" | "hackathon", input: { name?: 
     return id;
   });
 }
+
+/** The public forms' inbox, newest first. Shown to the portal administrator for now (`requests.read`). */
+export async function listRequests(p: Principal | null) {
+  authorize(p, "requests.read");
+  return all<{ id: number; kind: "demo" | "hackathon"; name: string; email: string; company: string | null; message: string | null; created_at: string }>(
+    "select id, kind, name, email, company, message, created_at from requests order by created_at desc, id desc limit 100");
+}

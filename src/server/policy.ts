@@ -22,7 +22,8 @@ const GRANTS: Record<Role, string[]> = {
   moderator: ["moderation.review", "reports.decide", "themes.synthesize", "themes.counts"],
   publisher: ["content.publish"],
   // Administers organisations and roles. Deliberately no right to read client observations: that needs moderation.
-  portal_admin: ["admin.orgs", "admin.roles", "admin.audit"],
+  // Also reads the public demo requests and hackathon registrations for now, until an events role owns them.
+  portal_admin: ["admin.orgs", "admin.roles", "admin.audit", "requests.read"],
   client_member: ["content.client", "observations.write", "observations.org", "shared.read", "themes.read", "ideas.read", "reports.create"],
   client_admin: ["content.client", "observations.write", "observations.org", "shared.read", "themes.read", "ideas.read", "reports.create",
     "members.manage"],

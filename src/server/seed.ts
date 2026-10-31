@@ -129,6 +129,18 @@ export async function seed(exec: Exec) {
       kind, slug, title, summary, audience, product, starts, at(30));
   }
 
+  // Public form entries (synthetic, .example addresses), so the admin's inbox isn't empty on a fresh start.
+  const requests: [string, string, string, string | null, string, number][] = [
+    ["hackathon", "Ananya Iyer", "ananya.iyer@student.example", "RV College of Engineering",
+      "Team of three, keen on the document-processing challenge. Will there be a remote option?", 2],
+    ["demo", "Karthik Menon", "karthik.menon@lakeshorecoop.example", "Lakeshore Co-operative Bank",
+      "We'd like to see SME Credit Decisioning on seasonal borrowers.", 5],
+    ["hackathon", "Farah Siddiqui", "farah.s@devmail.example", null, "Solo developer, interested in fraud and anomaly detection.", 9],
+  ];
+  for (const [kind, name, email, company, message, days] of requests) {
+    await ins("insert into requests (kind,name,email,company,message,created_at) values (?,?,?,?,?,?)", kind, name, email, company, message, at(days));
+  }
+
   await ins("insert into themes (name,offering,description) values (?,?,?)", "Seasonality context", "sme-credit-decisioning",
     "Seasonal businesses judged on short windows look like they are deteriorating.");
   await ins("insert into themes (name,offering,description) values (?,?,?)", "New-to-credit evidence", "credit-strategy-simulator",

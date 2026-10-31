@@ -41,6 +41,7 @@ server for every request, not by what the interface chooses to show.
 | Withdrawn and superseded shared copies | As records, never shown again | Keeps moderation decisions auditable |
 | Moderation decisions and reports | With their records | Accountability for what was published |
 | Audit log | Append-only, hash-chained | Tamper evidence for every state change |
+| Demo requests and hackathon registrations | Until followed up; read only by the portal administrator for now (`requests.read`) | Contact details the visitor chose to send; the sender's IP is kept only as a keyed hash for rate limiting |
 
 ### Retention periods
 
@@ -173,7 +174,7 @@ server for every request, not by what the interface chooses to show.
 
 ## Verification
 
-`tests/security.test.mjs` is a black-box suite of 43 tests that signs in as different personas and calls the API
+`tests/security.test.mjs` is a black-box suite of 44 tests that signs in as different personas and calls the API
 directly, the way an attacker would: cross-tenant reads and writes, private-draft access within an organisation, role
 escalation, moderator and administrator boundaries, feed payload contents, workspace switching, theme suppression, the
 full publish-and-withdraw flow, report and versioning edge cases (a withdrawn or superseded copy can't be restored,
@@ -188,7 +189,7 @@ and a forged session.
 
 ```bash
 npm run dev            # in one terminal
-npm run test:security  # in another: 43 passing
+npm run test:security  # in another: 44 passing
 npm run attack         # the live site: 15 of 15 attacks blocked
 ```
 
