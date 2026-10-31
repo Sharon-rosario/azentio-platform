@@ -54,7 +54,8 @@ const SECTIONS: Section[] = [
     title: "AI governance",
     lead: "AIRA, the portal's AI assistant, works only from approved material and must show its evidence.",
     points: [
-      <>AIRA sees <b>approved, de-identified shared copies only</b>: never drafts, originals or another organisation&apos;s private data.</>,
+      <>AIRA&apos;s summaries use <b>approved, de-identified shared copies only</b>: never drafts, originals or another organisation&apos;s private data.</>,
+      <>Its one other task helps the moderator: it reads <b>only the copy about to be published</b> for names and disguised details. It advises; it never publishes.</>,
       <>Its output is <b>structured and validated</b> against a schema before anything is used.</>,
       <>Every quote it cites is <b>checked word for word</b> against the contribution it claims to come from. Quotes that don&apos;t match are dropped.</>,
       <>A summary that no verified quote supports is <b>discarded, not saved</b>.</>,

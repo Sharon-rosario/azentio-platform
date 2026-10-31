@@ -124,9 +124,11 @@ server for every request, not by what the interface chooses to show.
 
 ## AI governance (AIRA)
 
-- **Input boundary:** AIRA only ever receives *published, de-identified shared copies* of a theme that already meets the
-  organisation threshold. Private drafts, organisation-only records, tenant identifiers and moderator notes are never
-  sent to the model.
+- **Input boundary:** for theme summaries, AIRA only ever receives *published, de-identified shared copies* of a theme
+  that already meets the organisation threshold. Private drafts, organisation-only records, tenant identifiers and
+  moderator notes are never sent to the model. The one exception is the moderator's identifier check (below): it sends
+  only the title and text of the copy a moderator is about to publish, for an item its author submitted with consent to
+  publish a reviewed copy, plus the client organisations' names so short forms of them can be spotted.
 - **Prompt-injection resistance:** contributions are passed as delimited data blocks, the model has no tools beyond
   returning a structured answer, and its output can't trigger any action.
 - **Structured output:** responses are constrained to a JSON Schema (from zod) and re-validated before use; anything
@@ -139,6 +141,11 @@ server for every request, not by what the interface chooses to show.
   labelled as AIRA's and shown beside the quoted evidence; it is input for a product team, not a finding.
 - **Lifecycle:** a summary citing a withdrawn or reported contribution is cleared in the same transaction.
 - **Disclosure:** AI output is labelled in the interface with the model and generation time.
+- **Identifier check (moderation):** a moderator can ask AIRA to read the copy they are about to publish for names and
+  identifiers written to dodge the pattern scanner ("name dot surname at mail", spaced or spelled-out digits). It runs
+  only for `moderation.review`, only on an item under review, and it is advisory: it never blocks or publishes, and if
+  the model is unavailable the review works as before. A finding is shown only if its text is really in the copy, and
+  the audit row records counts, never the text (`ai-check.ts`).
 
 ## Threat model (STRIDE)
 

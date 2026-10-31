@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { confirm } from "@/components/confirm";
 import { FormDialog, SelectField, TextareaField, TextField, zodResolver } from "@/components/form-dialog";
+import { AiCheck } from "@/components/learning/ai-check";
 import { Panel } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -110,6 +111,8 @@ export function ReviewForm({
             </ul>
           </div>
         )}
+
+        <AiCheck id={id} title={title ?? ""} body={body ?? ""} />
 
         <TextField form={form} name="title" label="Title" maxLength={140} />
         <TextareaField form={form} name="body" label="Text" maxLength={4000} rows={8} />

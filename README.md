@@ -73,7 +73,7 @@ everyone can check that the server enforces every rule. Even Azentio's portal ad
   of its theme, in one transaction. The retention policy and withdrawal SLA are in [SECURITY.md](SECURITY.md#data-retention-and-withdrawal).
 - **Small numbers stay hidden.** A theme needs contributions from at least three distinct organisations before any
   count, evidence or summary is shown, and a filter value is only offered once it covers that many.
-- **AI that can only say what the evidence shows.** AIRA reads approved copies only, answers in a validated schema, and
+- **AI that can only say what the evidence shows.** AIRA summarises approved copies only, answers in a validated schema, and
   every quote must appear word for word in its source (no fuzzy matching). A summary that can't be backed, or whose
   evidence changed while AIRA was reading, is thrown away.
 

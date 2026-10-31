@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { safePath } from "../src/lib/safe-path.ts";
 import { GENESIS, rowHash, verifyChain } from "../src/server/audit-chain.ts";
 import { isIdle, needsTouch } from "../src/server/session-policy.ts";
-import { verbatim } from "../src/server/evidence.ts";
+import { locate, verbatim } from "../src/server/evidence.ts";
 import { scan } from "../src/server/scan.ts";
 
 test("scan flags identifiers that must not reach the shared feed", () => {
@@ -30,6 +30,16 @@ test("verbatim keeps a quote only when its words are in the source, and returns 
   assert.equal(verbatim("scorecards do treat a single low quarter", source), null, "a dropped 'not' is a different claim");
   assert.equal(verbatim("the bank lost money on every seasonal loan", source), null);
   assert.equal(verbatim("seasonal businesses get declined", source), null, "quotes under five words prove nothing");
+});
+
+test("locate keeps an AI identifier finding only when it is really in the copy, in the copy's own characters", () => {
+  const copy = "Ask Sara at Meridian Bank, or write to s a r a (at) meridian [dot] example. Call nine 8 7 6 5 - 4 3 2 1 0.";
+  assert.equal(locate("meridian bank", copy), "Meridian Bank");
+  assert.equal(locate("s a r a (at) meridian [dot] example", copy), "s a r a (at) meridian [dot] example");
+  assert.equal(locate("nine 8 7 6 5 - 4 3 2 1 0", copy), "nine 8 7 6 5 - 4 3 2 1 0");
+  assert.equal(locate("Kestrel Finance", copy), null, "a name that isn't in the copy is dropped");
+  assert.equal(locate("sara@meridian.example", copy), null, "the model's tidied-up version doesn't count");
+  assert.equal(locate(" ", copy), null);
 });
 
 test("safePath allows same-origin paths only (no open redirect)", () => {
